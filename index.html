@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#5A2A82">
+<title>Proclama</title>
+<link rel="icon" href="iconos/favicon.ico">
+<link rel="apple-touch-icon" href="iconos/icon-180.png">
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ivory:#F5F3FB;--ivory-2:#EFEBF8;--surface:#FFFFFF;
+    --royal:#5A2A82;--royal-deep:#3A1A5E;--royal-soft:#EBE3F4;
+    --gold:#C6A053;--gold-deep:#A9823A;--gold-soft:#E7D4A0;
+    --ink:#241733;--body:#4A4458;--muted:#9089A0;--line:#E7E2F1;--ruby:#C0334D;
+    --shadow:0 1px 2px rgba(58,26,94,.04),0 8px 24px rgba(58,26,94,.07);
+    --gold-grad:linear-gradient(135deg,#B8893B 0%,#E6C878 45%,#C9A24B 100%);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{font-family:'Inter',system-ui,sans-serif;background:var(--ivory);color:var(--body);
+    -webkit-font-smoothing:antialiased;overflow:hidden}
+  input,button,select,textarea{font-family:inherit}
+  input,textarea,select{font-size:16px}
+  button{cursor:pointer}
+  ::-webkit-scrollbar{width:10px;height:10px}
+  ::-webkit-scrollbar-thumb{background:#d8d0e6;border-radius:10px;border:2px solid transparent;background-clip:padding-box}
+  ::-webkit-scrollbar-thumb:hover{background:#c4b8da;background-clip:padding-box}
+
+  body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+    background:radial-gradient(900px 600px at 12% -10%,rgba(90,42,130,.08),transparent 60%),
+      radial-gradient(800px 600px at 100% 110%,rgba(198,160,83,.10),transparent 55%)}
+
+  /* ===== Intro ===== */
+  #splash{position:fixed;inset:0;z-index:200;display:grid;place-items:center;
+    background:radial-gradient(120% 120% at 50% 42%,#FBF9FF 0%,#F1ECFA 60%,#E9E1F4 100%);
+    transition:opacity .9s ease,visibility .9s ease}
+  #splash.hide{opacity:0;visibility:hidden}
+  .splash-inner{display:flex;flex-direction:column;align-items:center;gap:24px}
+  .splash-tile{width:94px;height:94px;border-radius:24px;background:var(--gold-grad);display:grid;place-items:center;
+    box-shadow:0 0 0 7px rgba(255,255,255,.6),0 16px 40px rgba(169,130,58,.4);
+    opacity:0;transform:scale(.62);animation:tile-in 1s cubic-bezier(.2,.9,.2,1) .1s forwards}
+  .splash-tile svg{width:48px;height:48px;opacity:0;transform:translateY(6px);animation:cross-in .8s ease .45s forwards}
+  @keyframes tile-in{to{opacity:1;transform:scale(1)}}@keyframes cross-in{to{opacity:1;transform:translateY(0)}}
+  .wordmark{font-family:'Fraunces',serif;font-weight:500;font-size:56px;letter-spacing:.4px;color:var(--ink);
+    opacity:0;transform:translateY(14px);animation:word-in 1s ease .55s forwards}
+  .tagline{font-size:13px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);opacity:0;animation:fade-in .9s ease .9s forwards}
+  @keyframes word-in{to{opacity:1;transform:translateY(0)}}@keyframes fade-in{to{opacity:1}}
+
+  /* ===== App shell ===== */
+  .app{position:relative;z-index:1;height:100vh;display:grid;grid-template-rows:auto 1fr auto;opacity:0}
+  .app.show{animation:app-in .7s ease forwards}
+  @keyframes app-in{to{opacity:1}}
+
+  .topbar{display:flex;align-items:center;gap:16px;padding:0 20px;height:60px;
+    background:rgba(255,255,255,.75);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+  .brand{display:flex;align-items:center;gap:10px}
+  .brand .mark{width:34px;height:34px;border-radius:10px;background:var(--gold-grad);display:grid;place-items:center;
+    box-shadow:0 4px 12px rgba(169,130,58,.35)}
+  .brand .mark svg{width:19px;height:19px}
+  .brand .name{font-family:'Fraunces',serif;font-weight:500;font-size:22px;color:var(--ink)}
+  .crumb{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:8px}
+  .crumb b{color:var(--royal);font-weight:600}
+  .crumb::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--gold)}
+  .top-actions{margin-left:auto;display:flex;align-items:center;gap:8px}
+  .tbtn{display:flex;align-items:center;gap:7px;height:38px;padding:0 13px;border-radius:10px;border:1px solid var(--line);
+    background:#fff;color:var(--body);font-size:13px;font-weight:500;transition:all .16s}
+  .tbtn:hover{border-color:var(--royal);color:var(--royal)}
+  .tbtn.on{background:var(--royal);color:#fff;border-color:var(--royal)}
+  .tbtn .dot{width:8px;height:8px;border-radius:50%;background:#cfc7dd}
+  .tbtn.on .dot{background:#7DE0A0;animation:pulse 2s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(125,224,160,.55)}70%{box-shadow:0 0 0 6px rgba(125,224,160,0)}100%{box-shadow:0 0 0 0 rgba(125,224,160,0)}}
+  .tbtn svg{width:15px;height:15px}
+
+  .main{display:grid;grid-template-columns:88px 1fr 372px;min-height:0;overflow:hidden}
+  .rail{background:rgba(255,255,255,.55);border-right:1px solid var(--line);padding:14px 0;display:flex;flex-direction:column;gap:4px;align-items:center}
+  .rail-item{width:64px;padding:10px 0;border-radius:13px;display:flex;flex-direction:column;align-items:center;gap:5px;
+    color:var(--muted);transition:all .16s;position:relative;background:none;border:0}
+  .rail-item span{font-size:10px;font-weight:600}
+  .rail-item svg{width:21px;height:21px}
+  .rail-item:hover{background:var(--royal-soft);color:var(--royal)}
+  .rail-item.active{background:linear-gradient(135deg,#5A2A82,#4A1E73);color:#fff;box-shadow:0 8px 18px rgba(90,42,130,.28)}
+  .rail-item.active::after{content:"";position:absolute;left:-14px;top:50%;transform:translateY(-50%);width:4px;height:24px;border-radius:0 4px 4px 0;background:var(--gold-grad)}
+  .rail-spacer{flex:1}
+
+  .workspace{padding:20px 24px;overflow-y:auto;min-height:0}
+  .module{display:none}.module.active{display:block}
+  .ws-head{display:flex;align-items:baseline;gap:14px;margin-bottom:16px;flex-wrap:wrap}
+  .ws-title{font-family:'Fraunces',serif;font-size:28px;font-weight:500;color:var(--ink)}
+  .ws-sub{font-size:13px;color:var(--muted)}
+  .ws-actions{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+
+  .vchip{height:32px;padding:0 13px;border-radius:999px;border:1px solid var(--line);background:#fff;font-size:12.5px;font-weight:600;color:var(--body);transition:all .14s}
+  .vchip:hover{border-color:var(--gold)}
+  .vchip.active{background:var(--gold-grad);border-color:transparent;color:#3a2a08;box-shadow:0 4px 12px rgba(169,130,58,.3)}
+  .vchip.add{border-style:dashed;color:var(--muted)}
+
+  .btn{height:40px;padding:0 16px;border-radius:11px;border:1px solid var(--line);background:#fff;color:var(--body);font-size:13.5px;font-weight:600;transition:all .16s;display:inline-flex;align-items:center;gap:8px}
+  .btn:hover{border-color:var(--royal);color:var(--royal)}
+  .btn svg{width:16px;height:16px}
+  .btn.primary{background:linear-gradient(135deg,#5A2A82,#4A1E73);color:#fff;border-color:transparent;box-shadow:0 6px 16px rgba(90,42,130,.28)}
+  .btn.primary:hover{color:#fff;transform:translateY(-1px)}
+  .btn.gold{background:var(--gold-grad);color:#3a2a08;border-color:transparent}
+  .btn.sm{height:32px;padding:0 11px;font-size:12px;border-radius:9px}
+  .btn.ghost{background:transparent;border-color:transparent;color:var(--muted)}
+  .btn.ghost:hover{background:var(--royal-soft)}
+
+  .search{display:flex;gap:10px;margin-bottom:16px}
+  .field{flex:1;display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:0 14px;height:46px;box-shadow:var(--shadow)}
+  .field svg{width:18px;height:18px;color:var(--muted);flex-shrink:0}
+  .field input{border:0;outline:0;color:var(--ink);background:transparent;width:100%}
+  .field input::placeholder{color:var(--muted)}
+  .seg{display:flex;background:var(--ivory-2);border-radius:12px;padding:4px}
+  .seg button{border:0;background:transparent;font-size:12.5px;font-weight:600;color:var(--muted);padding:0 14px;border-radius:9px;transition:all .14s}
+  .seg button.on{background:#fff;color:var(--royal);box-shadow:var(--shadow)}
+
+  .verse-grid{display:grid;grid-template-columns:220px 84px 1fr;gap:14px}
+  .panel{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column;min-height:0}
+  .panel-h{padding:11px 14px;font-size:10.5px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--line)}
+  .panel-h .gold{color:var(--gold-deep)}
+  .panel-body{overflow-y:auto;padding:6px;max-height:62vh}
+  .testament{padding:8px 9px 4px;font-family:'Fraunces',serif;font-style:italic;font-size:13px;color:var(--royal);font-weight:500}
+  .book{display:flex;justify-content:space-between;align-items:center;padding:8px 11px;border-radius:9px;font-size:13.5px;color:var(--body);transition:background .12s}
+  .book:hover{background:var(--ivory)}
+  .book.sel{background:var(--royal-soft);color:var(--royal);font-weight:600}
+  .book small{color:var(--muted);font-size:11px}
+  .chap-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;padding:3px}
+  .chap{aspect-ratio:1;display:grid;place-items:center;border-radius:8px;font-size:12.5px;font-weight:600;color:var(--body);transition:all .12s;background:var(--ivory);border:0}
+  .chap:hover{background:var(--royal-soft);color:var(--royal)}
+  .chap.sel{background:var(--gold-grad);color:#3a2a08}
+  .verse{display:flex;gap:11px;padding:11px 13px;border-radius:11px;transition:background .12s;font-size:14.5px;line-height:1.55;color:var(--body);text-align:left;background:none;border:0;width:100%}
+  .verse:hover{background:var(--ivory)}
+  .verse .vn{font-family:'Fraunces',serif;font-weight:600;color:var(--gold-deep);flex-shrink:0;min-width:24px}
+  .verse.sel{background:linear-gradient(135deg,rgba(90,42,130,.07),rgba(198,160,83,.09));box-shadow:inset 0 0 0 1.5px rgba(90,42,130,.25)}
+  .verse.sel .vn{color:var(--royal)}
+  .verse mark{background:rgba(198,160,83,.4);color:inherit;border-radius:3px;padding:0 2px}
+  .hint{margin-top:13px;display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted);flex-wrap:wrap}
+  .kbd{font-size:11px;font-weight:600;color:var(--royal);background:#fff;border:1px solid var(--line);border-bottom-width:2px;border-radius:6px;padding:3px 7px}
+
+  /* Cards / grids (banners, sermones, fondos) */
+  .tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:14px}
+  .tile{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:var(--shadow);transition:all .16s;position:relative}
+  .tile:hover{transform:translateY(-3px);box-shadow:0 14px 30px rgba(58,26,94,.14)}
+  .tile .thumb{aspect-ratio:16/9;background:#241733 center/cover no-repeat;display:block;width:100%;border:0}
+  .tile .meta{padding:9px 11px}
+  .tile .meta .t{font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tile .meta .s{font-size:11px;color:var(--muted);margin-top:2px}
+  .tile .acts{position:absolute;top:7px;right:7px;display:flex;gap:5px;opacity:0;transition:opacity .14s}
+  .tile:hover .acts{opacity:1}
+  .iconbtn{width:28px;height:28px;border-radius:8px;border:0;background:rgba(255,255,255,.92);display:grid;place-items:center;box-shadow:var(--shadow);color:var(--body)}
+  .iconbtn:hover{color:var(--royal)}
+  .iconbtn.danger:hover{color:var(--ruby)}
+  .iconbtn svg{width:15px;height:15px}
+
+  .empty{text-align:center;padding:54px 20px;color:var(--muted)}
+  .empty svg{width:46px;height:46px;color:#cfc7dd;margin-bottom:12px}
+  .empty h3{font-family:'Fraunces',serif;font-size:19px;color:var(--ink);font-weight:500;margin-bottom:6px}
+  .empty p{font-size:13.5px;max-width:360px;margin:0 auto 16px;line-height:1.5}
+
+  /* Sermones list */
+  .sermon{background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);margin-bottom:12px;overflow:hidden}
+  .sermon-h{display:flex;align-items:center;gap:12px;padding:14px 16px}
+  .sermon-h .ic{width:42px;height:42px;border-radius:11px;background:var(--royal-soft);display:grid;place-items:center;color:var(--royal);flex-shrink:0}
+  .sermon-h .ic svg{width:21px;height:21px}
+  .sermon-h .info{flex:1;min-width:0}
+  .sermon-h .info .t{font-size:15px;font-weight:600;color:var(--ink)}
+  .sermon-h .info .s{font-size:12px;color:var(--muted);margin-top:2px}
+  .sermon-pages{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:9px;padding:0 16px 16px}
+  .spage{aspect-ratio:16/9;border-radius:9px;background:#241733 center/cover no-repeat;border:2px solid transparent;position:relative}
+  .spage:hover{border-color:var(--royal)}
+  .spage .n{position:absolute;left:5px;top:4px;font-size:10px;font-weight:700;color:#fff;background:rgba(0,0,0,.45);padding:1px 6px;border-radius:6px}
+
+  /* Program rail */
+  .prograil{background:rgba(255,255,255,.62);border-left:1px solid var(--line);padding:16px;display:flex;flex-direction:column;gap:13px;overflow-y:auto}
+  .stage-h{display:flex;align-items:center;gap:8px;font-size:10.5px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;margin-bottom:7px}
+  .stage-h.prev{color:var(--royal)}.stage-h.prog{color:var(--ruby)}
+  .live-dot{width:9px;height:9px;border-radius:50%;background:var(--ruby);animation:pulse-r 1.8s infinite}
+  @keyframes pulse-r{0%{box-shadow:0 0 0 0 rgba(192,51,77,.5)}70%{box-shadow:0 0 0 6px rgba(192,51,77,0)}100%{box-shadow:0 0 0 0 rgba(192,51,77,0)}}
+  .stage-h .res{margin-left:auto;font-weight:600;color:var(--muted);font-size:10px}
+  .screen{position:relative;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#15101f;box-shadow:var(--shadow)}
+  .screen.prev{outline:2px solid rgba(90,42,130,.5)}
+  .screen.prog{outline:2px solid var(--ruby);box-shadow:0 10px 26px rgba(192,51,77,.2)}
+  .scr-bg{position:absolute;inset:0;background-size:cover;background-position:center}
+  .scr-ov{position:absolute;inset:0;background:#0a0614}
+  .scr-content{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:7% 9%}
+  .scr-content img{max-width:100%;max-height:100%;object-fit:contain}
+  .scr-text{display:flex;flex-direction:column;gap:.4em}
+  .scr-text .vt{line-height:1.4}
+  .scr-text .vr{font-family:'Inter';letter-spacing:2px;text-transform:uppercase;font-weight:600;font-size:.42em}
+  .send{display:flex;align-items:center;justify-content:center;gap:9px;height:42px;border:0;border-radius:11px;background:linear-gradient(135deg,#5A2A82,#4A1E73);color:#fff;font-weight:600;font-size:13.5px;box-shadow:0 8px 18px rgba(90,42,130,.3);transition:all .16s}
+  .send:hover{transform:translateY(-1px)}
+  .send svg{width:17px;height:17px}
+
+  .row{display:flex;align-items:center;gap:9px}
+  .tsel{flex:1;display:flex;align-items:center;justify-content:space-between;background:#fff;border:1px solid var(--line);border-radius:10px;padding:0 12px;height:36px;font-size:12.5px;font-weight:600;color:var(--body)}
+  .tsel select{border:0;background:none;font-weight:600;color:var(--body);outline:none}
+  .lbl{font-size:11px;color:var(--muted);font-weight:600}
+
+  .overlay-control{background:#fff;border:1px solid var(--line);border-radius:13px;padding:13px;box-shadow:var(--shadow)}
+  .oc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+  .oc-top label{font-size:10.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
+  .oc-val{font-family:'Fraunces',serif;font-weight:600;font-size:15px;color:var(--royal)}
+  input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:7px;border-radius:99px;background:var(--ivory-2);outline:none}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:22px;height:22px;border-radius:50%;background:#C9A24B;border:3px solid #fff;box-shadow:0 3px 10px rgba(169,130,58,.5)}
+  input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:#C9A24B;border:3px solid #fff;box-shadow:0 3px 10px rgba(169,130,58,.5)}
+  .oc-tools{display:flex;gap:8px;margin-top:12px}
+  .oc-tools button{flex:1;height:38px;border:1px solid var(--line);background:#fff;border-radius:10px;font-size:12.5px;font-weight:600;color:var(--body);transition:all .14s;display:flex;align-items:center;justify-content:center;gap:7px}
+  .oc-tools button:hover{border-color:var(--royal);color:var(--royal)}
+  .oc-tools button svg{width:15px;height:15px}
+
+  .footer{height:40px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.75);border-top:1px solid var(--line);font-size:12.5px;color:var(--muted)}
+  .footer .jc{font-family:'Fraunces',serif;font-style:italic;font-weight:600;font-size:1.22em;background:linear-gradient(135deg,#A9823A,#E6C878);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;padding:0 3px}
+
+  /* Modal */
+  .modal-bg{position:fixed;inset:0;z-index:120;background:rgba(36,23,51,.45);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:24px}
+  .modal-bg.show{display:flex}
+  .modal{background:#fff;border-radius:20px;box-shadow:0 30px 80px rgba(36,23,51,.35);width:100%;max-width:520px;max-height:88vh;overflow-y:auto}
+  .modal.wide{max-width:640px}
+  .modal-h{display:flex;align-items:center;gap:12px;padding:20px 22px 0}
+  .modal-h h2{font-family:'Fraunces',serif;font-size:22px;font-weight:500;color:var(--ink);flex:1}
+  .modal-b{padding:18px 22px 22px}
+  .modal-x{width:32px;height:32px;border-radius:9px;border:0;background:var(--ivory);color:var(--muted);display:grid;place-items:center}
+  .modal-x:hover{background:var(--royal-soft);color:var(--royal)}
+  .modal-x svg{width:17px;height:17px}
+  .form-row{margin-bottom:15px}
+  .form-row label{display:block;font-size:12.5px;font-weight:600;color:var(--ink);margin-bottom:7px}
+  .input{width:100%;height:44px;border:1px solid var(--line);border-radius:11px;padding:0 13px;color:var(--ink);outline:none;background:#fff}
+  .input:focus{border-color:var(--royal)}
+  textarea.input{height:auto;padding:11px 13px;resize:vertical;min-height:90px;font-size:16px;line-height:1.5}
+  .drop{border:2px dashed var(--line);border-radius:14px;padding:26px;text-align:center;color:var(--muted);transition:all .16s;cursor:pointer}
+  .drop:hover,.drop.over{border-color:var(--royal);background:var(--royal-soft);color:var(--royal)}
+  .drop svg{width:34px;height:34px;margin-bottom:8px}
+  .drop b{color:var(--royal)}
+  .modal-foot{display:flex;gap:10px;justify-content:flex-end;margin-top:8px}
+  .switch{position:relative;width:46px;height:26px;border-radius:99px;background:#d8d0e6;border:0;transition:background .16s;flex-shrink:0}
+  .switch.on{background:var(--royal)}
+  .switch::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .16s}
+  .switch.on::after{transform:translateX(20px)}
+  .setrow{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--line)}
+  .setrow:last-child{border-bottom:0}
+  .setrow .sr-info{flex:1}
+  .setrow .sr-info .t{font-size:14px;font-weight:600;color:var(--ink)}
+  .setrow .sr-info .s{font-size:12px;color:var(--muted);margin-top:2px}
+  .picker-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:6px;max-height:300px;overflow-y:auto}
+  .pick{aspect-ratio:16/9;border-radius:9px;background:#241733 center/cover no-repeat;border:2px solid transparent;position:relative}
+  .pick:hover{border-color:var(--royal)}
+  .pick.sel{border-color:var(--gold)}
+  .swatch{display:flex;gap:8px;align-items:center}
+  .swatch input[type=color]{width:46px;height:34px;border:1px solid var(--line);border-radius:8px;background:#fff;padding:2px}
+
+  .toast{position:fixed;bottom:54px;left:50%;transform:translateX(-50%) translateY(20px);z-index:300;background:var(--ink);color:#fff;padding:11px 18px;border-radius:12px;font-size:13.5px;font-weight:500;box-shadow:0 12px 30px rgba(0,0,0,.3);opacity:0;transition:all .25s;pointer-events:none}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  /* ===== Vista de proyección ===== */
+  #proyeccion{position:fixed;inset:0;z-index:1000;background:#000;display:none}
+  #proyeccion.on{display:block}
+  .pj-layer{position:absolute;inset:0;opacity:0;transition:opacity var(--tdur,.4s) ease}
+  .pj-layer.show{opacity:1}
+  .pj-bg{position:absolute;inset:0;background-size:cover;background-position:center}
+  .pj-ov{position:absolute;inset:0;background:#000}
+  .pj-content{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:6% 8%}
+  .pj-content img{max-width:100%;max-height:100%;object-fit:contain}
+  .pj-text{display:flex;flex-direction:column;gap:.5em;max-width:90%}
+  .pj-text .vr{font-family:'Inter';letter-spacing:3px;text-transform:uppercase;font-weight:600}
+  .pj-hint{position:absolute;left:50%;bottom:40px;transform:translateX(-50%);color:rgba(255,255,255,.8);font-size:18px;background:rgba(0,0,0,.5);padding:12px 22px;border-radius:14px;text-align:center}
+  .pj-hint b{color:#E7D4A0}
+
+  @media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important}}
+</style>
+</head>
+<body>
+
+<!-- ===================== VISTA DE PROYECCIÓN ===================== -->
+<div id="proyeccion">
+  <div class="pj-layer" id="pjA"><div class="pj-bg"></div><div class="pj-ov"></div><div class="pj-content"></div></div>
+  <div class="pj-layer" id="pjB"><div class="pj-bg"></div><div class="pj-ov"></div><div class="pj-content"></div></div>
+  <div class="pj-hint" id="pjHint">Arrastra esta ventana al proyector y presiona <b>F</b> para pantalla completa.</div>
+</div>
+
+<!-- ===================== INTRO ===================== -->
+<div id="splash">
+  <div class="splash-inner">
+    <div class="splash-tile"><svg viewBox="0 0 24 24"><path d="M10.4 2h3.2v5h5.4v3h-5.4v12h-3.2V10H5V7h5.4z" fill="#fff"/></svg></div>
+    <div class="wordmark">Proclama</div>
+    <div class="tagline">Proyección para el culto</div>
+  </div>
+</div>
+
+<!-- ===================== APP (CONTROL) ===================== -->
+<div class="app" id="app">
+  <header class="topbar">
+    <div class="brand">
+      <div class="mark"><svg viewBox="0 0 24 24"><path d="M10.4 2h3.2v5h5.4v3h-5.4v12h-3.2V10H5V7h5.4z" fill="#fff"/></svg></div>
+      <div class="name">Proclama</div>
+    </div>
+    <div class="crumb" id="crumb">Versículos</div>
+    <div class="top-actions">
+      <button class="tbtn" id="btnNegro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="14" rx="2"/></svg>Negro</button>
+      <button class="tbtn" id="btnLogo"><svg viewBox="0 0 24 24"><path d="M10.4 4h3.2v4h4.4v2.6h-4.4V20h-3.2V10.6H6V8h4.4z" fill="currentColor"/></svg>Logo</button>
+      <button class="tbtn" id="btnConfig"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2V21a2 2 0 0 1-4 0v-.1A1.7 1.7 0 0 0 7 19.3a1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0-1.2-2.9H1a2 2 0 0 1 0-4h.1A1.7 1.7 0 0 0 2.3 7a1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.7 1.7 0 0 0 7 2.6h.1A1.7 1.7 0 0 0 9 1V.9a2 2 0 0 1 4 0V1a1.7 1.7 0 0 0 2.9 1.2 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1A1.7 1.7 0 0 0 21.4 7h.1a2 2 0 0 1 0 4H21a1.7 1.7 0 0 0-1.6 1z" transform="translate(1 1.5) scale(.92)"/></svg></button>
+      <button class="tbtn on" id="btnProy"><span class="dot"></span>Proyección</button>
+    </div>
+  </header>
+
+  <div class="main">
+    <nav class="rail" id="rail">
+      <button class="rail-item active" data-mod="versiculos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 5a2 2 0 0 1 2-2h11a1 1 0 0 1 1 1v15a1 1 0 0 1-1 1H6a2 2 0 0 1-2-2V5z"/><path d="M4 17a2 2 0 0 1 2-2h12"/></svg><span>Versículos</span></button>
+      <button class="rail-item" data-mod="cantos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M9 18V6l11-2v12"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg><span>Cantos</span></button>
+      <button class="rail-item" data-mod="himnario"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3l2.5 5 5.5.8-4 3.9.9 5.5L12 21l-4.9 2.6.9-5.5-4-3.9 5.5-.8z" transform="scale(.85) translate(2 1)"/></svg><span>Himnario</span></button>
+      <button class="rail-item" data-mod="predicas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg><span>Predicas</span></button>
+      <button class="rail-item" data-mod="banners"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 15 5-4 4 3 3-2 6 4"/><circle cx="8" cy="10" r="1.4"/></svg><span>Banners</span></button>
+      <button class="rail-item" data-mod="servicio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg><span>Servicio</span></button>
+    </nav>
+
+    <section class="workspace">
+      <!-- VERSICULOS -->
+      <div class="module active" id="m-versiculos">
+        <div class="ws-head">
+          <div class="ws-title">Versículos</div>
+          <div class="ws-sub">Navega con ← → del teclado</div>
+          <div class="ws-actions" id="versionChips"></div>
+        </div>
+        <div class="search">
+          <div class="field">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+            <input id="verseSearch" placeholder="Referencia (ej. Juan 3:16) o una palabra…">
+          </div>
+          <div class="seg"><button class="on" data-mode="ref">Referencia</button><button data-mode="word">Palabra</button></div>
+        </div>
+        <div class="verse-grid" id="verseGrid">
+          <div class="panel"><div class="panel-h">Libros</div><div class="panel-body" id="booksPanel"></div></div>
+          <div class="panel"><div class="panel-h">Cap.</div><div class="panel-body" id="chapsPanel"></div></div>
+          <div class="panel"><div class="panel-h" id="versesHead">Versículos</div><div class="panel-body" id="versesPanel"></div></div>
+        </div>
+        <div id="wordResults" style="display:none"></div>
+        <div class="hint"><span class="kbd">←</span><span class="kbd">→</span> Cambia el versículo en vivo · <span class="kbd">Esc</span> Pantalla negra</div>
+      </div>
+
+      <!-- CANTOS (placeholder fase 2) -->
+      <div class="module" id="m-cantos">
+        <div class="ws-head"><div class="ws-title">Cantos</div><div class="ws-sub">WorshipSlides</div></div>
+        <div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 18V6l11-2v12"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg>
+          <h3>Próximamente</h3><p>El módulo de Cantos (WorshipSlides) se integrará en la siguiente fase. Por ahora puedes proyectar sus imágenes desde <b>Banners</b>.</p></div>
+      </div>
+      <!-- HIMNARIO (placeholder fase 2) -->
+      <div class="module" id="m-himnario">
+        <div class="ws-head"><div class="ws-title">Himnario</div><div class="ws-sub">Himnario de Victoria</div></div>
+        <div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3l2.5 5 5.5.8-4 3.9.9 5.5L12 21l-4.9 2.6.9-5.5-4-3.9 5.5-.8z"/></svg>
+          <h3>Próximamente</h3><p>El Himnario de Victoria se integrará en la siguiente fase. Por ahora puedes proyectar sus imágenes desde <b>Banners</b>.</p></div>
+      </div>
+
+      <!-- PREDICAS -->
+      <div class="module" id="m-predicas">
+        <div class="ws-head">
+          <div class="ws-title">Predicaciones</div>
+          <div class="ws-sub" id="predSub">Imágenes y PDF de los pastores</div>
+          <div class="ws-actions">
+            <button class="btn primary" id="btnAddSermon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Nueva predicación</button>
+          </div>
+        </div>
+        <div class="search">
+          <div class="field"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+            <input id="sermonSearch" placeholder="Filtrar por tema…"></div>
+          <div class="tsel" style="max-width:190px"><span class="lbl">Orden</span>
+            <select id="sermonSort"><option value="new">Más recientes</option><option value="old">Más antiguas</option><option value="tema">Tema (A–Z)</option></select></div>
+        </div>
+        <div id="sermonList"></div>
+      </div>
+
+      <!-- BANNERS -->
+      <div class="module" id="m-banners">
+        <div class="ws-head">
+          <div class="ws-title">Banners</div>
+          <div class="ws-sub">Anuncios e imágenes para proyectar</div>
+          <div class="ws-actions"><button class="btn primary" id="btnAddBanner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Subir imágenes</button></div>
+        </div>
+        <div id="bannerGrid"></div>
+      </div>
+
+      <!-- SERVICIO -->
+      <div class="module" id="m-servicio">
+        <div class="ws-head"><div class="ws-title">Servicio</div><div class="ws-sub">Tu lista en orden para el culto</div>
+          <div class="ws-actions"><button class="btn sm ghost" id="btnClearService">Vaciar lista</button></div></div>
+        <div id="serviceList"></div>
+      </div>
+    </section>
+
+    <!-- PROGRAM RAIL -->
+    <aside class="prograil">
+      <div>
+        <div class="stage-h prev">Vista previa <span class="res">1920 × 1080</span></div>
+        <div class="screen prev" id="previewScreen">
+          <div class="scr-bg"></div><div class="scr-ov"></div><div class="scr-content"></div>
+        </div>
+      </div>
+      <button class="send" id="btnSend">Enviar a vivo
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+      <div>
+        <div class="stage-h prog"><span class="live-dot"></span>En vivo <span class="res" id="proyStatus">PANTALLA 2</span></div>
+        <div class="screen prog" id="programScreen">
+          <div class="scr-bg"></div><div class="scr-ov"></div><div class="scr-content"></div>
+        </div>
+      </div>
+      <div class="row">
+        <span class="lbl">Transición</span>
+        <div class="tsel">
+          <select id="transTipo"><option value="fundido">Fundido</option><option value="corte">Corte</option></select>
+          <select id="transMs"><option value="250">0.25s</option><option value="400" selected>0.4s</option><option value="700">0.7s</option><option value="1000">1s</option></select>
+        </div>
+      </div>
+      <div class="overlay-control">
+        <div class="oc-top"><label>Capa oscura</label><span class="oc-val" id="ocVal">42%</span></div>
+        <input type="range" id="ocSlider" min="0" max="100" value="42">
+        <div class="oc-tools">
+          <button id="btnTexto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7V5h16v2M9 19h6M12 5v14"/></svg>Texto</button>
+          <button id="btnFondo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="m3 14 5-4 4 3 3-2 6 4"/><circle cx="8.5" cy="9" r="1.3"/></svg>Fondo</button>
+          <button id="btnAddToService" title="Agregar a la lista del servicio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg></button>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <footer class="footer">Diseñada para el servicio de nuestro Señor <span class="jc">Jesucristo</span> por David Ventura</footer>
+</div>
+
+<!-- MODAL container -->
+<div class="modal-bg" id="modalBg"><div class="modal" id="modal"></div></div>
+<div class="toast" id="toast"></div>
+<input type="file" id="filePick" style="display:none" multiple>
+
+<script>
+/* PROCLAMA - Fase 1 | App de proyeccion para el culto. Vanilla JS. */
+const SAMPLE = {"id":"rvr1909","version":"RVR 1909 (muestra)","abbr":"RVR 1909","books":[{"name":"Salmos","t":"AT","chapters":{"23":["JEHOVA es mi pastor; nada me faltará.","En lugares de delicados pastos me hará yacer: Junto á aguas de reposo me pastoreará.","Confortará mi alma; Guiárame por sendas de justicia por amor de su nombre.","Aunque ande en valle de sombra de muerte, No temeré mal alguno; porque tú estarás conmigo: Tu vara y tu cayado me infundirán aliento.","Aderezarás mesa delante de mí, en presencia de mis angustiadores: Ungiste mi cabeza con aceite: mi copa está rebosando.","Ciertamente el bien y la misericordia me seguirán todos los días de mi vida: Y en la casa de Jehová moraré por largos días."]}},{"name":"Juan","t":"NT","chapters":{"3":["Y HABIA un hombre de los Fariseos que se llamaba Nicodemo, príncipe de los Judíos.","Este vino á Jesús de noche, y díjole: Rabbí, sabemos que has venido de Dios por maestro; porque nadie puede hacer estas señales que tú haces, si no fuere Dios con él.","Respondió Jesús, y díjole: De cierto, de cierto te digo, que el que no naciere otra vez, no puede ver el reino de Dios.","Dícele Nicodemo: ¿Cómo puede el hombre nacer siendo viejo? ¿puede entrar otra vez en el vientre de su madre, y nacer?","Respondió Jesús: De cierto, de cierto te digo, que el que no naciere de agua y del Espíritu, no puede entrar en el reino de Dios.","Lo que es nacido de la carne, carne es; y lo que es nacido del Espíritu, espíritu es.","No te maravilles de que te dije: Os es necesario nacer otra vez.","El viento de donde quiere sopla, y oyes su sonido; mas ni sabes de dónde viene, ni á dónde vaya: así es todo aquel que es nacido del Espíritu.","Respondió Nicodemo, y díjole: ¿Cómo puede esto hacerse?","Respondió Jesús, y díjole: ¿Tú eres el maestro de Israel, y no sabes esto?","De cierto, de cierto te digo, que lo que sabemos hablamos, y lo que hemos visto, testificamos; y no recibís nuestro testimonio.","Si os he dicho cosas terrenas, y no creéis, ¿cómo creeréis si os dijere las celestiales?","Y nadie subió al cielo, sino el que descendió del cielo, el Hijo del hombre, que está en el cielo.","Y como Moisés levantó la serpiente en el desierto, así es necesario que el Hijo del hombre sea levantado;","Para que todo aquel que en él creyere, no se pierda, sino que tenga vida eterna.","Porque de tal manera amó Dios al mundo, que ha dado á su Hijo unigénito, para que todo aquel que en él cree, no se pierda, mas tenga vida eterna.","Porque no envió Dios á su Hijo al mundo, para que condene al mundo, mas para que el mundo sea salvo por él.","El que en él cree, no es condenado; mas el que no cree, ya es condenado, porque no creyó en el nombre del unigénito Hijo de Dios.","Y esta es la condenación: porque la luz vino al mundo, y los hombres amaron más las tinieblas que la luz; porque sus obras eran malas.","Porque todo aquel que hace lo malo, aborrece la luz y no viene á la luz, porque sus obras no sean redargüidas.","Mas el que obra verdad, viene á la luz, para que sus obras sean manifestadas que son hechas en Dios.","Pasado esto, vino Jesús con sus discípulos á la tierra de Judea; y estaba allí con ellos, y bautizaba.","Y bautizaba también Juan en Enón junto á Salim, porque había allí muchas aguas; y venían, y eran bautizados.","Porque Juan, no había sido aún puesto en la carcel.","Y hubo cuestión entre los discípulos de Juan y los Judíos acerca de la purificación.","Y vinieron á Juan, y dijéronle: Rabbí, el que estaba contigo de la otra parte del Jordán, del cual tú diste testimonio, he aquí bautiza, y todos vienen á él.","Respondió Juan, y dijo: No puede el hombre recibir algo, si no le fuere dado del cielo.","Vosotros mismos me sois testigos que dije: Yo no soy el Cristo, sino que soy enviado delante de él.","El que tiene la esposa, es el esposo; mas el amigo del esposo, que está en pie y le oye, se goza grandemente de la voz del esposo; así pues, este mi gozo es cumplido.","A él conviene crecer, mas á mí menguar.","El que de arriba viene, sobre todos es: el que es de la tierra, terreno es, y cosas terrenas habla: el que viene del cielo, sobre todos es.","Y lo que vió y oyó, esto testifica: y nadie recibe su testimonio.","El que recibe su testimonio, éste signó que Dios es verdadero.","Porque el que Dios envió, las palabras de Dios habla: porque no da Dios el Espíritu por medida.","El Padre ama al Hijo, y todas las cosas dió en su mano.","El que cree en el Hijo, tiene vida eterna; mas el que es incrédulo al Hijo, no verá la vida, sino que la ira de Dios está sobre él."]}},{"name":"Filipenses","t":"NT","chapters":{"4":["ASI que, hermanos míos amados y deseados, gozo y corona mía, estad así firmes en el Señor, amados.","A Euodias ruego, y á Syntychê exhorto, que sientan lo mismo en el Señor.","Asimismo te ruego también á ti, hermano compañero, ayuda á las que trabajaron juntamente conmigo en el evangelio, con Clemente también, y los demás mis colaboradores, cuyos nombres están en el libro de la vida.","Gozaos en el Señor siempre: otra vez digo: Que os gocéis.","Vuestra modestia sea conocida de todos los hombres. El Señor está cerca.","Por nada estéis afanosos; sino sean notorias vuestras peticiones delante de Dios en toda oración y ruego, con hacimiento de gracias.","Y la paz de Dios, que sobrepuja todo entendimiento, guardará vuestros corazones y vuestros entendimientos en Cristo Jesús.","Por lo demás, hermanos, todo lo que es verdadero, todo lo honesto, todo lo justo, todo lo puro, todo lo amable, todo lo que es de buen nombre; si hay virtud alguna, si alguna alabanza, en esto pensad.","Lo que aprendisteis y recibisteis y oísteis y visteis en mí, esto haced; y el Dios de paz será con vosotros.","Mas en gran manera me gocé en el Señor de que ya al fin ha reflorecido vuestro cuidado de mí; de lo cual aun estabais solícitos, pero os faltaba la oportunidad.","No lo digo en razón de indigencia, pues he aprendido á contentarme con lo que tengo.","Sé estar humillado, y sé tener abundancia: en todo y por todo estoy enseñado, así para hartura como para hambre, así para tener abundancia como para padecer necesidad.","Todo lo puedo en Cristo que me fortalece.","Sin embargo, bien hicisteis que comunicasteis juntamente á mi tribulación.","Y sabéis también vosotros, oh Filipenses, que al principio del evangelio, cuando partí de Macedonia, ninguna iglesia me comunicó en razón de dar y recibir, sino vosotros solos.","Porque aun á Tesalónica me enviasteis lo necesario una y dos veces.","No porque busque dádivas; mas busco fruto que abunde en vuestra cuenta.","Empero todo lo he recibido, y tengo abundancia: estoy lleno, habiendo recibido de Epafrodito lo que enviasteis, olor de suavidad, sacrificio acepto, agradable á Dios.","Mi Dios, pues, suplirá todo lo que os falta conforme á sus riquezas en gloria en Cristo Jesús.","Al Dios pues y Padre nuestro sea gloria por los siglos de los siglos. Amén.","Saludad á todos los santos en Cristo Jesús. Los hermanos que están conmigo os saludan.","Todos los santos os saludan, y mayormente los que son de casa de César.","La gracia de nuestro Señor Jesucristo sea con todos vosotros. Amén."]}}]};
+
+/* ============ Utilidades ============ */
+const $  = (s,r=document)=>r.querySelector(s);
+const $$ = (s,r=document)=>Array.from(r.querySelectorAll(s));
+const uid = ()=> Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const norm = s => (s||'').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+const fmtDate = ms => new Date(ms).toLocaleDateString('es-MX',{day:'2-digit',month:'short',year:'numeric'});
+const IS_PROY = new URLSearchParams(location.search).get('view')==='proyeccion';
+
+function toast(msg){ const t=$('#toast'); if(!t)return; t.textContent=msg; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),2200); }
+
+/* ============ IndexedDB ============ */
+const DB_NAME='proclama', DB_VER=1;
+let _db=null;
+function db(){
+  if(_db) return Promise.resolve(_db);
+  return new Promise((res,rej)=>{
+    const r=indexedDB.open(DB_NAME,DB_VER);
+    r.onupgradeneeded=e=>{ const d=e.target.result;
+      ['banners','fondos','sermones','sermonpages','biblias'].forEach(s=>{ if(!d.objectStoreNames.contains(s)) d.createObjectStore(s,{keyPath:'id'}); });
+    };
+    r.onsuccess=e=>{ _db=e.target.result; res(_db); };
+    r.onerror=e=>rej(e.target.error);
+  });
+}
+function idbAll(store){ return db().then(d=>new Promise((res,rej)=>{ const t=d.transaction(store).objectStore(store).getAll(); t.onsuccess=()=>res(t.result||[]); t.onerror=()=>rej(t.error); })); }
+function idbGet(store,id){ return db().then(d=>new Promise((res,rej)=>{ const t=d.transaction(store).objectStore(store).get(id); t.onsuccess=()=>res(t.result); t.onerror=()=>rej(t.error); })); }
+function idbPut(store,val){ return db().then(d=>new Promise((res,rej)=>{ const tx=d.transaction(store,'readwrite'); tx.objectStore(store).put(val); tx.oncomplete=()=>res(val); tx.onerror=()=>rej(tx.error); })); }
+function idbDel(store,id){ return db().then(d=>new Promise((res,rej)=>{ const tx=d.transaction(store,'readwrite'); tx.objectStore(store).delete(id); tx.oncomplete=()=>res(); tx.onerror=()=>rej(tx.error); })); }
+
+/* Cache de object-URLs por contexto (control y proyeccion son contextos distintos) */
+const _urls=new Map();
+async function blobURL(store,id){
+  const key=store+':'+id;
+  if(_urls.has(key)) return _urls.get(key);
+  const rec=await idbGet(store,id); if(!rec||!rec.blob) return null;
+  const u=URL.createObjectURL(rec.blob); _urls.set(key,u); return u;
+}
+
+/* ============ Configuracion (localStorage) ============ */
+const CFG_KEY='proclama.cfg.v1';
+const DEFAULT_CFG={
+  capaOscura:0.42,
+  transicion:{tipo:'fundido',ms:400},
+  texto:{fuente:'Fraunces',tamano:72,color:'#ffffff',peso:500,align:'center',interlineado:1.35,sombra:true,mostrarRef:true,refColor:'#E7D4A0'},
+  fondoVerse:null,            // {store:'fondos',id} o null
+  autoBorrado:{activo:true,meses:3},
+  versionActual:'rvr1909'
+};
+let cfg = loadCfg();
+function loadCfg(){ try{ return Object.assign(JSON.parse(JSON.stringify(DEFAULT_CFG)), JSON.parse(localStorage.getItem(CFG_KEY)||'{}')); }catch(e){ return JSON.parse(JSON.stringify(DEFAULT_CFG)); } }
+function saveCfg(){ localStorage.setItem(CFG_KEY, JSON.stringify(cfg)); }
+
+/* ============ Biblia: carga y normalizacion ============ */
+let BIBLE=null;            // version activa normalizada {id,version,abbr,books:[{name,t,nums,map}]}
+const BIBLE_CACHE=new Map();
+
+function normalizeBible(raw){
+  const books=raw.books.map(b=>{
+    let nums=[], map={};
+    if(Array.isArray(b.chapters)){ b.chapters.forEach((arr,i)=>{ nums.push(i+1); map[i+1]=arr; }); }
+    else { nums=Object.keys(b.chapters).map(Number).sort((a,c)=>a-c); nums.forEach(n=>map[n]=b.chapters[n]); }
+    return {name:b.name, t:b.t||'NT', nums, map};
+  });
+  return {id:raw.id, version:raw.version, abbr:raw.abbr, books};
+}
+async function loadBible(id){
+  if(BIBLE_CACHE.has(id)){ BIBLE=BIBLE_CACHE.get(id); return BIBLE; }
+  let raw=null;
+  if(id==='rvr1909'){
+    try{ const r=await fetch('biblias/rvr1909.json',{cache:'force-cache'}); if(r.ok) raw=await r.json(); }catch(e){}
+    if(!raw) raw=SAMPLE;   // respaldo offline / vista previa
+  } else {
+    const rec=await idbGet('biblias',id); if(rec) raw=rec.data;
+  }
+  if(!raw) raw=SAMPLE;
+  BIBLE=normalizeBible(raw); BIBLE_CACHE.set(id,BIBLE); return BIBLE;
+}
+async function listVersions(){
+  const imported=await idbAll('biblias');
+  return [{id:'rvr1909',abbr:'RVR 1909',version:'Reina-Valera 1909',builtin:true}]
+    .concat(imported.map(b=>({id:b.id,abbr:b.abbr,version:b.version})));
+}
+
+/* ============ Motor de proyeccion (WYSIWYG) ============ */
+/* Estado proyectable:
+   {kind:'verse'|'image'|'black'|'logo'|'clear', text,ref, imgStore,imgId, bg:{store,id}|null, overlay:Number} */
+let previewState={kind:'clear'};
+let liveState={kind:'black'};
+let liveIsVerse=false;
+
+const channel = ('BroadcastChannel' in window) ? new BroadcastChannel('proclama') : null;
+
+function escapeHTML(s){ return (s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+
+/* Calcula estilos de texto proporcionales al ancho del contenedor */
+function verseTextHTML(state, width){
+  const tx=cfg.texto;
+  const f = Math.round(width * (tx.tamano/1920));
+  const shadow = tx.sombra ? '0 2px 14px rgba(0,0,0,.55)' : 'none';
+  const fam = tx.fuente==='Inter' ? "'Inter',sans-serif" : (tx.fuente==='Fraunces' ? "'Fraunces',serif" : tx.fuente);
+  let html='<div class="scr-text" style="align-items:'+(tx.align==='left'?'flex-start':tx.align==='right'?'flex-end':'center')+'">';
+  html+='<div class="vt" style="font-family:'+fam+';font-size:'+f+'px;color:'+tx.color+';font-weight:'+tx.peso+';text-align:'+tx.align+';line-height:'+tx.interlineado+';text-shadow:'+shadow+'">'+escapeHTML(state.text)+'</div>';
+  if(tx.mostrarRef && state.ref) html+='<div class="vr" style="font-size:'+Math.round(f*0.42)+'px;color:'+tx.refColor+';text-shadow:'+shadow+'">'+escapeHTML(state.ref)+'</div>';
+  html+='</div>';
+  return html;
+}
+
+/* Renderiza un estado dentro de un host con .scr-bg/.scr-ov/.scr-content (o .pj-*) */
+async function renderState(host, state, sel){
+  sel = sel || {bg:'.scr-bg',ov:'.scr-ov',content:'.scr-content'};
+  const bgEl=$(sel.bg,host), ovEl=$(sel.ov,host), cEl=$(sel.content,host);
+  const width=host.clientWidth||1920;
+  // fondo
+  bgEl.style.backgroundImage=''; bgEl.style.background='';
+  if(state.kind==='black'){ ovEl.style.opacity='1'; ovEl.style.background='#000'; cEl.innerHTML=''; return; }
+  if(state.kind==='clear'){ ovEl.style.opacity='1'; ovEl.style.background='#15101f'; cEl.innerHTML=''; return; }
+  if(state.kind==='logo'){ ovEl.style.opacity='1'; ovEl.style.background='radial-gradient(120% 120% at 50% 42%,#2a1d40,#15101f)';
+    const s=Math.round(width*0.16);
+    cEl.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;gap:'+Math.round(width*0.02)+'px"><div style="width:'+s+'px;height:'+s+'px;border-radius:'+Math.round(s*0.26)+'px;background:linear-gradient(135deg,#B8893B,#E6C878 45%,#C9A24B);display:grid;place-items:center"><svg viewBox="0 0 24 24" width="'+Math.round(s*0.5)+'" height="'+Math.round(s*0.5)+'"><path d="M10.4 2h3.2v5h5.4v3h-5.4v12h-3.2V10H5V7h5.4z" fill="#fff"/></svg></div><div style="font-family:Fraunces,serif;color:#E7D4A0;font-size:'+Math.round(width*0.05)+'px">Proclama</div></div>';
+    return;
+  }
+  // fondo de imagen (para verse) o color por defecto
+  ovEl.style.background='#000';
+  if(state.kind==='verse'){
+    ovEl.style.opacity = (state.overlay!=null?state.overlay:cfg.capaOscura);
+    if(state.bg){ const u=await blobURL(state.bg.store,state.bg.id); if(u){ bgEl.style.backgroundImage='url('+u+')'; } else { bgEl.style.background='linear-gradient(135deg,#3b2a6e,#7a4b8f 55%,#b07a4a)'; } }
+    else { bgEl.style.background='linear-gradient(135deg,#3b2a6e,#7a4b8f 55%,#b07a4a)'; }
+    cEl.innerHTML=verseTextHTML(state,width);
+    return;
+  }
+  if(state.kind==='image'){
+    ovEl.style.opacity='0';
+    const u=await blobURL(state.imgStore,state.imgId);
+    cEl.innerHTML = u? '<img src="'+u+'">' : '';
+    bgEl.style.background='#000';
+    return;
+  }
+}
+
+/* ====== Vista PROYECCION (segunda ventana) ====== */
+let pjActive='A';
+async function pjRender(state){
+  const root=$('#proyeccion');
+  const ms = cfg.transicion.tipo==='corte'?0:cfg.transicion.ms;
+  root.style.setProperty('--tdur', ms+'ms');
+  const next = pjActive==='A' ? $('#pjB') : $('#pjA');
+  const cur  = pjActive==='A' ? $('#pjA') : $('#pjB');
+  await renderState(next, state, {bg:'.pj-bg',ov:'.pj-ov',content:'.pj-content'});
+  next.classList.add('show'); cur.classList.remove('show');
+  pjActive = pjActive==='A'?'B':'A';
+  $('#pjHint').style.display = (state.kind==='black'||state.kind==='clear')?'block':'none';
+}
+
+/* ====== CONTROL: previa, programa, envio ====== */
+function setPreview(state){ previewState=state; renderState($('#previewScreen'),state); }
+function pushLive(state){
+  liveState=state; liveIsVerse=(state.kind==='verse');
+  renderState($('#programScreen'),state);
+  if(channel) channel.postMessage({type:'state',state});
+}
+function goLive(){ pushLive(previewState); }
+
+if(channel && !IS_PROY){
+  channel.onmessage=e=>{ if(e.data && e.data.type==='ready'){ channel.postMessage({type:'state',state:liveState}); } };
+}
+
+/* ============ MODULO VERSICULOS ============ */
+const ALIASES={
+  "Génesis":["gen","gn"],"Éxodo":["exo","ex"],"Levítico":["lev","lv"],"Números":["num","nm"],"Deuteronomio":["deut","dt"],
+  "Salmos":["salmo","salm","sal","sl"],"Proverbios":["prov","pr","prv"],"Eclesiastés":["ecl","ec"],"Isaías":["isa","is"],
+  "Mateo":["mat","mt"],"Marcos":["mar","mr","mc"],"Lucas":["luc","lc","lk"],"Juan":["jn","jhn"],"Hechos":["hech","hch"],
+  "Romanos":["rom","rm"],"1 Corintios":["1 cor","1co","1 co"],"2 Corintios":["2 cor","2co","2 co"],"Gálatas":["gal","gl"],
+  "Efesios":["efe","ef"],"Filipenses":["fil","flp","filip"],"Apocalipsis":["apoc","apo","ap"],"Santiago":["sant","stg"],
+  "1 Juan":["1 jn","1jn","1 juan"],"Hebreos":["heb","hb"]
+};
+let current={bookIdx:0,chapter:null,verse:1};
+let searchMode='ref';
+
+function buildVerseState(bi,ch,v){
+  const b=BIBLE.books[bi]; const arr=b.map[ch]||[]; const text=arr[v-1]||'';
+  return {kind:'verse', text, ref:b.name+' '+ch+':'+v+' · '+BIBLE.abbr, bg:cfg.fondoVerse, overlay:cfg.capaOscura};
+}
+function renderBooks(){
+  const host=$('#booksPanel'); let h='';
+  let lastT=null;
+  BIBLE.books.forEach((b,i)=>{
+    if(b.t!==lastT){ h+='<div class="testament">'+(b.t==='AT'?'Antiguo Testamento':'Nuevo Testamento')+'</div>'; lastT=b.t; }
+    const n=b.nums.length;
+    h+='<button class="book'+(i===current.bookIdx?' sel':'')+'" data-bi="'+i+'">'+b.name+' <small>'+n+'</small></button>';
+  });
+  host.innerHTML=h;
+  $$('.book',host).forEach(el=>el.onclick=()=>{ current.bookIdx=+el.dataset.bi; current.chapter=null; renderBooks(); renderChaps(); $('#versesPanel').innerHTML=''; $('#versesHead').textContent='Versículos'; });
+}
+function renderChaps(){
+  const b=BIBLE.books[current.bookIdx]; let h='<div class="chap-grid">';
+  b.nums.forEach(n=>{ h+='<button class="chap'+(n===current.chapter?' sel':'')+'" data-ch="'+n+'">'+n+'</button>'; });
+  h+='</div>'; $('#chapsPanel').innerHTML=h;
+  $$('.chap',$('#chapsPanel')).forEach(el=>el.onclick=()=>{ current.chapter=+el.dataset.ch; current.verse=1; renderChaps(); renderVerses(); });
+}
+function renderVerses(){
+  const b=BIBLE.books[current.bookIdx], ch=current.chapter; if(ch==null){ return; }
+  const arr=b.map[ch]||[]; $('#versesHead').innerHTML=b.name+' '+ch+' <span class="gold">· '+BIBLE.abbr+'</span>';
+  let h=''; arr.forEach((t,i)=>{ const v=i+1; h+='<button class="verse'+(v===current.verse?' sel':'')+'" data-v="'+v+'"><span class="vn">'+v+'</span><span>'+escapeHTML(t)+'</span></button>'; });
+  const host=$('#versesPanel'); host.innerHTML=h;
+  $$('.verse',host).forEach(el=>el.onclick=()=>selectVerse(+el.dataset.v,true));
+  const selEl=$('.verse.sel',host); if(selEl) selEl.scrollIntoView({block:'nearest'});
+}
+function selectVerse(v,scroll){
+  current.verse=v;
+  $$('.verse',$('#versesPanel')).forEach(el=>el.classList.toggle('sel',+el.dataset.v===v));
+  if(scroll){ const e=$('.verse.sel',$('#versesPanel')); if(e) e.scrollIntoView({block:'nearest',behavior:'smooth'}); }
+  const st=buildVerseState(current.bookIdx,current.chapter,v);
+  setPreview(st);
+  if(liveIsVerse) pushLive(st);
+}
+function stepVerse(dir){
+  if(current.chapter==null){ return; }
+  const b=BIBLE.books[current.bookIdx]; let v=current.verse+dir;
+  const arr=b.map[current.chapter]||[];
+  if(v>=1 && v<=arr.length){ renderVerses(); selectVerse(v,true); return; }
+  // cruzar capitulo / libro
+  const ci=b.nums.indexOf(current.chapter);
+  if(dir>0){
+    if(ci<b.nums.length-1){ current.chapter=b.nums[ci+1]; current.verse=0; }
+    else if(current.bookIdx<BIBLE.books.length-1){ current.bookIdx++; current.chapter=BIBLE.books[current.bookIdx].nums[0]; current.verse=0; renderBooks(); }
+    else return;
+    renderChaps(); renderVerses(); selectVerse(1,true);
+  } else {
+    if(ci>0){ current.chapter=b.nums[ci-1]; }
+    else if(current.bookIdx>0){ current.bookIdx--; const nb=BIBLE.books[current.bookIdx]; current.chapter=nb.nums[nb.nums.length-1]; renderBooks(); }
+    else return;
+    const last=(BIBLE.books[current.bookIdx].map[current.chapter]||[]).length;
+    renderChaps(); renderVerses(); selectVerse(last,true);
+  }
+}
+function parseRef(input){
+  const q=norm(input).trim(); if(!q) return null;
+  let best=null,bestLen=0;
+  BIBLE.books.forEach((b,idx)=>{
+    const cands=[norm(b.name)].concat(ALIASES[b.name]||[]);
+    cands.forEach(c=>{ if(q.startsWith(c)&&c.length>bestLen){ best={idx,after:q.slice(c.length).trim()}; bestLen=c.length; } });
+  });
+  if(!best) return null;
+  const m=best.after.match(/^(\d+)(?:[:\.\s]+(\d+))?/);
+  const nums=BIBLE.books[best.idx].nums;
+  if(!m) return {bookIdx:best.idx,chapter:nums[0],verse:1};
+  let ch=+m[1]; if(nums.indexOf(ch)<0) ch=nums[0];
+  return {bookIdx:best.idx,chapter:ch,verse:m[2]?+m[2]:1};
+}
+function gotoRef(r){
+  current.bookIdx=r.bookIdx; current.chapter=r.chapter;
+  renderBooks(); renderChaps();
+  const arr=BIBLE.books[r.bookIdx].map[r.chapter]||[];
+  const v=Math.min(Math.max(1,r.verse),arr.length||1);
+  current.verse=v; renderVerses(); selectVerse(v,true);
+}
+function wordSearch(term){
+  const q=norm(term); const out=[]; if(q.length<3) return out;
+  for(let bi=0;bi<BIBLE.books.length;bi++){ const b=BIBLE.books[bi];
+    for(const ch of b.nums){ const arr=b.map[ch];
+      for(let i=0;i<arr.length;i++){ if(norm(arr[i]).includes(q)){ out.push({bi,ch,v:i+1,text:arr[i]}); if(out.length>=300) return out; } }
+    }
+  }
+  return out;
+}
+function showWordResults(term){
+  const grid=$('#verseGrid'), box=$('#wordResults');
+  const res=wordSearch(term);
+  if(term.trim().length<3){ grid.style.display='grid'; box.style.display='none'; return; }
+  grid.style.display='none'; box.style.display='block';
+  if(!res.length){ box.innerHTML='<div class="empty"><h3>Sin resultados</h3><p>No se encontró «'+escapeHTML(term)+'» en esta versión.</p></div>'; return; }
+  const re=new RegExp('('+term.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','ig');
+  let h='<div class="panel"><div class="panel-h">'+res.length+' resultado(s)</div><div class="panel-body" style="max-height:60vh">';
+  res.forEach(r=>{ const b=BIBLE.books[r.bi];
+    const txt=escapeHTML(r.text).replace(re,'<mark>$1</mark>');
+    h+='<button class="verse" data-bi="'+r.bi+'" data-ch="'+r.ch+'" data-v="'+r.v+'"><span class="vn">'+b.name.slice(0,3)+'</span><span><b style="color:var(--royal)">'+b.name+' '+r.ch+':'+r.v+'</b> — '+txt+'</span></button>';
+  });
+  h+='</div></div>'; box.innerHTML=h;
+  $$('.verse',box).forEach(el=>el.onclick=()=>{ searchMode='ref'; $$('.seg button').forEach(s=>s.classList.toggle('on',s.dataset.mode==='ref')); $('#verseSearch').value=''; box.style.display='none'; $('#verseGrid').style.display='grid'; gotoRef({bookIdx:+el.dataset.bi,chapter:+el.dataset.ch,verse:+el.dataset.v}); });
+}
+async function renderVersionChips(){
+  const versions=await listVersions(); const host=$('#versionChips'); let h='';
+  versions.forEach(v=>{ h+='<button class="vchip'+(v.id===cfg.versionActual?' active':'')+'" data-id="'+v.id+'">'+v.abbr+'</button>'; });
+  h+='<button class="vchip add" id="chipImport">+ Importar versión</button>';
+  host.innerHTML=h;
+  $$('.vchip:not(.add)',host).forEach(el=>el.onclick=async()=>{ cfg.versionActual=el.dataset.id; saveCfg(); await loadBible(cfg.versionActual); renderVersionChips(); current={bookIdx:0,chapter:null,verse:1}; renderBooks(); renderChaps(); $('#versesPanel').innerHTML=''; });
+  $('#chipImport').onclick=openImportBible;
+}
+
+/* ============ Barra superior y controles de proyeccion ============ */
+let proyWin=null;
+function updateProyBtn(){ const on=proyWin&&!proyWin.closed; const b=$('#btnProy'); b.classList.toggle('on',!!on); b.lastChild.textContent= on?' Proyección':' Abrir proyección'; $('#proyStatus').textContent= on?'PANTALLA 2':'SIN PROYECTAR'; }
+function toggleProy(){
+  if(proyWin&&!proyWin.closed){ proyWin.close(); proyWin=null; updateProyBtn(); return; }
+  proyWin=window.open(location.pathname+'?view=proyeccion','proclamaProy','width=1280,height=720');
+  setTimeout(()=>{ if(channel) channel.postMessage({type:'state',state:liveState}); updateProyBtn(); },600);
+}
+
+function wireControls(){
+  $('#btnSend').onclick=goLive;
+  $('#btnNegro').onclick=()=>pushLive({kind:'black'});
+  $('#btnLogo').onclick=()=>pushLive({kind:'logo'});
+  $('#btnProy').onclick=toggleProy;
+  $('#btnConfig').onclick=openSettings;
+  $('#btnAddToService').onclick=()=>addToService(previewState);
+  // transicion
+  $('#transTipo').value=cfg.transicion.tipo; $('#transMs').value=String(cfg.transicion.ms);
+  $('#transTipo').onchange=e=>{cfg.transicion.tipo=e.target.value;saveCfg();};
+  $('#transMs').onchange=e=>{cfg.transicion.ms=+e.target.value;saveCfg();};
+  // capa oscura
+  const sl=$('#ocSlider'); sl.value=Math.round(cfg.capaOscura*100); $('#ocVal').textContent=sl.value+'%';
+  sl.oninput=()=>{ const v=+sl.value; $('#ocVal').textContent=v+'%'; cfg.capaOscura=v/100; saveCfg();
+    if(previewState.kind==='verse'){ previewState.overlay=cfg.capaOscura; renderState($('#previewScreen'),previewState); }
+    if(liveState.kind==='verse'){ liveState.overlay=cfg.capaOscura; pushLive(liveState); } };
+  $('#btnTexto').onclick=openTextoModal;
+  $('#btnFondo').onclick=openFondoModal;
+  // busqueda
+  const si=$('#verseSearch');
+  $$('.seg button').forEach(b=>b.onclick=()=>{ searchMode=b.dataset.mode; $$('.seg button').forEach(s=>s.classList.toggle('on',s===b)); si.placeholder= searchMode==='ref'?'Referencia (ej. Juan 3:16)':'Buscar una palabra…'; si.value=''; $('#verseGrid').style.display='grid'; $('#wordResults').style.display='none'; });
+  let deb;
+  si.oninput=()=>{ if(searchMode==='word'){ clearTimeout(deb); deb=setTimeout(()=>showWordResults(si.value),250); } };
+  si.onkeydown=e=>{ if(e.key==='Enter'&&searchMode==='ref'){ const r=parseRef(si.value); if(r) gotoRef(r); else toast('No reconocí la referencia'); } };
+  // teclado global
+  document.addEventListener('keydown',e=>{
+    const t=e.target.tagName; if(t==='INPUT'||t==='TEXTAREA'||t==='SELECT') return;
+    if(e.key==='ArrowRight'||e.key==='ArrowDown'){ if($('#m-versiculos').classList.contains('active')){ stepVerse(1); e.preventDefault(); } }
+    else if(e.key==='ArrowLeft'||e.key==='ArrowUp'){ if($('#m-versiculos').classList.contains('active')){ stepVerse(-1); e.preventDefault(); } }
+    else if(e.key==='Escape'){ pushLive({kind:'black'}); }
+  });
+  setInterval(updateProyBtn,1500);
+}
+
+/* ============ Navegacion entre modulos ============ */
+function switchModule(mod){
+  $$('.rail-item').forEach(b=>b.classList.toggle('active',b.dataset.mod===mod));
+  $$('.module').forEach(m=>m.classList.toggle('active',m.id==='m-'+mod));
+  const names={versiculos:'Versículos',cantos:'Cantos',himnario:'Himnario',predicas:'Predicaciones',banners:'Banners',servicio:'Servicio'};
+  $('#crumb').textContent=names[mod]||'';
+  if(mod==='banners') renderBanners();
+  if(mod==='predicas') renderSermons();
+  if(mod==='servicio') renderService();
+}
+
+/* ============ Helpers de archivos ============ */
+const blobToDataURL=b=>new Promise(r=>{const fr=new FileReader();fr.onload=()=>r(fr.result);fr.readAsDataURL(b);});
+function dataURLToBlob(d){const i=d.indexOf(',');const meta=d.slice(0,i),b64=d.slice(i+1);const mime=(meta.match(/:(.*?);/)||[])[1]||'application/octet-stream';const bin=atob(b64);const u=new Uint8Array(bin.length);for(let k=0;k<bin.length;k++)u[k]=bin.charCodeAt(k);return new Blob([u],{type:mime});}
+function pickFiles(accept,cb){ const inp=$('#filePick'); inp.accept=accept; inp.value=''; inp.onchange=()=>{ const f=Array.from(inp.files||[]); if(f.length) cb(f); }; inp.click(); }
+function emptyState(kind){
+  const m={banners:['Aún no hay banners','Sube imágenes de anuncios para proyectarlas durante el culto.'],
+    predicas:['Aún no hay predicaciones','Agrega las diapositivas (PNG o PDF) que comparten los pastores.'],
+    servicio:['Tu lista está vacía','Agrega versículos, banners o predicaciones con el botón de lista (☰) junto a la capa oscura.']};
+  const x=m[kind]||['Vacío',''];
+  return '<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 15 5-4 4 3 3-2 6 4"/><circle cx="8" cy="10" r="1.4"/></svg><h3>'+x[0]+'</h3><p>'+x[1]+'</p></div>';
+}
+
+/* ============ BANNERS ============ */
+async function addBanners(files){
+  for(const f of files){ if(!f.type.startsWith('image/')) continue; await idbPut('banners',{id:uid(),nombre:f.name.replace(/\.[^.]+$/,''),blob:f,fecha:Date.now()}); }
+  toast('Imágenes guardadas'); renderBanners();
+}
+async function renderBanners(){
+  const host=$('#bannerGrid'); const list=await idbAll('banners');
+  if(!list.length){ host.innerHTML=emptyState('banners'); return; }
+  list.sort((a,b)=>b.fecha-a.fecha);
+  let h='<div class="tiles">';
+  list.forEach(b=>{ h+='<div class="tile"><button class="thumb" data-id="'+b.id+'"></button><div class="acts"><button class="iconbtn danger" data-del="'+b.id+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div><div class="meta"><div class="t">'+escapeHTML(b.nombre)+'</div><div class="s">'+fmtDate(b.fecha)+'</div></div></div>'; });
+  h+='</div>'; host.innerHTML=h;
+  for(const b of list){ const u=await blobURL('banners',b.id); const th=$('.thumb[data-id="'+b.id+'"]',host); if(u) th.style.backgroundImage='url('+u+')'; th.onclick=()=>setPreview({kind:'image',imgStore:'banners',imgId:b.id}); }
+  $$('[data-del]',host).forEach(x=>x.onclick=async()=>{ await idbDel('banners',x.dataset.del); _urls.delete('banners:'+x.dataset.del); renderBanners(); });
+}
+
+/* ============ PREDICACIONES (PNG + PDF) ============ */
+async function ensurePdf(){
+  if(window.pdfjsLib) return;
+  await new Promise((res,rej)=>{ const s=document.createElement('script'); s.src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js'; s.onload=res; s.onerror=()=>rej(new Error('No se pudo cargar el lector de PDF (requiere internet la primera vez).')); document.head.appendChild(s); });
+  window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+}
+async function pdfToBlobs(file){
+  await ensurePdf();
+  const pdf=await window.pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise;
+  const out=[];
+  for(let p=1;p<=pdf.numPages;p++){
+    const page=await pdf.getPage(p);
+    const base=page.getViewport({scale:1});
+    const vp=page.getViewport({scale:1920/base.width});
+    const c=document.createElement('canvas'); c.width=vp.width; c.height=vp.height;
+    await page.render({canvasContext:c.getContext('2d'),viewport:vp}).promise;
+    out.push(await new Promise(r=>c.toBlob(r,'image/png')));
+  }
+  return out;
+}
+async function addSermon(tema,files){
+  const pageIds=[];
+  for(const f of files){
+    if(f.type==='application/pdf'||/\.pdf$/i.test(f.name)){ const blobs=await pdfToBlobs(f); for(const b of blobs){ const id=uid(); await idbPut('sermonpages',{id,blob:b}); pageIds.push(id); } }
+    else if(f.type.startsWith('image/')){ const id=uid(); await idbPut('sermonpages',{id,blob:f}); pageIds.push(id); }
+  }
+  if(!pageIds.length){ toast('No se agregaron diapositivas'); return; }
+  await idbPut('sermones',{id:uid(),tema:tema||'Predicación',fecha:Date.now(),pageIds});
+  toast('Predicación guardada'); renderSermons();
+}
+async function renderSermons(){
+  const host=$('#sermonList'); let list=await idbAll('sermones');
+  const q=norm($('#sermonSearch').value); if(q) list=list.filter(s=>norm(s.tema).includes(q));
+  const sort=$('#sermonSort').value;
+  list.sort((a,b)=> sort==='old'?a.fecha-b.fecha : sort==='tema'?a.tema.localeCompare(b.tema) : b.fecha-a.fecha);
+  if(!list.length){ host.innerHTML=emptyState('predicas'); return; }
+  let h='';
+  list.forEach(s=>{ h+='<div class="sermon"><div class="sermon-h"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div><div class="info"><div class="t">'+escapeHTML(s.tema)+'</div><div class="s">'+fmtDate(s.fecha)+' · '+s.pageIds.length+' diapositiva(s)</div></div><button class="iconbtn danger" data-del="'+s.id+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></button></div><div class="sermon-pages" data-pp="'+s.id+'"></div></div>'; });
+  host.innerHTML=h;
+  for(const s of list){ const cont=$('[data-pp="'+s.id+'"]',host); let ph=''; s.pageIds.forEach((pid,i)=>{ ph+='<button class="spage" data-pid="'+pid+'"><span class="n">'+(i+1)+'</span></button>'; }); cont.innerHTML=ph;
+    for(const btn of $$('.spage',cont)){ const pid=btn.dataset.pid; const u=await blobURL('sermonpages',pid); if(u) btn.style.backgroundImage='url('+u+')'; btn.onclick=()=>setPreview({kind:'image',imgStore:'sermonpages',imgId:pid}); }
+  }
+  $$('[data-del]',host).forEach(b=>b.onclick=async()=>{ const s=list.find(x=>x.id===b.dataset.del); if(!confirm('¿Eliminar «'+s.tema+'»?')) return; for(const pid of s.pageIds){ await idbDel('sermonpages',pid); _urls.delete('sermonpages:'+pid); } await idbDel('sermones',s.id); renderSermons(); });
+}
+async function deleteOldSermons(){
+  if(!cfg.autoBorrado.activo) return;
+  const cutoff=Date.now()-cfg.autoBorrado.meses*30*24*3600*1000;
+  const list=await idbAll('sermones');
+  for(const s of list){ if(s.fecha<cutoff){ for(const pid of s.pageIds) await idbDel('sermonpages',pid); await idbDel('sermones',s.id); } }
+}
+
+/* ============ SERVICIO (escaleta) ============ */
+let service=JSON.parse(localStorage.getItem('proclama.servicio.v1')||'[]');
+function saveService(){ localStorage.setItem('proclama.servicio.v1',JSON.stringify(service)); }
+function addToService(state){ if(!state||state.kind==='clear'||state.kind==='black'){ toast('Nada que agregar'); return; } service.push(state); saveService(); toast('Agregado al servicio'); if($('#m-servicio').classList.contains('active')) renderService(); }
+function serviceLabel(s){ return s.kind==='verse'?(s.ref||'Versículo'):s.kind==='image'?'Imagen':s.kind==='logo'?'Logo':s.kind; }
+function renderService(){
+  const host=$('#serviceList'); if(!service.length){ host.innerHTML=emptyState('servicio'); return; }
+  let h=''; service.forEach((s,i)=>{ h+='<div class="sermon" style="margin-bottom:8px"><div class="sermon-h"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M8 6h13M8 12h13M3 6h.01M3 12h.01"/></svg></div><div class="info"><div class="t">'+escapeHTML(serviceLabel(s))+'</div><div class="s">'+(s.kind==='verse'?escapeHTML((s.text||'').slice(0,70)):'')+'</div></div><button class="btn sm" data-go="'+i+'">A previa</button><button class="iconbtn danger" data-rm="'+i+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div></div>'; });
+  host.innerHTML=h;
+  $$('[data-go]',host).forEach(b=>b.onclick=()=>{ setPreview(service[+b.dataset.go]); toast('En vista previa'); });
+  $$('[data-rm]',host).forEach(b=>b.onclick=()=>{ service.splice(+b.dataset.rm,1); saveService(); renderService(); });
+}
+
+/* ============ Modales ============ */
+function modalHeader(title){ return '<div class="modal-h"><h2>'+title+'</h2><button class="modal-x" data-close><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>'; }
+function openModal(html,wide){ const m=$('#modal'); m.className='modal'+(wide?' wide':''); m.innerHTML=html; $('#modalBg').classList.add('show'); $$('[data-close]',m).forEach(b=>b.onclick=closeModal); }
+function closeModal(){ $('#modalBg').classList.remove('show'); }
+
+function applyTextoLive(){ if(previewState.kind==='verse') renderState($('#previewScreen'),previewState); if(liveState.kind==='verse') pushLive(liveState); }
+function openTextoModal(){
+  const t=cfg.texto;
+  let h=modalHeader('Estilo del texto')+'<div class="modal-b">';
+  h+='<div class="form-row"><label>Fuente</label><select class="input" id="txF"><option value="Fraunces">Fraunces (serif elegante)</option><option value="Inter">Inter (moderna)</option></select></div>';
+  h+='<div class="form-row"><label>Tamaño <span id="txSv" style="color:var(--royal);font-weight:600"></span></label><input type="range" id="txS" min="40" max="140" value="'+t.tamano+'"></div>';
+  h+='<div class="form-row"><label>Interlineado <span id="txIv" style="color:var(--royal);font-weight:600"></span></label><input type="range" id="txI" min="100" max="200" value="'+Math.round(t.interlineado*100)+'"></div>';
+  h+='<div class="form-row"><label>Peso</label><select class="input" id="txW"><option value="400">Normal</option><option value="500">Medio</option><option value="600">Seminegrita</option></select></div>';
+  h+='<div class="form-row"><label>Alineación</label><select class="input" id="txA"><option value="center">Centro</option><option value="left">Izquierda</option><option value="right">Derecha</option></select></div>';
+  h+='<div class="form-row"><label>Color del texto</label><div class="swatch"><input type="color" id="txC" value="'+t.color+'"></div></div>';
+  h+='<div class="form-row"><label>Color de la referencia</label><div class="swatch"><input type="color" id="txRC" value="'+t.refColor+'"></div></div>';
+  h+='<div class="setrow"><div class="sr-info"><div class="t">Sombra del texto</div></div><button class="switch'+(t.sombra?' on':'')+'" id="txSh"></button></div>';
+  h+='<div class="setrow"><div class="sr-info"><div class="t">Mostrar referencia</div></div><button class="switch'+(t.mostrarRef?' on':'')+'" id="txRef"></button></div>';
+  h+='<div class="modal-foot"><button class="btn primary" data-close>Listo</button></div></div>';
+  openModal(h);
+  $('#txF').value=t.fuente; $('#txW').value=String(t.peso); $('#txA').value=t.align;
+  $('#txSv').textContent=t.tamano+'px'; $('#txIv').textContent=t.interlineado.toFixed(2);
+  const sv=()=>{ saveCfg(); applyTextoLive(); };
+  $('#txF').onchange=e=>{t.fuente=e.target.value;sv();};
+  $('#txS').oninput=e=>{t.tamano=+e.target.value;$('#txSv').textContent=t.tamano+'px';sv();};
+  $('#txI').oninput=e=>{t.interlineado=+e.target.value/100;$('#txIv').textContent=t.interlineado.toFixed(2);sv();};
+  $('#txW').onchange=e=>{t.peso=+e.target.value;sv();};
+  $('#txA').onchange=e=>{t.align=e.target.value;sv();};
+  $('#txC').oninput=e=>{t.color=e.target.value;sv();};
+  $('#txRC').oninput=e=>{t.refColor=e.target.value;sv();};
+  $('#txSh').onclick=e=>{t.sombra=!t.sombra;e.target.classList.toggle('on',t.sombra);sv();};
+  $('#txRef').onclick=e=>{t.mostrarRef=!t.mostrarRef;e.target.classList.toggle('on',t.mostrarRef);sv();};
+}
+
+async function openFondoModal(){
+  const list=await idbAll('fondos');
+  let h=modalHeader('Fondo de los versículos')+'<div class="modal-b">';
+  h+='<button class="btn primary" id="fUp" style="margin-bottom:14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Subir fondo</button>';
+  h+='<div class="picker-grid">';
+  h+='<div class="pick'+(!cfg.fondoVerse?' sel':'')+'" id="fNone" style="background:linear-gradient(135deg,#3b2a6e,#7a4b8f,#b07a4a);display:grid;place-items:center"><span style="color:#fff;font-size:11px;font-weight:600;pointer-events:none">Degradado</span></div>';
+  list.forEach(f=>{ h+='<div class="pick'+(cfg.fondoVerse&&cfg.fondoVerse.id===f.id?' sel':'')+'" data-id="'+f.id+'"><button class="iconbtn danger" data-del="'+f.id+'" style="position:absolute;top:4px;right:4px"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>'; });
+  h+='</div></div>'; openModal(h,true);
+  for(const f of list){ const u=await blobURL('fondos',f.id); const el=$('.pick[data-id="'+f.id+'"]'); if(u&&el) el.style.backgroundImage='url('+u+')'; }
+  const setFondo=val=>{ cfg.fondoVerse=val; saveCfg(); if(previewState.kind==='verse'){ previewState.bg=val; renderState($('#previewScreen'),previewState);} if(liveState.kind==='verse'){ liveState.bg=val; pushLive(liveState);} closeModal(); };
+  $('#fNone').onclick=()=>setFondo(null);
+  $$('.pick[data-id]').forEach(el=>el.onclick=e=>{ if(e.target.closest('[data-del]'))return; setFondo({store:'fondos',id:el.dataset.id}); });
+  $$('[data-del]').forEach(b=>b.onclick=async e=>{ e.stopPropagation(); await idbDel('fondos',b.dataset.del); _urls.delete('fondos:'+b.dataset.del); openFondoModal(); });
+  $('#fUp').onclick=()=>pickFiles('image/*',async files=>{ for(const f of files){ if(f.type.startsWith('image/')) await idbPut('fondos',{id:uid(),nombre:f.name,blob:f,fecha:Date.now()}); } openFondoModal(); });
+}
+
+function openAddSermon(){
+  let h=modalHeader('Nueva predicación')+'<div class="modal-b">';
+  h+='<div class="form-row"><label>Tema</label><input class="input" id="seTema" placeholder="Ej. La fe que vence al mundo"></div>';
+  h+='<div class="drop" id="seDrop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 16V4M7 9l5-5 5 5M5 20h14"/></svg><div>Arrastra imágenes (PNG/JPG) o PDF, o <b>haz clic</b> para elegir</div></div>';
+  h+='<div id="seList" style="font-size:12.5px;color:var(--muted);margin-top:10px"></div>';
+  h+='<div class="modal-foot"><button class="btn" data-close>Cancelar</button><button class="btn primary" id="seSave">Guardar</button></div></div>';
+  openModal(h);
+  let files=[]; const drop=$('#seDrop'), info=$('#seList');
+  const add=fs=>{ files=files.concat(Array.from(fs)); info.textContent=files.length+' archivo(s) listos para guardar'; };
+  drop.onclick=()=>pickFiles('image/*,application/pdf,.pdf',add);
+  drop.ondragover=e=>{e.preventDefault();drop.classList.add('over');};
+  drop.ondragleave=()=>drop.classList.remove('over');
+  drop.ondrop=e=>{e.preventDefault();drop.classList.remove('over');add(e.dataTransfer.files);};
+  $('#seSave').onclick=async()=>{ if(!files.length){toast('Agrega al menos una diapositiva');return;} const btn=$('#seSave'); btn.textContent='Procesando…'; btn.disabled=true; try{ await addSermon($('#seTema').value.trim(),files); closeModal(); }catch(err){ toast(err.message||'Error al procesar'); btn.textContent='Guardar'; btn.disabled=false; } };
+}
+
+function openImportBible(){
+  let h=modalHeader('Importar versión de la Biblia')+'<div class="modal-b">';
+  h+='<p style="font-size:13.5px;color:var(--body);line-height:1.6;margin-bottom:14px">Carga un archivo <b>.json</b> con otra versión que obtengas de una fuente permitida. Se acepta nuestro formato (libros con <b>name</b>, <b>t</b>, <b>chapters</b>) o un arreglo de 66 libros en orden <b>[{name, chapters}]</b>.</p>';
+  h+='<div class="form-row"><label>Nombre visible</label><input class="input" id="biAbbr" placeholder="Ej. RVR 1960"></div>';
+  h+='<div class="drop" id="biDrop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 16V4M7 9l5-5 5 5M5 20h14"/></svg><div>Arrastra el .json o <b>haz clic</b></div></div>';
+  h+='<div class="modal-foot"><button class="btn" data-close>Cancelar</button></div></div>';
+  openModal(h);
+  const drop=$('#biDrop');
+  const handle=async file=>{
+    try{
+      const raw=JSON.parse(await file.text()); let books;
+      if(Array.isArray(raw)) books=raw.map((b,i)=>({name:b.name||('Libro '+(i+1)),t:i<39?'AT':'NT',chapters:b.chapters}));
+      else if(raw.books) books=raw.books;
+      else throw new Error('formato no reconocido');
+      const abbr=($('#biAbbr').value||'Versión').trim(); const id='v'+uid();
+      await idbPut('biblias',{id,abbr,version:abbr,data:{id,version:abbr,abbr,books}});
+      cfg.versionActual=id; saveCfg(); BIBLE_CACHE.delete(id); await loadBible(id);
+      current={bookIdx:0,chapter:null,verse:1}; await renderVersionChips(); renderBooks(); renderChaps(); $('#versesPanel').innerHTML='';
+      closeModal(); toast('Versión «'+abbr+'» importada');
+    }catch(err){ toast('No se pudo leer: '+err.message); }
+  };
+  drop.onclick=()=>pickFiles('application/json,.json',f=>handle(f[0]));
+  drop.ondragover=e=>{e.preventDefault();drop.classList.add('over');};
+  drop.ondragleave=()=>drop.classList.remove('over');
+  drop.ondrop=e=>{e.preventDefault();drop.classList.remove('over'); if(e.dataTransfer.files[0]) handle(e.dataTransfer.files[0]);};
+}
+
+function openSettings(){
+  const ab=cfg.autoBorrado;
+  let h=modalHeader('Ajustes')+'<div class="modal-b">';
+  h+='<div class="setrow"><div class="sr-info"><div class="t">Borrado automático de predicaciones</div><div class="s">Elimina en silencio las predicaciones antiguas para liberar espacio.</div></div><button class="switch'+(ab.activo?' on':'')+'" id="abSw"></button></div>';
+  h+='<div class="setrow"><div class="sr-info"><div class="t">Antigüedad para borrar</div><div class="s">Tiempo desde que se subió la predicación.</div></div><select class="input" id="abMes" style="width:130px;flex:0 0 auto"><option value="1">1 mes</option><option value="3">3 meses</option><option value="6">6 meses</option><option value="12">12 meses</option></select></div>';
+  h+='<div class="setrow" style="display:block"><div class="sr-info" style="margin-bottom:11px"><div class="t">Respaldo de datos (JSON)</div><div class="s">Guarda o restaura todo: versículos importados, banners, predicaciones, fondos y ajustes. Sirve para pasar todo a otra computadora.</div></div><div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn" id="bkExp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 4v12M8 12l4 4 4-4M5 20h14"/></svg>Exportar respaldo</button><button class="btn" id="bkImp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 16V4M8 8l4-4 4 4M5 20h14"/></svg>Importar respaldo</button></div></div>';
+  h+='<div class="setrow"><div class="sr-info"><div class="t">Cómo proyectar</div><div class="s">Pulsa «Abrir proyección», arrastra esa ventana al proyector y presiona la tecla F para pantalla completa.</div></div></div>';
+  h+='<div class="modal-foot"><button class="btn primary" data-close>Listo</button></div></div>';
+  openModal(h,true);
+  $('#abMes').value=String(ab.meses);
+  $('#abSw').onclick=e=>{ab.activo=!ab.activo;e.target.classList.toggle('on',ab.activo);saveCfg();};
+  $('#abMes').onchange=e=>{ab.meses=+e.target.value;saveCfg();};
+  $('#bkExp').onclick=exportBackup;
+  $('#bkImp').onclick=()=>pickFiles('application/json,.json',async f=>{ if(confirm('Se restaurarán los datos del respaldo (se combinan con los actuales). ¿Continuar?')){ try{ await importBackup(f[0]); closeModal(); await renderVersionChips(); }catch(err){ toast('Error: '+err.message); } } });
+}
+
+/* ============ Respaldo JSON ============ */
+async function exportBackup(){
+  const stores=['banners','fondos','sermones','sermonpages','biblias']; const data={};
+  for(const s of stores){ const recs=await idbAll(s); data[s]=[]; for(const r of recs){ const c=Object.assign({},r); if(c.blob instanceof Blob) c.blob=await blobToDataURL(c.blob); data[s].push(c); } }
+  const out={app:'proclama',schema:1,fecha:Date.now(),cfg,data};
+  const blob=new Blob([JSON.stringify(out)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='proclama-respaldo-'+new Date().toISOString().slice(0,10)+'.json'; a.click();
+  toast('Respaldo exportado');
+}
+async function importBackup(file){
+  const obj=JSON.parse(await file.text());
+  if(obj.cfg){ cfg=Object.assign(JSON.parse(JSON.stringify(DEFAULT_CFG)),obj.cfg); saveCfg(); }
+  if(obj.data){ for(const s of Object.keys(obj.data)){ for(const r of obj.data[s]){ const c=Object.assign({},r); if(typeof c.blob==='string') c.blob=dataURLToBlob(c.blob); await idbPut(s,c); } } }
+  _urls.clear(); BIBLE_CACHE.clear(); await loadBible(cfg.versionActual);
+  current={bookIdx:0,chapter:null,verse:1}; renderBooks(); renderChaps();
+  toast('Respaldo restaurado');
+}
+
+/* ============ Arranque ============ */
+function initProyeccion(){
+  document.title='Proclama — Proyección';
+  $('#splash').style.display='none'; $('#app').style.display='none'; $('#proyeccion').classList.add('on');
+  if(channel){ channel.onmessage=e=>{ if(e.data&&e.data.type==='state') pjRender(e.data.state); }; channel.postMessage({type:'ready'}); }
+  document.addEventListener('keydown',e=>{ if(e.key==='f'||e.key==='F'){ if(!document.fullscreenElement){ if(document.documentElement.requestFullscreen) document.documentElement.requestFullscreen(); } else { document.exitFullscreen(); } } });
+  pjRender({kind:'logo'});
+}
+async function init(){
+  if(IS_PROY){ initProyeccion(); return; }
+  setTimeout(()=>{ $('#splash').classList.add('hide'); $('#app').classList.add('show'); },2300);
+  $('#modalBg').addEventListener('click',e=>{ if(e.target===$('#modalBg')) closeModal(); });
+  $$('.rail-item').forEach(b=>b.onclick=()=>switchModule(b.dataset.mod));
+  $('#btnAddBanner').onclick=()=>pickFiles('image/*',addBanners);
+  $('#btnAddSermon').onclick=openAddSermon;
+  $('#sermonSearch').oninput=()=>renderSermons();
+  $('#sermonSort').onchange=()=>renderSermons();
+  $('#btnClearService').onclick=()=>{ if(confirm('¿Vaciar la lista del servicio?')){ service=[]; saveService(); renderService(); } };
+  wireControls();
+  await loadBible(cfg.versionActual);
+  await renderVersionChips();
+  renderBooks(); renderChaps();
+  setPreview({kind:'logo'}); pushLive({kind:'black'});
+  deleteOldSermons();
+  if('serviceWorker' in navigator){ try{ await navigator.serviceWorker.register('sw.js'); }catch(e){} }
+  updateProyBtn();
+}
+init();
+
+</script>
+</body>
+</html>
