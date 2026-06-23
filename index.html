@@ -339,7 +339,8 @@
   .cv-tool svg{width:15px;height:15px}
   .cv-empty-hint{font-size:12.5px;color:var(--muted);padding:8px 2px}
   /* ---- Cantos 3 columnas y mejoras de layout ---- */
-  .cv-grid-canto{grid-template-columns:220px 300px 1fr}
+  .cv-grid-canto{grid-template-columns:330px 290px 1fr}
+  .cv-sub2{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;margin-top:1px}
   .cv-editor-wrap{display:flex;flex-direction:column;gap:10px;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:16px}
   .cv-editor-wrap .input{height:40px}
   .cv-editor-wrap textarea{flex:1;min-height:420px;border:1px solid var(--line);border-radius:11px;padding:12px 14px;font-size:15px;line-height:1.6;resize:vertical;outline:none;color:var(--ink);font-family:'Inter',sans-serif}
@@ -447,6 +448,8 @@
           </div>
           <div class="cv-editor-wrap">
             <input class="input" id="cantoTitulo" placeholder="Título del canto">
+            <input class="input" id="cantoAutor" placeholder="Autor (opcional)">
+            <input class="input" id="cantoTags" placeholder="Etiquetas separadas por comas (opcional)">
             <textarea id="cantoLetra" placeholder="Pega o escribe la letra aquí.&#10;&#10;Deja una línea en blanco para empezar una nueva diapositiva."></textarea>
             <div style="display:flex;gap:8px;align-items:center">
               <button class="btn sm" id="cantoGuardar">Guardar</button>
@@ -464,6 +467,9 @@
         <div class="ws-head">
           <div class="ws-title">Himnario</div>
           <div class="ws-sub" id="himnSub">Himnario de Victoria · 160 himnos</div>
+          <div class="ws-actions">
+            <button class="btn sm" id="himnEditar" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>Editar himno</button>
+          </div>
         </div>
         <div class="cv-grid">
           <div class="cv-side">
@@ -929,7 +935,7 @@ function wireControls(){
 
 /* ============ Navegacion entre modulos ============ */
 function switchModule(mod){
-  if(typeof cvClosePanel==='function' && mod!=='cantos' && mod!=='himnario') cvClosePanel();
+  if(typeof cvClosePanel==='function') cvClosePanel();
   $$('.rail-item').forEach(b=>b.classList.toggle('active',b.dataset.mod===mod));
   $$('.module').forEach(m=>m.classList.toggle('active',m.id==='m-'+mod));
   const names={versiculos:'Versículos',cantos:'Cantos',himnario:'Himnario',predicas:'Predicaciones',banners:'Banners',servicio:'Servicio'};
@@ -1303,28 +1309,45 @@ async function cvRenderTo(canvas, sec, st, opts){
     ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
   }
 
-  const lines=(sec.text||'').split('\n');
+  const srcLines=(sec.text||'').split('\n');
   const isChorus=(sec.type||'').toLowerCase().includes('coro');
   const fam = cvFamily(st.fuente);
 
   // Escala proporcional: el tamaño se calibra para 1920 y se adapta al lienzo
   // (miniatura 384 o proyección 1920) para que ambos se vean IDÉNTICOS.
   const cvk = W/1920;
+  const safeW=W*0.86, safeH=H*0.84;
 
-  // Auto-ajuste de tamaño para que no se desborde
+  // Ajuste de palabra: parte cada línea de la letra para que quepa a lo ancho
+  // (igual que se reflujan los versículos). Conserva las líneas en blanco.
+  function cvWrap(maxW){
+    const out=[];
+    for(const sl of srcLines){
+      if(sl.trim()===''){ out.push(''); continue; }
+      const words=sl.split(/\s+/); let cur='';
+      for(const w of words){
+        const test=cur?cur+' '+w:w;
+        if(cur && ctx.measureText(test).width>maxW){ out.push(cur); cur=w; }
+        else cur=test;
+      }
+      out.push(cur);
+    }
+    return out.length?out:[''];
+  }
+
+  // El texto se REDISTRIBUYE según el tamaño elegido; si aún así se desborda
+  // (alto o ancho) se reduce hasta caber, nunca se recorta.
   let fs=st.tamano*cvk;
-  (function autoFit(){
-    if(!lines.length) return;
+  let lines;
+  for(let iter=0;iter<40;iter++){
     ctx.font=st.peso+' '+fs+'px '+fam;
-    const safeW=W*0.86, safeH=H*0.84;
-    const maxLine=Math.max.apply(null,lines.map(l=>ctx.measureText(l).width||0));
-    let scale=1;
-    if(maxLine>safeW) scale=Math.min(scale,safeW/maxLine);
+    lines=cvWrap(safeW);
     const labelBlock=(st.mostrarEtiqueta? fs*0.42*2.8 : 0);
     const totalH=lines.length*fs*st.interlineado+labelBlock;
-    if(totalH>safeH) scale=Math.min(scale,safeH/totalH);
-    if(scale<1) fs=Math.max(10,fs*scale);
-  })();
+    const maxLineW=Math.max.apply(null,lines.map(l=>ctx.measureText(l).width||0));
+    if((totalH<=safeH && maxLineW<=safeW) || fs<=11*cvk) break;
+    fs=Math.max(11*cvk, fs*0.94);
+  }
 
   const lh=fs*st.interlineado;
   const labelFs=Math.max(1,Math.round(fs*0.42));
@@ -1460,15 +1483,19 @@ function cvRenderCantoList(){
   const host=$('#cantoList');
   const q=norm($('#cantoSearch').value);
   let list=cvCantos.slice();
-  if(q) list=list.filter(c=>norm(c.titulo).includes(q));
+  if(q) list=list.filter(c=>norm((c.titulo||'')+' '+(c.autor||'')+' '+(c.tags||'')).includes(q));
   list.sort((a,b)=>a.titulo.localeCompare(b.titulo));
   $('#cantoCount').textContent=cvCantos.length;
   if(!list.length){ host.innerHTML='<div class="cv-empty-hint" style="padding:14px">'+(cvCantos.length?'Sin coincidencias.':'Aún no guardas cantos. Escribe la letra y pulsa Guardar.')+'</div>'; return; }
-  host.innerHTML=list.map(c=>'<button class="cv-item'+(c.id===cantoActual?' sel':'')+'" data-id="'+c.id+'"><span class="ti">'+escapeHTML(c.titulo)+'</span><span class="acts"><span class="iconbtn danger" data-del="'+c.id+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></span></span></button>').join('');
+  host.innerHTML=list.map(c=>{
+    const sub=[c.autor, c.tags].filter(Boolean).join(' · ');
+    return '<button class="cv-item'+(c.id===cantoActual?' sel':'')+'" data-id="'+c.id+'"><span style="flex:1;min-width:0"><span class="ti" style="display:block">'+escapeHTML(c.titulo)+'</span>'+(sub?'<span class="cv-sub2">'+escapeHTML(sub)+'</span>':'')+'</span><span class="acts"><span class="iconbtn danger" data-del="'+c.id+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></span></span></button>';
+  }).join('');
   $$('.cv-item',host).forEach(el=>el.onclick=e=>{
     if(e.target.closest('[data-del]')) return;
     const c=cvCantos.find(x=>x.id===el.dataset.id); if(!c) return;
     cantoActual=c.id; $('#cantoTitulo').value=c.titulo; $('#cantoLetra').value=c.letra;
+    $('#cantoAutor').value=c.autor||''; $('#cantoTags').value=c.tags||'';
     cvRenderCantoList(); cvRenderCantoSlides();
   });
   $$('[data-del]',host).forEach(b=>b.onclick=()=>{
@@ -1481,12 +1508,14 @@ function cvRenderCantoList(){
 
 function cvGuardarCanto(){
   const titulo=($('#cantoTitulo').value||'').trim()||'Canto sin título';
+  const autor=($('#cantoAutor').value||'').trim();
+  const tags=($('#cantoTags').value||'').trim();
   const letra=$('#cantoLetra').value;
   if(!cvParseLetra(letra).length){ toast('Escribe la letra primero'); return; }
   if(cantoActual){
-    const c=cvCantos.find(x=>x.id===cantoActual); if(c){ c.titulo=titulo; c.letra=letra; }
+    const c=cvCantos.find(x=>x.id===cantoActual); if(c){ c.titulo=titulo; c.letra=letra; c.autor=autor; c.tags=tags; }
   } else {
-    cantoActual=uid(); cvCantos.push({id:cantoActual,titulo,letra,fecha:Date.now()});
+    cantoActual=uid(); cvCantos.push({id:cantoActual,titulo,letra,autor,tags,fecha:Date.now()});
   }
   cvSaveCantos(); cvRenderCantoList(); toast('Canto guardado');
 }
@@ -1494,6 +1523,7 @@ function cvGuardarCanto(){
 function cvNuevoCanto(){
   if(($('#cantoLetra').value||'').trim() && !confirm('¿Descartar la letra actual?')) return;
   cantoActual=null; $('#cantoTitulo').value=''; $('#cantoLetra').value='';
+  $('#cantoAutor').value=''; $('#cantoTags').value='';
   cvRenderCantoSlides(); cvRenderCantoList();
 }
 
@@ -1512,6 +1542,16 @@ async function cvCantoToBanners(){
 
 /* ============ MÓDULO HIMNARIO ============ */
 let himnoActual = null;
+/* Ediciones del usuario sobre himnos (el HYMNAL base es fijo en el código).
+   Clave = número de himno → array de secciones {type,text}. */
+let cvHimnoOv = (()=>{ try{ return JSON.parse(localStorage.getItem('proclama.himnos.v1')||'{}'); }catch(e){ return {}; } })();
+function cvSaveHimnoOv(){ localStorage.setItem('proclama.himnos.v1', JSON.stringify(cvHimnoOv)); }
+/* Devuelve el himno con la edición del usuario aplicada si existe. */
+function cvGetHimno(num){
+  const base=HYMNAL.find(x=>x.number===num); if(!base) return null;
+  const ov=cvHimnoOv[num];
+  return ov ? {number:base.number, title:base.title, sections:ov, _edited:true} : base;
+}
 
 function cvRenderHimnList(){
   const host=$('#himnList');
@@ -1530,9 +1570,10 @@ function cvRenderHimnList(){
 }
 
 async function cvLoadHimno(num){
-  const h=HYMNAL.find(x=>x.number===num); if(!h) return;
+  const h=cvGetHimno(num); if(!h) return;
   $('#himnHint').style.display='none';
-  $('#himnSub').textContent='Himnario de Victoria · #'+h.number+' — '+h.title;
+  $('#himnSub').textContent='Himnario de Victoria · #'+h.number+' — '+h.title+(h._edited?' (editado)':'');
+  const eb=$('#himnEditar'); if(eb) eb.disabled=false;
   const host=$('#himnSlides');
   const st=cfg.cv.himno;
   host.innerHTML=h.sections.map((s,i)=>'<div class="cv-slide" data-idx="'+i+'"><canvas width="384" height="216"></canvas><span class="tag">'+escapeHTML(s.type)+'</span><span class="nn">'+(i+1)+'/'+h.sections.length+'</span></div>').join('');
@@ -1545,9 +1586,33 @@ async function cvLoadHimno(num){
   if(cvCtx&&cvCtx.kind==='himno') cvHighlight('himno',cvCtx.idx);
 }
 
+/* Editor de himnos: redistribuye la letra en diapositivas (línea en blanco = nueva diapositiva). */
+function cvOpenHimnoEdit(){
+  if(!himnoActual){ toast('Elige un himno primero'); return; }
+  const h=cvGetHimno(himnoActual); if(!h) return;
+  const text=h.sections.map(s=>s.text).join('\n\n');
+  let html=modalHeader('Editar himno #'+h.number+' — '+escapeHTML(h.title))+'<div class="modal-b">';
+  html+='<p style="font-size:12.5px;color:var(--muted);line-height:1.5;margin-bottom:10px">Deja una <b>línea en blanco</b> entre bloques para separar cada diapositiva. Útil para repartir un himno largo en varias diapositivas legibles. El coro repetido se detecta solo.</p>';
+  html+='<textarea class="input" id="himnEditTxt" style="height:auto;min-height:320px;font-size:15px;line-height:1.6">'+escapeHTML(text)+'</textarea>';
+  html+='<div class="modal-foot">';
+  if(cvHimnoOv[himnoActual]) html+='<button class="btn" id="himnEditReset" style="margin-right:auto">Restaurar original</button>';
+  html+='<button class="btn" data-close>Cancelar</button><button class="btn primary" id="himnEditSave">Guardar</button></div></div>';
+  openModal(html,true);
+  $('#himnEditSave').onclick=()=>{
+    const blocks=($('#himnEditTxt').value||'').split(/\n[ \t]*\n/).map(b=>b.trim()).filter(Boolean);
+    if(!blocks.length){ toast('El himno no puede quedar vacío'); return; }
+    const counts={}; blocks.forEach(b=>{ const k=norm(b); counts[k]=(counts[k]||0)+1; });
+    let vn=0; const sections=blocks.map(b=> counts[norm(b)]>1 ? {type:'Coro',text:b} : {type:'Verso '+(++vn),text:b});
+    cvHimnoOv[himnoActual]=sections; cvSaveHimnoOv();
+    closeModal(); cvLoadHimno(himnoActual); toast('Himno actualizado');
+  };
+  const rb=$('#himnEditReset');
+  if(rb) rb.onclick=()=>{ if(!confirm('¿Restaurar el himno a su versión original?')) return; delete cvHimnoOv[himnoActual]; cvSaveHimnoOv(); closeModal(); cvLoadHimno(himnoActual); toast('Himno restaurado'); };
+}
+
 async function cvHimnToBanners(){
   if(!himnoActual){ toast('Elige un himno primero'); return; }
-  const h=HYMNAL.find(x=>x.number===himnoActual); if(!h) return;
+  const h=cvGetHimno(himnoActual); if(!h) return;
   const st=cfg.cv.himno;
   toast('Generando imágenes…');
   for(let i=0;i<h.sections.length;i++){
@@ -1569,14 +1634,16 @@ function cvCurrentSampleFor(perfil){
     if(secs.length){ const i=(cvCtx&&cvCtx.kind==='canto')?Math.min(cvCtx.idx,secs.length-1):0; return secs[i]; }
     return {type:'Diapositiva 1', text:'Grande es tu fidelidad,\nGrande es tu fidelidad;\ncada mañana se renuevan tus bondades.'};
   } else {
-    if(himnoActual){ const h=HYMNAL.find(x=>x.number===himnoActual); if(h&&h.sections.length){ const i=(cvCtx&&cvCtx.kind==='himno')?Math.min(cvCtx.idx,h.sections.length-1):0; return h.sections[i]; } }
+    if(himnoActual){ const h=cvGetHimno(himnoActual); if(h&&h.sections.length){ const i=(cvCtx&&cvCtx.kind==='himno')?Math.min(cvCtx.idx,h.sections.length-1):0; return h.sections[i]; } }
     return {type:'Coro', text:'CANTAD DEL AMOR DE CRISTO,\nENSALZAD AL REDENTOR;\nTRIBUTADLE SANTOS TODOS\nGRANDE GLORIA Y LOOR.'};
   }
 }
 
-/* Si hay una diapositiva de este perfil en vivo/previa, la regenera con el estilo nuevo
-   para que la proyección refleje el cambio en tiempo real. */
-async function cvRefreshLivePreview(perfil){
+/* Regenera la diapositiva de este perfil con el estilo nuevo.
+   - commit=false (mientras configuro): solo actualiza MI vista previa de control, NO la 2ª ventana,
+     para que el público no vea los cambios en tiempo real.
+   - commit=true (al pulsar "Listo"): además envía el cambio al "en vivo" (2ª ventana). */
+async function cvRefreshLivePreview(perfil, commit){
   if(!cvCtx) return;
   if(perfil==='canto' && cvCtx.kind!=='canto') return;
   if(perfil==='himno' && cvCtx.kind!=='himno') return;
@@ -1584,7 +1651,7 @@ async function cvRefreshLivePreview(perfil){
   const state=await cvSlideToState(sec, cvCtx.st);
   state._cv={kind:cvCtx.kind, idx:cvCtx.idx, total:cvCtx.sections.length, sectionType:sec.type};
   setPreview(state);
-  if(liveState.kind==='image' && liveState._cv) pushLive(state);
+  if(commit && liveState.kind==='image' && liveState._cv) pushLive(state);
 }
 
 function cvOpenEstilo(perfil){
@@ -1601,7 +1668,7 @@ function cvOpenEstilo(perfil){
   let h='<div class="tprev screen" id="cvPrev"><canvas width="1920" height="1080" style="width:100%;height:100%;display:block"></canvas></div>';
   h+='<div style="font-size:11px;color:var(--muted);text-align:center;margin:6px 0 16px">Vista previa real de la diapositiva</div>';
   h+='<div class="form-row"><label>Fuente</label><select class="input" id="cvF">'+opts+'</select><div class="gf" id="cvGfRow"><input class="input" id="cvGfName" placeholder="Nombre exacto (ej. Spectral)"><button id="cvGfLoad">Cargar</button></div></div>';
-  h+='<div class="grid2-modal"><div class="form-row"><label>Tamaño <span id="cvSv" style="color:var(--royal);font-weight:600"></span></label><input type="range" id="cvS" min="36" max="120" value="'+st.tamano+'"></div>';
+  h+='<div class="grid2-modal"><div class="form-row"><label>Tamaño <span id="cvSv" style="color:var(--royal);font-weight:600"></span></label><input type="range" id="cvS" min="36" max="200" value="'+st.tamano+'"></div>';
   h+='<div class="form-row"><label>Interlineado <span id="cvIv" style="color:var(--royal);font-weight:600"></span></label><input type="range" id="cvI" min="100" max="200" value="'+Math.round(st.interlineado*100)+'"></div></div>';
   h+='<div class="grid2-modal"><div class="form-row"><label>Peso</label><select class="input" id="cvW"><option value="400">Normal</option><option value="600">Seminegrita</option><option value="bold">Negrita</option></select></div>';
   h+='<div class="form-row"><label>Alineación</label><select class="input" id="cvA"><option value="center">Centro</option><option value="left">Izquierda</option><option value="right">Derecha</option></select></div></div>';
@@ -1617,9 +1684,9 @@ function cvOpenEstilo(perfil){
   $('#cvSv').textContent=st.tamano+'px'; $('#cvIv').textContent=st.interlineado.toFixed(2); $('#cvOv').textContent=Math.round(st.overlay*100)+'%';
   const prev=async()=>{ const c=$('#cvPrev canvas'); if(!c)return; const sample=cvCurrentSampleFor(perfil); await ensureFont(st.fuente); await cvFontReady(st.fuente,st.peso,st.tamano); await cvRenderTo(c, sample, st); };
   let svT;
-  const sv=()=>{ saveCfg(); prev(); clearTimeout(svT); svT=setTimeout(()=>{ cvRefreshActive(perfil); cvRefreshLivePreview(perfil); },120); };
+  const sv=()=>{ saveCfg(); prev(); clearTimeout(svT); svT=setTimeout(()=>{ cvRefreshActive(perfil); cvRefreshLivePreview(perfil,false); },120); };
   setTimeout(prev,40); setTimeout(prev,420);
-  $('#cvDone').onclick=cvClosePanel;
+  $('#cvDone').onclick=()=>{ cvRefreshLivePreview(perfil,true); cvClosePanel(); };
   $('#cvF').onchange=e=>{ if(e.target.value==='__gf'){ $('#cvGfRow').classList.add('show'); return; } $('#cvGfRow').classList.remove('show'); st.fuente=e.target.value; ensureFont(st.fuente); setTimeout(sv,60); };
   $('#cvGfLoad').onclick=()=>{ const n=$('#cvGfName').value.trim(); if(!n)return; ensureFont(n); st.fuente=n; setTimeout(sv,600); toast('Fuente «'+n+'» cargada'); };
   $('#cvS').oninput=e=>{st.tamano=+e.target.value;$('#cvSv').textContent=st.tamano+'px';sv();};
@@ -1665,6 +1732,7 @@ function cvWire(){
   $('#cantoSearch').oninput=cvRenderCantoList;
   // Himnario
   $('#himnSearch').oninput=cvRenderHimnList;
+  $('#himnEditar').onclick=cvOpenHimnoEdit;
   // Panel lateral de estilo
   $('#cvPanelClose').onclick=cvClosePanel;
 }
