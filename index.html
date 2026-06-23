@@ -1342,6 +1342,13 @@ async function cvRenderTo(canvas, sec, st, opts){
   const isChorus=(sec.type||'').toLowerCase().includes('coro');
   const fam = cvFamily(st.fuente);
 
+  // CLAVE: garantizar que la fuente esté realmente cargada ANTES de medir. Si se mide
+  // con una fuente de respaldo (más angosta) el auto-ajuste calcula mal el tamaño y los
+  // márgenes salen distintos entre miniatura y proyección. Se espera en CADA render.
+  if(document.fonts && document.fonts.load){
+    try{ await document.fonts.load((st.peso||'600')+' '+st.tamano+"px '"+st.fuente+"'"); }catch(e){}
+  }
+
   // === Maquetación SIEMPRE en el lienzo canónico 1920x1080 ===
   // measureText depende solo de la fuente (NO del tamaño del lienzo), así que el
   // corte de líneas y el auto-ajuste se calculan con la fuente a escala 1920 y
