@@ -1342,10 +1342,14 @@ async function cvRenderTo(canvas, sec, st, opts){
   const isChorus=(sec.type||'').toLowerCase().includes('coro');
   const fam = cvFamily(st.fuente);
 
-  // Escala proporcional: el tamaño se calibra para 1920 y se adapta al lienzo
-  // (miniatura 384 o proyección 1920) para que ambos se vean IDÉNTICOS.
+  // === Maquetación SIEMPRE en el lienzo canónico 1920x1080 ===
+  // measureText depende solo de la fuente (NO del tamaño del lienzo), así que el
+  // corte de líneas y el auto-ajuste se calculan con la fuente a escala 1920 y
+  // después se dibuja multiplicando todo por cvk. Gracias a esto la miniatura y la
+  // proyección parten EXACTAMENTE de la misma distribución de texto y márgenes.
   const cvk = W/1920;
-  const safeW=W*0.86, safeH=H*0.84;
+  const CW=1920, CH=1080;
+  const safeW=CW*0.86, safeH=CH*0.84;
 
   // Ajuste de palabra: parte cada línea de la letra para que quepa a lo ancho
   // (igual que se reflujan los versículos). Conserva las líneas en blanco.
@@ -1365,21 +1369,23 @@ async function cvRenderTo(canvas, sec, st, opts){
   }
 
   // El texto se REDISTRIBUYE según el tamaño elegido; si aún así se desborda
-  // (alto o ancho) se reduce hasta caber, nunca se recorta.
-  let fs=st.tamano*cvk;
+  // (alto o ancho) se reduce hasta caber, nunca se recorta. fsC = tamaño canónico (1920).
+  let fsC=st.tamano;
   let lines;
   for(let iter=0;iter<40;iter++){
-    ctx.font=st.peso+' '+fs+'px '+fam;
+    ctx.font=st.peso+' '+fsC+'px '+fam;
     lines=cvWrap(safeW);
-    const labelBlock=(st.mostrarEtiqueta? fs*0.42*2.8 : 0);
-    const totalH=lines.length*fs*st.interlineado+labelBlock;
+    const labelBlock=(st.mostrarEtiqueta? fsC*0.42*2.8 : 0);
+    const totalH=lines.length*fsC*st.interlineado+labelBlock;
     const maxLineW=Math.max.apply(null,lines.map(l=>ctx.measureText(l).width||0));
-    if((totalH<=safeH && maxLineW<=safeW) || fs<=11*cvk) break;
-    fs=Math.max(11*cvk, fs*0.94);
+    if((totalH<=safeH && maxLineW<=safeW) || fsC<=11) break;
+    fsC=Math.max(11, fsC*0.94);
   }
 
+  // Dibujo escalado al lienzo real: cada medida canónica se multiplica por cvk.
+  const fs=fsC*cvk;
   const lh=fs*st.interlineado;
-  const labelFs=Math.max(1,Math.round(fs*0.42));
+  const labelFs=Math.max(1,fsC*0.42*cvk);
   ctx.textBaseline='middle';
   const padH=W*0.07;
   let textX;
@@ -1398,13 +1404,13 @@ async function cvRenderTo(canvas, sec, st, opts){
     ctx.font='bold '+labelFs+'px '+fam;
     ctx.textAlign='center';
     ctx.fillStyle=isChorus? 'rgba(231,212,160,0.95)' : 'rgba(198,160,83,0.95)';
-    if(shadow){ ctx.shadowColor='rgba(0,0,0,0.9)'; ctx.shadowBlur=16; ctx.shadowOffsetY=2; }
+    if(shadow){ ctx.shadowColor='rgba(0,0,0,0.9)'; ctx.shadowBlur=16*cvk; ctx.shadowOffsetY=2*cvk; }
     ctx.fillText(label,W/2,labelY);
     ctx.shadowBlur=0; ctx.shadowOffsetY=0;
     const lineY=lyricsStartY-labelFs*0.8;
     ctx.strokeStyle=isChorus? 'rgba(231,212,160,0.5)':'rgba(198,160,83,0.5)';
-    ctx.lineWidth=1.5*(W/1920);
-    ctx.beginPath(); ctx.moveTo(W/2-130*(W/1920),lineY); ctx.lineTo(W/2+130*(W/1920),lineY); ctx.stroke();
+    ctx.lineWidth=Math.max(1,1.5*cvk);
+    ctx.beginPath(); ctx.moveTo(W/2-130*cvk,lineY); ctx.lineTo(W/2+130*cvk,lineY); ctx.stroke();
   }
 
   // Letra
@@ -1412,7 +1418,7 @@ async function cvRenderTo(canvas, sec, st, opts){
   ctx.textAlign=st.align;
   ctx.fillStyle=st.color;
   lines.forEach((l,i)=>{
-    if(shadow){ ctx.shadowColor='rgba(0,0,0,0.95)'; ctx.shadowBlur=20; ctx.shadowOffsetY=3; }
+    if(shadow){ ctx.shadowColor='rgba(0,0,0,0.95)'; ctx.shadowBlur=20*cvk; ctx.shadowOffsetY=3*cvk; }
     ctx.fillText(l,textX,lyricsStartY+i*lh);
     ctx.shadowBlur=0; ctx.shadowOffsetY=0;
   });
