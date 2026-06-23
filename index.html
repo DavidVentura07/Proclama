@@ -178,7 +178,13 @@
   .sermon-pages{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:9px;padding:0 16px 16px}
   .spage{aspect-ratio:16/9;border-radius:9px;background:#241733 center/cover no-repeat;border:2px solid transparent;position:relative}
   .spage:hover{border-color:var(--royal)}
+  .spage.live{border-color:var(--ruby);box-shadow:0 6px 16px rgba(192,51,77,.28)}
   .spage .n{position:absolute;left:5px;top:4px;font-size:10px;font-weight:700;color:#fff;background:rgba(0,0,0,.45);padding:1px 6px;border-radius:6px}
+  .sermon-h{cursor:pointer}
+  .sermon .chev{flex-shrink:0;color:var(--muted);transition:transform .18s}
+  .sermon .chev svg{width:18px;height:18px;display:block}
+  .sermon.collapsed .chev{transform:rotate(-90deg)}
+  .sermon.collapsed .sermon-pages{display:none}
 
   /* Program rail */
   .prograil{background:rgba(255,255,255,.62);border-left:1px solid var(--line);padding:16px;display:flex;flex-direction:column;gap:13px;overflow-y:auto}
@@ -330,7 +336,7 @@
   .cv-slide{position:relative;border-radius:11px;overflow:hidden;border:2px solid transparent;background:#15101f;box-shadow:var(--shadow);cursor:pointer;aspect-ratio:16/9}
   .cv-slide:hover{border-color:var(--royal)}
   .cv-slide.live{border-color:var(--ruby);box-shadow:0 8px 20px rgba(192,51,77,.25)}
-  .cv-slide canvas{width:100%;height:100%;display:block;object-fit:cover}
+  .cv-slide canvas{width:100%;height:100%;display:block;object-fit:fill}
   .cv-slide .tag{position:absolute;left:6px;top:6px;font-size:10px;font-weight:700;color:#fff;background:rgba(90,42,130,.7);padding:2px 8px;border-radius:6px;text-transform:uppercase;letter-spacing:.5px}
   .cv-slide .nn{position:absolute;right:6px;bottom:6px;font-size:10px;font-weight:700;color:#fff;background:rgba(0,0,0,.5);padding:1px 7px;border-radius:6px}
   .cv-toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
@@ -443,7 +449,7 @@
         </div>
         <div class="cv-grid cv-grid-canto">
           <div class="cv-side">
-            <div class="search" style="margin-bottom:0"><div class="field"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input id="cantoSearch" placeholder="Buscar canto guardado…"></div></div>
+            <div class="search" style="margin-bottom:0"><div class="field"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input id="cantoSearch" placeholder="Buscar por título, autor, etiqueta o una frase…"></div></div>
             <div class="cv-list"><div class="cv-list-h">Mis cantos <span class="res" id="cantoCount">0</span></div><div class="cv-list-body" id="cantoList"></div></div>
           </div>
           <div class="cv-editor-wrap">
@@ -922,10 +928,12 @@ function wireControls(){
     if(e.key==='ArrowRight'||e.key==='ArrowDown'){
       if($('#m-versiculos').classList.contains('active')){ stepVerse(1); e.preventDefault(); }
       else if(typeof cvSectionsActive==='function' && cvSectionsActive() && ($('#m-cantos').classList.contains('active')||$('#m-himnario').classList.contains('active'))){ cvStep(1); e.preventDefault(); }
+      else if($('#m-predicas').classList.contains('active') && predCtx){ predStep(1); e.preventDefault(); }
     }
     else if(e.key==='ArrowLeft'||e.key==='ArrowUp'){
       if($('#m-versiculos').classList.contains('active')){ stepVerse(-1); e.preventDefault(); }
       else if(typeof cvSectionsActive==='function' && cvSectionsActive() && ($('#m-cantos').classList.contains('active')||$('#m-himnario').classList.contains('active'))){ cvStep(-1); e.preventDefault(); }
+      else if($('#m-predicas').classList.contains('active') && predCtx){ predStep(-1); e.preventDefault(); }
     }
     else if(e.key==='Escape'){ activarPantalla('pausa'); }
   });
@@ -1009,6 +1017,24 @@ async function addSermon(tema,files){
   await idbPut('sermones',{id:uid(),tema:tema||'Predicación',fecha:Date.now(),pageIds});
   toast('Predicación guardada'); renderSermons();
 }
+let predCollapsed = (()=>{ try{ return new Set(JSON.parse(localStorage.getItem('proclama.predicas.colapsadas')||'[]')); }catch(e){ return new Set(); } })();
+function predSaveCollapsed(){ localStorage.setItem('proclama.predicas.colapsadas', JSON.stringify([...predCollapsed])); }
+/* Contexto de navegación de predicaciones (flechas ← →) */
+let predCtx = null; /* {pageIds:[], idx} */
+function predHighlight(){
+  const pid = predCtx ? predCtx.pageIds[predCtx.idx] : null;
+  $$('.spage',$('#sermonList')).forEach(el=>el.classList.toggle('live', !!pid && el.dataset.pid===pid));
+}
+function predStep(dir){
+  if(!predCtx) return;
+  const n=predCtx.idx+dir;
+  if(n<0||n>=predCtx.pageIds.length) return;
+  predCtx.idx=n;
+  const st={kind:'image',imgStore:'sermonpages',imgId:predCtx.pageIds[n],_pred:true};
+  setPreview(st);
+  if(liveState.kind==='image' && liveState._pred) pushLive(st);
+  predHighlight();
+}
 async function renderSermons(){
   const host=$('#sermonList'); let list=await idbAll('sermones');
   const q=norm($('#sermonSearch').value); if(q) list=list.filter(s=>norm(s.tema).includes(q));
@@ -1016,12 +1042,15 @@ async function renderSermons(){
   list.sort((a,b)=> sort==='old'?a.fecha-b.fecha : sort==='tema'?a.tema.localeCompare(b.tema) : b.fecha-a.fecha);
   if(!list.length){ host.innerHTML=emptyState('predicas'); return; }
   let h='';
-  list.forEach(s=>{ h+='<div class="sermon"><div class="sermon-h"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div><div class="info"><div class="t">'+escapeHTML(s.tema)+'</div><div class="s">'+fmtDate(s.fecha)+' · '+s.pageIds.length+' diapositiva(s)</div></div><button class="iconbtn danger" data-del="'+s.id+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></button></div><div class="sermon-pages" data-pp="'+s.id+'"></div></div>'; });
+  list.forEach(s=>{ const col=predCollapsed.has(s.id); h+='<div class="sermon'+(col?' collapsed':'')+'" data-sid="'+s.id+'"><div class="sermon-h"><span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></span><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div><div class="info"><div class="t">'+escapeHTML(s.tema)+'</div><div class="s">'+fmtDate(s.fecha)+' · '+s.pageIds.length+' diapositiva(s)</div></div><button class="iconbtn danger" data-del="'+s.id+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></button></div><div class="sermon-pages" data-pp="'+s.id+'"></div></div>'; });
   host.innerHTML=h;
   for(const s of list){ const cont=$('[data-pp="'+s.id+'"]',host); let ph=''; s.pageIds.forEach((pid,i)=>{ ph+='<button class="spage" data-pid="'+pid+'"><span class="n">'+(i+1)+'</span></button>'; }); cont.innerHTML=ph;
-    for(const btn of $$('.spage',cont)){ const pid=btn.dataset.pid; const u=await blobURL('sermonpages',pid); if(u) btn.style.backgroundImage='url('+u+')'; btn.onclick=()=>setPreview({kind:'image',imgStore:'sermonpages',imgId:pid}); }
+    for(const btn of $$('.spage',cont)){ const pid=btn.dataset.pid; const u=await blobURL('sermonpages',pid); if(u) btn.style.backgroundImage='url('+u+')';
+      btn.onclick=()=>{ const idx=s.pageIds.indexOf(pid); predCtx={pageIds:s.pageIds, idx}; setPreview({kind:'image',imgStore:'sermonpages',imgId:pid,_pred:true}); predHighlight(); }; }
   }
-  $$('[data-del]',host).forEach(b=>b.onclick=async()=>{ const s=list.find(x=>x.id===b.dataset.del); if(!confirm('¿Eliminar «'+s.tema+'»?')) return; for(const pid of s.pageIds){ await idbDel('sermonpages',pid); _urls.delete('sermonpages:'+pid); } await idbDel('sermones',s.id); renderSermons(); });
+  $$('.sermon-h',host).forEach(hd=>hd.onclick=e=>{ if(e.target.closest('[data-del]')) return; const card=hd.closest('.sermon'); const id=card.dataset.sid; card.classList.toggle('collapsed'); if(card.classList.contains('collapsed')) predCollapsed.add(id); else predCollapsed.delete(id); predSaveCollapsed(); });
+  $$('[data-del]',host).forEach(b=>b.onclick=async()=>{ const s=list.find(x=>x.id===b.dataset.del); if(!confirm('¿Eliminar «'+s.tema+'»?')) return; for(const pid of s.pageIds){ await idbDel('sermonpages',pid); _urls.delete('sermonpages:'+pid); } await idbDel('sermones',s.id); if(predCtx && s.pageIds.includes(predCtx.pageIds[predCtx.idx])) predCtx=null; renderSermons(); });
+  predHighlight();
 }
 async function deleteOldSermons(){
   if(!cfg.autoBorrado.activo) return;
@@ -1483,7 +1512,7 @@ function cvRenderCantoList(){
   const host=$('#cantoList');
   const q=norm($('#cantoSearch').value);
   let list=cvCantos.slice();
-  if(q) list=list.filter(c=>norm((c.titulo||'')+' '+(c.autor||'')+' '+(c.tags||'')).includes(q));
+  if(q) list=list.filter(c=>norm((c.titulo||'')+' '+(c.autor||'')+' '+(c.tags||'')+' '+(c.letra||'')).includes(q));
   list.sort((a,b)=>a.titulo.localeCompare(b.titulo));
   $('#cantoCount').textContent=cvCantos.length;
   if(!list.length){ host.innerHTML='<div class="cv-empty-hint" style="padding:14px">'+(cvCantos.length?'Sin coincidencias.':'Aún no guardas cantos. Escribe la letra y pulsa Guardar.')+'</div>'; return; }

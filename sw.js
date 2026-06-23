@@ -1,6 +1,6 @@
 /* Proclama service worker. Sube el numero de version (v1 -> v2 ...) cada vez
    que actualices los archivos, para forzar refresco en los equipos instalados. */
-const CACHE = 'proclama-v5';
+const CACHE = 'proclama-v6';
 const ASSETS = [
   './','index.html','manifest.json',
   'biblias/rvr1909.json',
