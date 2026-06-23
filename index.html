@@ -10,7 +10,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Inter:wght@400;500;600;700&family=Cormorant+Garamond:wght@500;600&family=Playfair+Display:wght@500;600&family=Lora:wght@500;600&family=EB+Garamond:wght@500&family=Outfit:wght@400;500;600&family=Montserrat:wght@500;600&family=Poppins:wght@500;600&display=swap" rel="stylesheet">
 <style>
   :root{
     --ivory:#F5F3FB;--ivory-2:#EFEBF8;--surface:#FFFFFF;
@@ -118,18 +118,24 @@
   .seg button{border:0;background:transparent;font-size:12.5px;font-weight:600;color:var(--muted);padding:0 14px;border-radius:9px;transition:all .14s}
   .seg button.on{background:#fff;color:var(--royal);box-shadow:var(--shadow)}
 
-  .verse-grid{display:grid;grid-template-columns:220px 84px 1fr;gap:14px}
+  .verse-grid{display:grid;grid-template-columns:392px 132px 1fr;gap:14px}
+  .books2{display:grid;grid-template-columns:1fr 1fr;flex:1;min-height:0}
+  .bcol{display:flex;flex-direction:column;min-height:0;border-right:1px solid var(--line)}
+  .bcol:last-child{border-right:0}
+  .bcol-h{padding:10px 12px 8px;font-family:'Fraunces',serif;font-style:italic;font-size:13px;font-weight:600;color:var(--gold-deep);background:#fff;border-bottom:1px solid var(--line)}
+  .bcol-body{overflow-y:auto;padding:5px 4px;max-height:60vh}
+  .verses-body{overflow-y:auto;padding:6px;max-height:62vh}
   .panel{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column;min-height:0}
   .panel-h{padding:11px 14px;font-size:10.5px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--line)}
   .panel-h .gold{color:var(--gold-deep)}
   .panel-body{overflow-y:auto;padding:6px;max-height:62vh}
   .testament{padding:8px 9px 4px;font-family:'Fraunces',serif;font-style:italic;font-size:13px;color:var(--royal);font-weight:500}
-  .book{display:flex;justify-content:space-between;align-items:center;padding:8px 11px;border-radius:9px;font-size:13.5px;color:var(--body);transition:background .12s}
-  .book:hover{background:var(--ivory)}
-  .book.sel{background:var(--royal-soft);color:var(--royal);font-weight:600}
-  .book small{color:var(--muted);font-size:11px}
-  .chap-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;padding:3px}
-  .chap{aspect-ratio:1;display:grid;place-items:center;border-radius:8px;font-size:12.5px;font-weight:600;color:var(--body);transition:all .12s;background:var(--ivory);border:0}
+  .book{display:block;width:100%;text-align:left;padding:6px 11px;border:0;background:none;font-size:13.5px;color:var(--body);border-radius:7px;position:relative;transition:color .12s}
+  .book:hover{color:var(--royal)}
+  .book.sel{color:var(--royal);font-weight:600}
+  .book.sel::before{content:"";position:absolute;left:1px;top:50%;transform:translateY(-50%);width:3px;height:15px;border-radius:3px;background:var(--gold-grad)}
+  .chap-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:8px;overflow-y:auto;max-height:62vh}
+  .chap{aspect-ratio:1.15;display:grid;place-items:center;border-radius:9px;font-size:13px;font-weight:600;color:var(--body);transition:all .12s;background:var(--ivory);border:0}
   .chap:hover{background:var(--royal-soft);color:var(--royal)}
   .chap.sel{background:var(--gold-grad);color:#3a2a08}
   .verse{display:flex;gap:11px;padding:11px 13px;border-radius:11px;transition:background .12s;font-size:14.5px;line-height:1.55;color:var(--body);text-align:left;background:none;border:0;width:100%}
@@ -258,7 +264,7 @@
   /* ===== Vista de proyección ===== */
   #proyeccion{position:fixed;inset:0;z-index:1000;background:#000;display:none}
   #proyeccion.on{display:block}
-  .pj-layer{position:absolute;inset:0;opacity:0;transition:opacity var(--tdur,.4s) ease}
+  .pj-layer{position:absolute;inset:0;opacity:0;overflow:hidden;transition:opacity var(--tdur,.4s) ease}
   .pj-layer.show{opacity:1}
   .pj-bg{position:absolute;inset:0;background-size:cover;background-position:center}
   .pj-ov{position:absolute;inset:0;background:#000}
@@ -270,14 +276,45 @@
   .pj-hint b{color:#E7D4A0}
 
   @media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important}}
+  /* Lienzo WYSIWYG 1920x1080 escalado (previa, en vivo y proyección) */
+  .stage{position:absolute;top:0;left:0;width:1920px;height:1080px;transform-origin:top left}
+  .s-bg{position:absolute;inset:0;background-size:cover;background-position:center}
+  .s-ov{position:absolute;inset:0;background:#0a0614}
+  .s-content{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:6% 8%}
+  .s-content img{max-width:100%;max-height:100%;object-fit:contain}
+  .s-text{display:flex;flex-direction:column;gap:24px;max-width:100%}
+  /* Botones tipo píldora con engrane */
+  .pillbtn{display:flex;align-items:center;border:1px solid var(--line);background:#fff;border-radius:10px;overflow:hidden;height:38px}
+  .pillbtn .main{display:flex;align-items:center;gap:7px;padding:0 12px;height:100%;color:var(--body);font-size:13px;font-weight:500;background:none;border:0}
+  .pillbtn .main:hover{color:var(--royal)}
+  .pillbtn .main svg{width:15px;height:15px}
+  .pillbtn .gear{width:34px;height:100%;border:0;border-left:1px solid var(--line);background:#fff;color:var(--muted);display:grid;place-items:center}
+  .pillbtn .gear:hover{color:var(--royal);background:var(--royal-soft)}
+  .pillbtn .gear svg{width:15px;height:15px}
+  .pillbtn.live{border-color:var(--royal)}
+  .pillbtn.live .main{color:var(--royal);font-weight:600}
+  /* Favorito como fondo */
+  .fav{position:absolute;top:7px;left:7px;width:28px;height:28px;border-radius:8px;border:0;background:rgba(255,255,255,.92);display:grid;place-items:center;color:#c2b48f;box-shadow:var(--shadow)}
+  .fav.on{color:#C6A053}
+  .fav svg{width:16px;height:16px}
+  .chip-filter{display:flex;gap:8px;margin-bottom:14px}
+  .chip-filter button{height:32px;padding:0 13px;border-radius:999px;border:1px solid var(--line);background:#fff;font-size:12.5px;font-weight:600;color:var(--body)}
+  .chip-filter button.on{background:var(--royal-soft);border-color:transparent;color:var(--royal)}
+  .gf{display:none;margin-top:10px;gap:8px}
+  .gf.show{display:flex}
+  .gf input{flex:1}
+  .gf button{padding:0 14px;border-radius:10px;border:0;background:var(--royal);color:#fff;font-weight:600;font-size:13px}
+  .grid2-modal{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .tprev{aspect-ratio:16/9;border-radius:13px;overflow:hidden;position:relative;box-shadow:var(--shadow);background:#15101f}
+  input[type=color].input{padding:3px;height:44px}
 </style>
 </head>
 <body>
 
 <!-- ===================== VISTA DE PROYECCIÓN ===================== -->
 <div id="proyeccion">
-  <div class="pj-layer" id="pjA"><div class="pj-bg"></div><div class="pj-ov"></div><div class="pj-content"></div></div>
-  <div class="pj-layer" id="pjB"><div class="pj-bg"></div><div class="pj-ov"></div><div class="pj-content"></div></div>
+  <div class="pj-layer" id="pjA"><div class="stage"><div class="s-bg"></div><div class="s-ov"></div><div class="s-content"></div></div></div>
+  <div class="pj-layer" id="pjB"><div class="stage"><div class="s-bg"></div><div class="s-ov"></div><div class="s-content"></div></div></div>
   <div class="pj-hint" id="pjHint">Arrastra esta ventana al proyector y presiona <b>F</b> para pantalla completa.</div>
 </div>
 
@@ -299,8 +336,8 @@
     </div>
     <div class="crumb" id="crumb">Versículos</div>
     <div class="top-actions">
-      <button class="tbtn" id="btnNegro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="14" rx="2"/></svg>Negro</button>
-      <button class="tbtn" id="btnLogo"><svg viewBox="0 0 24 24"><path d="M10.4 4h3.2v4h4.4v2.6h-4.4V20h-3.2V10.6H6V8h4.4z" fill="currentColor"/></svg>Logo</button>
+      <div class="pillbtn"><button class="main" id="btnBienvenida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>Bienvenida</button><button class="gear" id="cfgBienvenida" title="Configurar imágenes y bucle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button></div>
+      <div class="pillbtn"><button class="main" id="btnPausa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 8h18"/></svg>Pausa</button><button class="gear" id="cfgPausa" title="Configurar imágenes y bucle (Esc)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button></div>
       <button class="tbtn" id="btnConfig"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2V21a2 2 0 0 1-4 0v-.1A1.7 1.7 0 0 0 7 19.3a1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0-1.2-2.9H1a2 2 0 0 1 0-4h.1A1.7 1.7 0 0 0 2.3 7a1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.7 1.7 0 0 0 7 2.6h.1A1.7 1.7 0 0 0 9 1V.9a2 2 0 0 1 4 0V1a1.7 1.7 0 0 0 2.9 1.2 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1A1.7 1.7 0 0 0 21.4 7h.1a2 2 0 0 1 0 4H21a1.7 1.7 0 0 0-1.6 1z" transform="translate(1 1.5) scale(.92)"/></svg></button>
       <button class="tbtn on" id="btnProy"><span class="dot"></span>Proyección</button>
     </div>
@@ -332,9 +369,14 @@
           <div class="seg"><button class="on" data-mode="ref">Referencia</button><button data-mode="word">Palabra</button></div>
         </div>
         <div class="verse-grid" id="verseGrid">
-          <div class="panel"><div class="panel-h">Libros</div><div class="panel-body" id="booksPanel"></div></div>
-          <div class="panel"><div class="panel-h">Cap.</div><div class="panel-body" id="chapsPanel"></div></div>
-          <div class="panel"><div class="panel-h" id="versesHead">Versículos</div><div class="panel-body" id="versesPanel"></div></div>
+          <div class="panel"><div class="panel-h">Libros</div>
+            <div class="books2">
+              <div class="bcol"><div class="bcol-h">Antiguo Testamento</div><div class="bcol-body" id="atCol"></div></div>
+              <div class="bcol"><div class="bcol-h">Nuevo Testamento</div><div class="bcol-body" id="ntCol"></div></div>
+            </div>
+          </div>
+          <div class="panel"><div class="panel-h">Capítulos</div><div class="chap-grid" id="chapsPanel"></div></div>
+          <div class="panel"><div class="panel-h" id="versesHead">Versículos</div><div class="verses-body" id="versesPanel"></div></div>
         </div>
         <div id="wordResults" style="display:none"></div>
         <div class="hint"><span class="kbd">←</span><span class="kbd">→</span> Cambia el versículo en vivo · <span class="kbd">Esc</span> Pantalla negra</div>
@@ -393,17 +435,13 @@
     <aside class="prograil">
       <div>
         <div class="stage-h prev">Vista previa <span class="res">1920 × 1080</span></div>
-        <div class="screen prev" id="previewScreen">
-          <div class="scr-bg"></div><div class="scr-ov"></div><div class="scr-content"></div>
-        </div>
+        <div class="screen prev" id="previewScreen"><div class="stage"><div class="s-bg"></div><div class="s-ov"></div><div class="s-content"></div></div></div>
       </div>
       <button class="send" id="btnSend">Enviar a vivo
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
       <div>
         <div class="stage-h prog"><span class="live-dot"></span>En vivo <span class="res" id="proyStatus">PANTALLA 2</span></div>
-        <div class="screen prog" id="programScreen">
-          <div class="scr-bg"></div><div class="scr-ov"></div><div class="scr-content"></div>
-        </div>
+        <div class="screen prog" id="programScreen"><div class="stage"><div class="s-bg"></div><div class="s-ov"></div><div class="s-content"></div></div></div>
       </div>
       <div class="row">
         <span class="lbl">Transición</span>
@@ -480,11 +518,13 @@ const DEFAULT_CFG={
   capaOscura:0.42,
   transicion:{tipo:'fundido',ms:400},
   texto:{fuente:'Fraunces',tamano:72,color:'#ffffff',peso:500,align:'center',interlineado:1.35,sombra:true,mostrarRef:true,refColor:'#E7D4A0'},
-  fondoVerse:null,            // {store:'fondos',id} o null
+  fondoVerse:null,            // {store:'banners',id} o null
+  pantallas:{ bienvenida:{imgs:[],intervalo:300000}, pausa:{imgs:[],intervalo:300000} },
   autoBorrado:{activo:true,meses:3},
   versionActual:'rvr1909'
 };
 let cfg = loadCfg();
+cfg.pantallas=cfg.pantallas||{}; ['bienvenida','pausa'].forEach(k=>cfg.pantallas[k]=Object.assign({imgs:[],intervalo:300000},cfg.pantallas[k]||{}));
 function loadCfg(){ try{ return Object.assign(JSON.parse(JSON.stringify(DEFAULT_CFG)), JSON.parse(localStorage.getItem(CFG_KEY)||'{}')); }catch(e){ return JSON.parse(JSON.stringify(DEFAULT_CFG)); } }
 function saveCfg(){ localStorage.setItem(CFG_KEY, JSON.stringify(cfg)); }
 
@@ -530,73 +570,85 @@ const channel = ('BroadcastChannel' in window) ? new BroadcastChannel('proclama'
 
 function escapeHTML(s){ return (s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
 
-/* Calcula estilos de texto proporcionales al ancho del contenedor */
-function verseTextHTML(state, width){
-  const tx=cfg.texto;
-  const f = Math.round(width * (tx.tamano/1920));
-  const shadow = tx.sombra ? '0 2px 14px rgba(0,0,0,.55)' : 'none';
-  const fam = tx.fuente==='Inter' ? "'Inter',sans-serif" : (tx.fuente==='Fraunces' ? "'Fraunces',serif" : tx.fuente);
-  let html='<div class="scr-text" style="align-items:'+(tx.align==='left'?'flex-start':tx.align==='right'?'flex-end':'center')+'">';
-  html+='<div class="vt" style="font-family:'+fam+';font-size:'+f+'px;color:'+tx.color+';font-weight:'+tx.peso+';text-align:'+tx.align+';line-height:'+tx.interlineado+';text-shadow:'+shadow+'">'+escapeHTML(state.text)+'</div>';
-  if(tx.mostrarRef && state.ref) html+='<div class="vr" style="font-size:'+Math.round(f*0.42)+'px;color:'+tx.refColor+';text-shadow:'+shadow+'">'+escapeHTML(state.ref)+'</div>';
-  html+='</div>';
-  return html;
+/* Fuentes: curadas (offline) + carga dinamica desde Google Fonts */
+const CURATED=new Set(['Fraunces','Inter','Cormorant Garamond','Playfair Display','Lora','EB Garamond','Outfit','Montserrat','Poppins']);
+const SANS=new Set(['Inter','Outfit','Montserrat','Poppins']);
+const injectedFonts=new Set();
+function ensureFont(name){
+  if(!name||CURATED.has(name)||injectedFonts.has(name)) return;
+  injectedFonts.add(name);
+  const l=document.createElement('link'); l.rel='stylesheet';
+  l.href='https://fonts.googleapis.com/css2?family='+encodeURIComponent(name)+':wght@400;500;600&display=swap';
+  document.head.appendChild(l);
+}
+function famOf(f){ return SANS.has(f)?("'"+f+"',sans-serif"):("'"+f+"',serif"); }
+
+/* Texto del versiculo a tamano FIJO (lienzo 1920x1080) */
+function verseTextHTML(state){
+  const tx=state.style||cfg.texto;
+  const f=tx.tamano, shadow=tx.sombra?'0 2px 14px rgba(0,0,0,.55)':'none';
+  let h='<div class="s-text" style="align-items:'+(tx.align==='left'?'flex-start':tx.align==='right'?'flex-end':'center')+'">';
+  h+='<div style="font-family:'+famOf(tx.fuente)+';font-size:'+f+'px;color:'+tx.color+';font-weight:'+tx.peso+';text-align:'+tx.align+';line-height:'+tx.interlineado+';text-shadow:'+shadow+'">'+escapeHTML(state.text)+'</div>';
+  if(tx.mostrarRef && state.ref) h+='<div style="font-family:Inter,sans-serif;letter-spacing:3px;text-transform:uppercase;font-weight:600;font-size:'+Math.round(f*0.42)+'px;color:'+tx.refColor+';text-shadow:'+shadow+'">'+escapeHTML(state.ref)+'</div>';
+  h+='</div>'; return h;
 }
 
-/* Renderiza un estado dentro de un host con .scr-bg/.scr-ov/.scr-content (o .pj-*) */
-async function renderState(host, state, sel){
-  sel = sel || {bg:'.scr-bg',ov:'.scr-ov',content:'.scr-content'};
-  const bgEl=$(sel.bg,host), ovEl=$(sel.ov,host), cEl=$(sel.content,host);
-  const width=host.clientWidth||1920;
-  // fondo
-  bgEl.style.backgroundImage=''; bgEl.style.background='';
-  if(state.kind==='black'){ ovEl.style.opacity='1'; ovEl.style.background='#000'; cEl.innerHTML=''; return; }
-  if(state.kind==='clear'){ ovEl.style.opacity='1'; ovEl.style.background='#15101f'; cEl.innerHTML=''; return; }
-  if(state.kind==='logo'){ ovEl.style.opacity='1'; ovEl.style.background='radial-gradient(120% 120% at 50% 42%,#2a1d40,#15101f)';
-    const s=Math.round(width*0.16);
-    cEl.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;gap:'+Math.round(width*0.02)+'px"><div style="width:'+s+'px;height:'+s+'px;border-radius:'+Math.round(s*0.26)+'px;background:linear-gradient(135deg,#B8893B,#E6C878 45%,#C9A24B);display:grid;place-items:center"><svg viewBox="0 0 24 24" width="'+Math.round(s*0.5)+'" height="'+Math.round(s*0.5)+'"><path d="M10.4 2h3.2v5h5.4v3h-5.4v12h-3.2V10H5V7h5.4z" fill="#fff"/></svg></div><div style="font-family:Fraunces,serif;color:#E7D4A0;font-size:'+Math.round(width*0.05)+'px">Proclama</div></div>';
-    return;
-  }
-  // fondo de imagen (para verse) o color por defecto
-  ovEl.style.background='#000';
+/* Escala el lienzo 1920x1080 para caber en su contenedor */
+function fitStage(host){ if(!host)return; const st=$('.stage',host); if(!st)return; st.style.transform='scale('+((host.clientWidth||0)/1920)+')'; }
+function fitAllControl(){ fitStage($('#previewScreen')); fitStage($('#programScreen')); }
+
+/* Renderiza un estado dentro de un host que contiene .stage > .s-bg/.s-ov/.s-content */
+async function renderStage(host, state){
+  if(!host)return; const bg=$('.s-bg',host), ov=$('.s-ov',host), c=$('.s-content',host);
+  if(!bg||!ov||!c)return;
+  bg.style.backgroundImage=''; bg.style.background='';
+  if(state.kind==='black'){ ov.style.opacity='1'; ov.style.background='#000'; c.innerHTML=''; fitStage(host); return; }
+  if(state.kind==='clear'){ ov.style.opacity='1'; ov.style.background='#15101f'; c.innerHTML=''; fitStage(host); return; }
+  if(state.kind==='logo'){ ov.style.opacity='1'; ov.style.background='radial-gradient(120% 120% at 50% 42%,#2a1d40,#15101f)';
+    c.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;gap:38px"><div style="width:300px;height:300px;border-radius:78px;background:linear-gradient(135deg,#B8893B,#E6C878 45%,#C9A24B);display:grid;place-items:center"><svg viewBox="0 0 24 24" width="150" height="150"><path d="M10.4 2h3.2v5h5.4v3h-5.4v12h-3.2V10H5V7h5.4z" fill="#fff"/></svg></div><div style="font-family:Fraunces,serif;color:#E7D4A0;font-size:96px">Proclama</div></div>';
+    fitStage(host); return; }
+  ov.style.background='#000';
   if(state.kind==='verse'){
-    ovEl.style.opacity = (state.overlay!=null?state.overlay:cfg.capaOscura);
-    if(state.bg){ const u=await blobURL(state.bg.store,state.bg.id); if(u){ bgEl.style.backgroundImage='url('+u+')'; } else { bgEl.style.background='linear-gradient(135deg,#3b2a6e,#7a4b8f 55%,#b07a4a)'; } }
-    else { bgEl.style.background='linear-gradient(135deg,#3b2a6e,#7a4b8f 55%,#b07a4a)'; }
-    cEl.innerHTML=verseTextHTML(state,width);
-    return;
+    ensureFont((state.style||cfg.texto).fuente);
+    ov.style.opacity=(state.overlay!=null?state.overlay:cfg.capaOscura);
+    if(state.bg){ const u=await blobURL(state.bg.store,state.bg.id); if(u){ bg.style.background='center/cover no-repeat'; bg.style.backgroundImage='url('+u+')'; } else bg.style.background='linear-gradient(135deg,#3b2a6e,#7a4b8f 55%,#b07a4a)'; }
+    else bg.style.background='linear-gradient(135deg,#3b2a6e,#7a4b8f 55%,#b07a4a)';
+    c.innerHTML=verseTextHTML(state); fitStage(host); return;
   }
   if(state.kind==='image'){
-    ovEl.style.opacity='0';
-    const u=await blobURL(state.imgStore,state.imgId);
-    cEl.innerHTML = u? '<img src="'+u+'">' : '';
-    bgEl.style.background='#000';
-    return;
+    ov.style.opacity='0'; const u=await blobURL(state.imgStore,state.imgId);
+    bg.style.background='#000'; c.innerHTML=u?'<img src="'+u+'">':''; fitStage(host); return;
   }
 }
 
 /* ====== Vista PROYECCION (segunda ventana) ====== */
 let pjActive='A';
 async function pjRender(state){
-  const root=$('#proyeccion');
-  const ms = cfg.transicion.tipo==='corte'?0:cfg.transicion.ms;
-  root.style.setProperty('--tdur', ms+'ms');
-  const next = pjActive==='A' ? $('#pjB') : $('#pjA');
-  const cur  = pjActive==='A' ? $('#pjA') : $('#pjB');
-  await renderState(next, state, {bg:'.pj-bg',ov:'.pj-ov',content:'.pj-content'});
+  const root=$('#proyeccion'); const ms=cfg.transicion.tipo==='corte'?0:cfg.transicion.ms;
+  root.style.setProperty('--tdur',ms+'ms');
+  const next=pjActive==='A'?$('#pjB'):$('#pjA'); const cur=pjActive==='A'?$('#pjA'):$('#pjB');
+  await renderStage(next,state);
   next.classList.add('show'); cur.classList.remove('show');
-  pjActive = pjActive==='A'?'B':'A';
-  $('#pjHint').style.display = (state.kind==='black'||state.kind==='clear')?'block':'none';
+  pjActive=pjActive==='A'?'B':'A';
 }
 
 /* ====== CONTROL: previa, programa, envio ====== */
-function setPreview(state){ previewState=state; renderState($('#previewScreen'),state); }
-function pushLive(state){
-  liveState=state; liveIsVerse=(state.kind==='verse');
-  renderState($('#programScreen'),state);
-  if(channel) channel.postMessage({type:'state',state});
-}
+let loopTimer=null, currentScreen=null;
+function updateScreenPills(){ const pb=id=>{const e=$(id);return e?e.closest('.pillbtn'):null;}; const a=pb('#btnBienvenida'),b=pb('#btnPausa'); if(a)a.classList.toggle('live',currentScreen==='bienvenida'); if(b)b.classList.toggle('live',currentScreen==='pausa'); }
+function clearLoop(){ if(loopTimer){clearInterval(loopTimer);loopTimer=null;} currentScreen=null; updateScreenPills(); }
+function setPreview(state){ previewState=state; renderStage($('#previewScreen'),state); }
+function pushLiveRaw(state){ liveState=state; renderStage($('#programScreen'),state); if(channel) channel.postMessage({type:'state',state}); }
+function pushLive(state){ clearLoop(); liveIsVerse=(state.kind==='verse'); pushLiveRaw(state); }
 function goLive(){ pushLive(previewState); }
+function activarPantalla(which){
+  clearLoop();
+  const p=cfg.pantallas[which]||{imgs:[],intervalo:300000}; const imgs=(p.imgs||[]);
+  currentScreen=which; updateScreenPills();
+  if(!imgs.length){ pushLiveRaw({kind:'logo'}); return; }
+  let i=0; const show=()=>pushLiveRaw({kind:'image',imgStore:'banners',imgId:imgs[i%imgs.length]});
+  show();
+  if(imgs.length>1) loopTimer=setInterval(()=>{ i++; show(); }, Math.max(3000,p.intervalo||300000));
+}
 
 if(channel && !IS_PROY){
   channel.onmessage=e=>{ if(e.data && e.data.type==='ready'){ channel.postMessage({type:'state',state:liveState}); } };
@@ -616,23 +668,21 @@ let searchMode='ref';
 
 function buildVerseState(bi,ch,v){
   const b=BIBLE.books[bi]; const arr=b.map[ch]||[]; const text=arr[v-1]||'';
-  return {kind:'verse', text, ref:b.name+' '+ch+':'+v+' · '+BIBLE.abbr, bg:cfg.fondoVerse, overlay:cfg.capaOscura};
+  return {kind:'verse', text, ref:b.name+' '+ch+':'+v+' · '+BIBLE.abbr, bg:cfg.fondoVerse, overlay:cfg.capaOscura, style:Object.assign({},cfg.texto)};
 }
 function renderBooks(){
-  const host=$('#booksPanel'); let h='';
-  let lastT=null;
+  const at=$('#atCol'), nt=$('#ntCol'); let ah='',nh='';
   BIBLE.books.forEach((b,i)=>{
-    if(b.t!==lastT){ h+='<div class="testament">'+(b.t==='AT'?'Antiguo Testamento':'Nuevo Testamento')+'</div>'; lastT=b.t; }
-    const n=b.nums.length;
-    h+='<button class="book'+(i===current.bookIdx?' sel':'')+'" data-bi="'+i+'">'+b.name+' <small>'+n+'</small></button>';
+    const btn='<button class="book'+(i===current.bookIdx?' sel':'')+'" data-bi="'+i+'">'+b.name+'</button>';
+    if(b.t==='AT') ah+=btn; else nh+=btn;
   });
-  host.innerHTML=h;
-  $$('.book',host).forEach(el=>el.onclick=()=>{ current.bookIdx=+el.dataset.bi; current.chapter=null; renderBooks(); renderChaps(); $('#versesPanel').innerHTML=''; $('#versesHead').textContent='Versículos'; });
+  at.innerHTML=ah; nt.innerHTML=nh;
+  $$('.book').forEach(el=>el.onclick=()=>{ current.bookIdx=+el.dataset.bi; current.chapter=null; renderBooks(); renderChaps(); $('#versesPanel').innerHTML=''; $('#versesHead').textContent='Versículos'; });
 }
 function renderChaps(){
-  const b=BIBLE.books[current.bookIdx]; let h='<div class="chap-grid">';
+  const b=BIBLE.books[current.bookIdx]; let h='';
   b.nums.forEach(n=>{ h+='<button class="chap'+(n===current.chapter?' sel':'')+'" data-ch="'+n+'">'+n+'</button>'; });
-  h+='</div>'; $('#chapsPanel').innerHTML=h;
+  $('#chapsPanel').innerHTML=h;
   $$('.chap',$('#chapsPanel')).forEach(el=>el.onclick=()=>{ current.chapter=+el.dataset.ch; current.verse=1; renderChaps(); renderVerses(); });
 }
 function renderVerses(){
@@ -736,8 +786,10 @@ function toggleProy(){
 
 function wireControls(){
   $('#btnSend').onclick=goLive;
-  $('#btnNegro').onclick=()=>pushLive({kind:'black'});
-  $('#btnLogo').onclick=()=>pushLive({kind:'logo'});
+  $('#btnBienvenida').onclick=()=>activarPantalla('bienvenida');
+  $('#btnPausa').onclick=()=>activarPantalla('pausa');
+  $('#cfgBienvenida').onclick=()=>openPantallaModal('bienvenida');
+  $('#cfgPausa').onclick=()=>openPantallaModal('pausa');
   $('#btnProy').onclick=toggleProy;
   $('#btnConfig').onclick=openSettings;
   $('#btnAddToService').onclick=()=>addToService(previewState);
@@ -748,8 +800,9 @@ function wireControls(){
   // capa oscura
   const sl=$('#ocSlider'); sl.value=Math.round(cfg.capaOscura*100); $('#ocVal').textContent=sl.value+'%';
   sl.oninput=()=>{ const v=+sl.value; $('#ocVal').textContent=v+'%'; cfg.capaOscura=v/100; saveCfg();
-    if(previewState.kind==='verse'){ previewState.overlay=cfg.capaOscura; renderState($('#previewScreen'),previewState); }
-    if(liveState.kind==='verse'){ liveState.overlay=cfg.capaOscura; pushLive(liveState); } };
+    if(previewState.kind==='verse'){ previewState.overlay=cfg.capaOscura; renderStage($('#previewScreen'),previewState); }
+    if(liveState.kind==='verse'){ liveState.overlay=cfg.capaOscura; pushLiveRaw(liveState); }
+    if(typeof renderModalPreview==='function') renderModalPreview(); };
   $('#btnTexto').onclick=openTextoModal;
   $('#btnFondo').onclick=openFondoModal;
   // busqueda
@@ -763,8 +816,9 @@ function wireControls(){
     const t=e.target.tagName; if(t==='INPUT'||t==='TEXTAREA'||t==='SELECT') return;
     if(e.key==='ArrowRight'||e.key==='ArrowDown'){ if($('#m-versiculos').classList.contains('active')){ stepVerse(1); e.preventDefault(); } }
     else if(e.key==='ArrowLeft'||e.key==='ArrowUp'){ if($('#m-versiculos').classList.contains('active')){ stepVerse(-1); e.preventDefault(); } }
-    else if(e.key==='Escape'){ pushLive({kind:'black'}); }
+    else if(e.key==='Escape'){ activarPantalla('pausa'); }
   });
+  window.addEventListener('resize',fitAllControl);
   setInterval(updateProyBtn,1500);
 }
 
@@ -793,7 +847,7 @@ function emptyState(kind){
 
 /* ============ BANNERS ============ */
 async function addBanners(files){
-  for(const f of files){ if(!f.type.startsWith('image/')) continue; await idbPut('banners',{id:uid(),nombre:f.name.replace(/\.[^.]+$/,''),blob:f,fecha:Date.now()}); }
+  for(const f of files){ if(!f.type.startsWith('image/')) continue; await idbPut('banners',{id:uid(),nombre:f.name.replace(/\.[^.]+$/,''),blob:f,fecha:Date.now(),fondoFav:false}); }
   toast('Imágenes guardadas'); renderBanners();
 }
 async function renderBanners(){
@@ -801,9 +855,13 @@ async function renderBanners(){
   if(!list.length){ host.innerHTML=emptyState('banners'); return; }
   list.sort((a,b)=>b.fecha-a.fecha);
   let h='<div class="tiles">';
-  list.forEach(b=>{ h+='<div class="tile"><button class="thumb" data-id="'+b.id+'"></button><div class="acts"><button class="iconbtn danger" data-del="'+b.id+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div><div class="meta"><div class="t">'+escapeHTML(b.nombre)+'</div><div class="s">'+fmtDate(b.fecha)+'</div></div></div>'; });
+  list.forEach(b=>{ h+='<div class="tile"><button class="thumb" data-id="'+b.id+'"></button>'
+    +'<button class="fav'+(b.fondoFav?' on':'')+'" data-fav="'+b.id+'" title="Favorito como fondo de versículo"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l2.5 6.3L21 10l-4.8 4.2L17.5 21 12 17.5 6.5 21l1.3-6.8L3 10l6.5-.7z"/></svg></button>'
+    +'<div class="acts"><button class="iconbtn danger" data-del="'+b.id+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>'
+    +'<div class="meta"><div class="t">'+escapeHTML(b.nombre)+'</div><div class="s">'+fmtDate(b.fecha)+(b.fondoFav?' · fondo':'')+'</div></div></div>'; });
   h+='</div>'; host.innerHTML=h;
   for(const b of list){ const u=await blobURL('banners',b.id); const th=$('.thumb[data-id="'+b.id+'"]',host); if(u) th.style.backgroundImage='url('+u+')'; th.onclick=()=>setPreview({kind:'image',imgStore:'banners',imgId:b.id}); }
+  $$('[data-fav]',host).forEach(x=>x.onclick=async()=>{ const rec=await idbGet('banners',x.dataset.fav); rec.fondoFav=!rec.fondoFav; await idbPut('banners',rec); renderBanners(); });
   $$('[data-del]',host).forEach(x=>x.onclick=async()=>{ await idbDel('banners',x.dataset.del); _urls.delete('banners:'+x.dataset.del); renderBanners(); });
 }
 
@@ -876,25 +934,45 @@ function modalHeader(title){ return '<div class="modal-h"><h2>'+title+'</h2><but
 function openModal(html,wide){ const m=$('#modal'); m.className='modal'+(wide?' wide':''); m.innerHTML=html; $('#modalBg').classList.add('show'); $$('[data-close]',m).forEach(b=>b.onclick=closeModal); }
 function closeModal(){ $('#modalBg').classList.remove('show'); }
 
-function applyTextoLive(){ if(previewState.kind==='verse') renderState($('#previewScreen'),previewState); if(liveState.kind==='verse') pushLive(liveState); }
+let renderModalPreview=null;
+function applyTextoLive(){
+  if(previewState.kind==='verse'){ previewState.style=Object.assign({},cfg.texto); renderStage($('#previewScreen'),previewState); }
+  if(liveState.kind==='verse'){ liveState.style=Object.assign({},cfg.texto); pushLiveRaw(liveState); }
+  if(typeof renderModalPreview==='function') renderModalPreview();
+}
+const FONTS_SERIF=['Fraunces','Cormorant Garamond','Playfair Display','Lora','EB Garamond'];
+const FONTS_SANS=['Inter','Outfit','Montserrat','Poppins'];
 function openTextoModal(){
   const t=cfg.texto;
+  const inList=FONTS_SERIF.concat(FONTS_SANS).indexOf(t.fuente)>=0;
+  let opts='<optgroup label="Serif (elegantes)">'+FONTS_SERIF.map(f=>'<option value="'+f+'"'+(f===t.fuente?' selected':'')+'>'+f+'</option>').join('')+'</optgroup>';
+  opts+='<optgroup label="Sans (modernas)">'+FONTS_SANS.map(f=>'<option value="'+f+'"'+(f===t.fuente?' selected':'')+'>'+f+'</option>').join('')+'</optgroup>';
+  if(!inList) opts+='<option value="'+t.fuente+'" selected>'+t.fuente+' (Google Fonts)</option>';
+  opts+='<option value="__gf">➕ Cargar desde Google Fonts…</option>';
   let h=modalHeader('Estilo del texto')+'<div class="modal-b">';
-  h+='<div class="form-row"><label>Fuente</label><select class="input" id="txF"><option value="Fraunces">Fraunces (serif elegante)</option><option value="Inter">Inter (moderna)</option></select></div>';
-  h+='<div class="form-row"><label>Tamaño <span id="txSv" style="color:var(--royal);font-weight:600"></span></label><input type="range" id="txS" min="40" max="140" value="'+t.tamano+'"></div>';
-  h+='<div class="form-row"><label>Interlineado <span id="txIv" style="color:var(--royal);font-weight:600"></span></label><input type="range" id="txI" min="100" max="200" value="'+Math.round(t.interlineado*100)+'"></div>';
-  h+='<div class="form-row"><label>Peso</label><select class="input" id="txW"><option value="400">Normal</option><option value="500">Medio</option><option value="600">Seminegrita</option></select></div>';
-  h+='<div class="form-row"><label>Alineación</label><select class="input" id="txA"><option value="center">Centro</option><option value="left">Izquierda</option><option value="right">Derecha</option></select></div>';
-  h+='<div class="form-row"><label>Color del texto</label><div class="swatch"><input type="color" id="txC" value="'+t.color+'"></div></div>';
-  h+='<div class="form-row"><label>Color de la referencia</label><div class="swatch"><input type="color" id="txRC" value="'+t.refColor+'"></div></div>';
+  h+='<div class="tprev screen" id="txPrev"><div class="stage"><div class="s-bg"></div><div class="s-ov"></div><div class="s-content"></div></div></div>';
+  h+='<div style="font-size:11px;color:var(--muted);text-align:center;margin:6px 0 14px">Vista previa en vivo — refleja lo que se proyecta</div>';
+  h+='<div class="form-row"><label>Fuente</label><select class="input" id="txF">'+opts+'</select><div class="gf" id="gfRow"><input class="input" id="gfName" placeholder="Nombre exacto (ej. Spectral)"><button id="gfLoad">Cargar</button></div></div>';
+  h+='<div class="grid2-modal"><div class="form-row"><label>Tamaño <span id="txSv" style="color:var(--royal);font-weight:600"></span></label><input type="range" id="txS" min="40" max="140" value="'+t.tamano+'"></div>';
+  h+='<div class="form-row"><label>Interlineado <span id="txIv" style="color:var(--royal);font-weight:600"></span></label><input type="range" id="txI" min="100" max="200" value="'+Math.round(t.interlineado*100)+'"></div></div>';
+  h+='<div class="grid2-modal"><div class="form-row"><label>Peso</label><select class="input" id="txW"><option value="400">Normal</option><option value="500">Medio</option><option value="600">Seminegrita</option></select></div>';
+  h+='<div class="form-row"><label>Alineación</label><select class="input" id="txA"><option value="center">Centro</option><option value="left">Izquierda</option><option value="right">Derecha</option></select></div></div>';
+  h+='<div class="grid2-modal"><div class="form-row"><label>Color del texto</label><input type="color" class="input" id="txC" value="'+t.color+'"></div>';
+  h+='<div class="form-row"><label>Color de la referencia</label><input type="color" class="input" id="txRC" value="'+t.refColor+'"></div></div>';
   h+='<div class="setrow"><div class="sr-info"><div class="t">Sombra del texto</div></div><button class="switch'+(t.sombra?' on':'')+'" id="txSh"></button></div>';
   h+='<div class="setrow"><div class="sr-info"><div class="t">Mostrar referencia</div></div><button class="switch'+(t.mostrarRef?' on':'')+'" id="txRef"></button></div>';
   h+='<div class="modal-foot"><button class="btn primary" data-close>Listo</button></div></div>';
   openModal(h);
-  $('#txF').value=t.fuente; $('#txW').value=String(t.peso); $('#txA').value=t.align;
+  $('#txW').value=String(t.peso); $('#txA').value=t.align;
   $('#txSv').textContent=t.tamano+'px'; $('#txIv').textContent=t.interlineado.toFixed(2);
+  renderModalPreview=()=>{ const host=$('#txPrev'); if(!host)return;
+    const base=(previewState.kind==='verse')?previewState:{kind:'verse',text:'Porque de tal manera amó Dios al mundo, que ha dado á su Hijo unigénito, para que todo aquel que en él cree, no se pierda, mas tenga vida eterna.',ref:'Juan 3:16 · RVR 1909'};
+    renderStage(host, Object.assign({},base,{kind:'verse',style:Object.assign({},cfg.texto),overlay:cfg.capaOscura,bg:cfg.fondoVerse}));
+  };
+  setTimeout(renderModalPreview,30); setTimeout(renderModalPreview,400);
   const sv=()=>{ saveCfg(); applyTextoLive(); };
-  $('#txF').onchange=e=>{t.fuente=e.target.value;sv();};
+  $('#txF').onchange=e=>{ if(e.target.value==='__gf'){ $('#gfRow').classList.add('show'); return; } $('#gfRow').classList.remove('show'); t.fuente=e.target.value; ensureFont(t.fuente); setTimeout(sv,30); };
+  $('#gfLoad').onclick=()=>{ const n=$('#gfName').value.trim(); if(!n)return; ensureFont(n); t.fuente=n; setTimeout(sv,500); toast('Fuente «'+n+'» cargada'); };
   $('#txS').oninput=e=>{t.tamano=+e.target.value;$('#txSv').textContent=t.tamano+'px';sv();};
   $('#txI').oninput=e=>{t.interlineado=+e.target.value/100;$('#txIv').textContent=t.interlineado.toFixed(2);sv();};
   $('#txW').onchange=e=>{t.peso=+e.target.value;sv();};
@@ -905,20 +983,46 @@ function openTextoModal(){
   $('#txRef').onclick=e=>{t.mostrarRef=!t.mostrarRef;e.target.classList.toggle('on',t.mostrarRef);sv();};
 }
 
+let fondoFilterFav=false;
 async function openFondoModal(){
-  const list=await idbAll('fondos');
+  let list=await idbAll('banners'); list.sort((a,b)=>b.fecha-a.fecha);
+  const shown = fondoFilterFav ? list.filter(x=>x.fondoFav) : list;
   let h=modalHeader('Fondo de los versículos')+'<div class="modal-b">';
-  h+='<button class="btn primary" id="fUp" style="margin-bottom:14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Subir fondo</button>';
+  h+='<p style="font-size:12.5px;color:var(--muted);line-height:1.5;margin-bottom:12px">Es la misma biblioteca de <b>Banners</b>. Marca con la ★ las imágenes que sirven de fondo y filtra por favoritas.</p>';
+  h+='<div style="display:flex;gap:10px;margin-bottom:14px"><button class="btn primary" id="fUp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Subir imagen</button><button class="btn'+(fondoFilterFav?' primary':'')+'" id="fFav">'+(fondoFilterFav?'★ Favoritas':'☆ Solo favoritas')+'</button></div>';
   h+='<div class="picker-grid">';
   h+='<div class="pick'+(!cfg.fondoVerse?' sel':'')+'" id="fNone" style="background:linear-gradient(135deg,#3b2a6e,#7a4b8f,#b07a4a);display:grid;place-items:center"><span style="color:#fff;font-size:11px;font-weight:600;pointer-events:none">Degradado</span></div>';
-  list.forEach(f=>{ h+='<div class="pick'+(cfg.fondoVerse&&cfg.fondoVerse.id===f.id?' sel':'')+'" data-id="'+f.id+'"><button class="iconbtn danger" data-del="'+f.id+'" style="position:absolute;top:4px;right:4px"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>'; });
+  shown.forEach(f=>{ h+='<div class="pick'+(cfg.fondoVerse&&cfg.fondoVerse.id===f.id?' sel':'')+'" data-id="'+f.id+'"><button class="fav'+(f.fondoFav?' on':'')+'" data-fav="'+f.id+'"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l2.5 6.3L21 10l-4.8 4.2L17.5 21 12 17.5 6.5 21l1.3-6.8L3 10l6.5-.7z"/></svg></button></div>'; });
   h+='</div></div>'; openModal(h,true);
-  for(const f of list){ const u=await blobURL('fondos',f.id); const el=$('.pick[data-id="'+f.id+'"]'); if(u&&el) el.style.backgroundImage='url('+u+')'; }
-  const setFondo=val=>{ cfg.fondoVerse=val; saveCfg(); if(previewState.kind==='verse'){ previewState.bg=val; renderState($('#previewScreen'),previewState);} if(liveState.kind==='verse'){ liveState.bg=val; pushLive(liveState);} closeModal(); };
+  for(const f of shown){ const u=await blobURL('banners',f.id); const el=$('.pick[data-id="'+f.id+'"]'); if(u&&el) el.style.backgroundImage='url('+u+')'; }
+  const setFondo=val=>{ cfg.fondoVerse=val; saveCfg(); if(previewState.kind==='verse'){ previewState.bg=val; renderStage($('#previewScreen'),previewState);} if(liveState.kind==='verse'){ liveState.bg=val; pushLiveRaw(liveState);} closeModal(); };
   $('#fNone').onclick=()=>setFondo(null);
-  $$('.pick[data-id]').forEach(el=>el.onclick=e=>{ if(e.target.closest('[data-del]'))return; setFondo({store:'fondos',id:el.dataset.id}); });
-  $$('[data-del]').forEach(b=>b.onclick=async e=>{ e.stopPropagation(); await idbDel('fondos',b.dataset.del); _urls.delete('fondos:'+b.dataset.del); openFondoModal(); });
-  $('#fUp').onclick=()=>pickFiles('image/*',async files=>{ for(const f of files){ if(f.type.startsWith('image/')) await idbPut('fondos',{id:uid(),nombre:f.name,blob:f,fecha:Date.now()}); } openFondoModal(); });
+  $('#fFav').onclick=()=>{ fondoFilterFav=!fondoFilterFav; openFondoModal(); };
+  $$('.pick[data-id]').forEach(el=>el.onclick=e=>{ if(e.target.closest('[data-fav]'))return; setFondo({store:'banners',id:el.dataset.id}); });
+  $$('[data-fav]').forEach(b=>b.onclick=async e=>{ e.stopPropagation(); const rec=await idbGet('banners',b.dataset.fav); rec.fondoFav=!rec.fondoFav; await idbPut('banners',rec); openFondoModal(); });
+  $('#fUp').onclick=()=>pickFiles('image/*',async files=>{ for(const f of files){ if(f.type.startsWith('image/')) await idbPut('banners',{id:uid(),nombre:f.name.replace(/\.[^.]+$/,''),blob:f,fecha:Date.now(),fondoFav:true}); } openFondoModal(); });
+}
+
+async function openPantallaModal(which){
+  const title=which==='bienvenida'?'Pantalla de Bienvenida':'Pantalla de Pausa (Esc)';
+  cfg.pantallas[which]=cfg.pantallas[which]||{imgs:[],intervalo:300000};
+  const p=cfg.pantallas[which];
+  const lib=await idbAll('banners'); lib.sort((a,b)=>b.fecha-a.fecha);
+  let h=modalHeader(title)+'<div class="modal-b">';
+  h+='<p style="font-size:12.5px;color:var(--muted);line-height:1.5;margin-bottom:12px">Elige una o varias imágenes de tu biblioteca (las mismas de <b>Banners</b>). Si eliges varias, se reproducen en bucle con fundido. Si no eliges ninguna, se muestra el logo.</p>';
+  h+='<div class="form-row"><label>Intervalo del bucle en segundos <span style="color:var(--muted);font-weight:400">— ej. 300 = 5 min</span></label><input class="input" type="number" id="pInt" min="3" value="'+Math.round((p.intervalo||300000)/1000)+'"></div>';
+  h+='<button class="btn" id="pUp" style="margin-bottom:12px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Subir imagen a la biblioteca</button>';
+  h+='<label style="display:block;font-size:12px;font-weight:600;color:var(--ink);margin-bottom:8px">Imágenes (toca para seleccionar; el número indica el orden)</label>';
+  h+='<div class="picker-grid">';
+  if(!lib.length) h+='<div style="grid-column:1/-1;color:var(--muted);font-size:13px">Aún no hay imágenes. Sube algunas aquí o en Banners.</div>';
+  lib.forEach(f=>{ const idx=(p.imgs||[]).indexOf(f.id); const on=idx>=0;
+    h+='<div class="pick'+(on?' sel':'')+'" data-id="'+f.id+'">'+(on?'<div style="position:absolute;top:5px;right:5px;width:22px;height:22px;border-radius:50%;background:var(--royal);color:#fff;display:grid;place-items:center;font-size:12px;font-weight:700;z-index:2">'+(idx+1)+'</div>':'')+'</div>'; });
+  h+='</div><div class="modal-foot"><button class="btn primary" data-close>Listo</button></div></div>';
+  openModal(h,true);
+  for(const f of lib){ const u=await blobURL('banners',f.id); const el=$('.pick[data-id="'+f.id+'"]'); if(u&&el) el.style.backgroundImage='url('+u+')'; }
+  $('#pInt').onchange=e=>{ const s=Math.max(3,+e.target.value||300); cfg.pantallas[which].intervalo=s*1000; saveCfg(); if(currentScreen===which) activarPantalla(which); };
+  $('#pUp').onclick=()=>pickFiles('image/*',async files=>{ for(const f of files){ if(f.type.startsWith('image/')) await idbPut('banners',{id:uid(),nombre:f.name.replace(/\.[^.]+$/,''),blob:f,fecha:Date.now(),fondoFav:false}); } openPantallaModal(which); });
+  $$('.pick[data-id]').forEach(el=>el.onclick=()=>{ const id=el.dataset.id; const arr=cfg.pantallas[which].imgs||(cfg.pantallas[which].imgs=[]); const i=arr.indexOf(id); if(i>=0) arr.splice(i,1); else arr.push(id); saveCfg(); openPantallaModal(which); if(currentScreen===which) activarPantalla(which); });
 }
 
 function openAddSermon(){
@@ -1002,8 +1106,9 @@ async function importBackup(file){
 function initProyeccion(){
   document.title='Proclama — Proyección';
   $('#splash').style.display='none'; $('#app').style.display='none'; $('#proyeccion').classList.add('on');
-  if(channel){ channel.onmessage=e=>{ if(e.data&&e.data.type==='state') pjRender(e.data.state); }; channel.postMessage({type:'ready'}); }
+  if(channel){ channel.onmessage=e=>{ if(e.data&&e.data.type==='state'){ $('#pjHint').style.display='none'; pjRender(e.data.state); } }; channel.postMessage({type:'ready'}); }
   document.addEventListener('keydown',e=>{ if(e.key==='f'||e.key==='F'){ if(!document.fullscreenElement){ if(document.documentElement.requestFullscreen) document.documentElement.requestFullscreen(); } else { document.exitFullscreen(); } } });
+  window.addEventListener('resize',()=>{ fitStage($('#pjA')); fitStage($('#pjB')); });
   pjRender({kind:'logo'});
 }
 async function init(){
@@ -1020,12 +1125,15 @@ async function init(){
   await loadBible(cfg.versionActual);
   await renderVersionChips();
   renderBooks(); renderChaps();
-  setPreview({kind:'logo'}); pushLive({kind:'black'});
+  ensureFont(cfg.texto.fuente);
+  setPreview({kind:'logo'}); pushLiveRaw({kind:'logo'});
+  setTimeout(fitAllControl,60); setTimeout(fitAllControl,500);
   deleteOldSermons();
   if('serviceWorker' in navigator){ try{ await navigator.serviceWorker.register('sw.js'); }catch(e){} }
   updateProyBtn();
 }
 init();
+
 
 </script>
 </body>
