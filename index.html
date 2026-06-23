@@ -339,14 +339,23 @@
   .cv-tool svg{width:15px;height:15px}
   .cv-empty-hint{font-size:12.5px;color:var(--muted);padding:8px 2px}
   /* ---- Cantos 3 columnas y mejoras de layout ---- */
-  .cv-grid-canto{grid-template-columns:260px 1fr 280px}
+  .cv-grid-canto{grid-template-columns:220px 300px 1fr}
   .cv-editor-wrap{display:flex;flex-direction:column;gap:10px;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:16px}
   .cv-editor-wrap .input{height:40px}
-  .cv-editor-wrap textarea{flex:1;min-height:400px;border:1px solid var(--line);border-radius:11px;padding:12px 14px;font-size:15px;line-height:1.6;resize:vertical;outline:none;color:var(--ink);font-family:'Inter',sans-serif}
+  .cv-editor-wrap textarea{flex:1;min-height:420px;border:1px solid var(--line);border-radius:11px;padding:12px 14px;font-size:15px;line-height:1.6;resize:vertical;outline:none;color:var(--ink);font-family:'Inter',sans-serif}
   .cv-editor-wrap textarea:focus{border-color:var(--royal)}
   .cv-slides-wrap{overflow-y:auto;max-height:calc(100vh - 145px)}
-  .cv-slides.cv-slides-col{grid-template-columns:1fr}
-  .cv-slides.cv-slides-lg{grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
+  .cv-slides.cv-slides-2col{grid-template-columns:1fr 1fr;gap:16px}
+  .cv-slides.cv-slides-lg{grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+
+  /* ---- Panel lateral de Estilo (cantos/himnos) ---- */
+  .cvpanel{position:fixed;top:0;right:0;width:344px;max-width:92vw;height:100vh;background:#fff;border-left:1px solid var(--line);
+    box-shadow:-14px 0 48px rgba(36,23,51,.18);z-index:115;transform:translateX(102%);
+    transition:transform .28s cubic-bezier(.2,.9,.2,1);display:flex;flex-direction:column}
+  .cvpanel.show{transform:translateX(0)}
+  .cvpanel-h{display:flex;align-items:center;gap:12px;padding:18px 20px 14px;border-bottom:1px solid var(--line)}
+  .cvpanel-h h2{font-family:'Fraunces',serif;font-size:20px;font-weight:500;color:var(--ink);flex:1}
+  .cvpanel-b{padding:16px 20px 28px;overflow-y:auto;flex:1}
 </style>
 </head>
 <body>
@@ -445,7 +454,7 @@
             </div>
           </div>
           <div class="cv-slides-wrap">
-            <div class="cv-slides cv-slides-col" id="cantoSlides"></div>
+            <div class="cv-slides cv-slides-2col" id="cantoSlides"></div>
           </div>
         </div>
       </div>
@@ -540,6 +549,12 @@
 
 <!-- MODAL container -->
 <div class="modal-bg" id="modalBg"><div class="modal" id="modal"></div></div>
+
+<!-- PANEL LATERAL de Estilo (cantos/himnos) -->
+<aside class="cvpanel" id="cvPanel">
+  <div class="cvpanel-h"><h2 id="cvPanelTitle">Estilo</h2><button class="modal-x" id="cvPanelClose"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+  <div class="cvpanel-b" id="cvPanelBody"></div>
+</aside>
 <div class="toast" id="toast"></div>
 <input type="file" id="filePick" style="display:none" multiple>
 
@@ -914,6 +929,7 @@ function wireControls(){
 
 /* ============ Navegacion entre modulos ============ */
 function switchModule(mod){
+  if(typeof cvClosePanel==='function' && mod!=='cantos' && mod!=='himnario') cvClosePanel();
   $$('.rail-item').forEach(b=>b.classList.toggle('active',b.dataset.mod===mod));
   $$('.module').forEach(m=>m.classList.toggle('active',m.id==='m-'+mod));
   const names={versiculos:'Versículos',cantos:'Cantos',himnario:'Himnario',predicas:'Predicaciones',banners:'Banners',servicio:'Servicio'};
@@ -1291,8 +1307,12 @@ async function cvRenderTo(canvas, sec, st, opts){
   const isChorus=(sec.type||'').toLowerCase().includes('coro');
   const fam = cvFamily(st.fuente);
 
+  // Escala proporcional: el tamaño se calibra para 1920 y se adapta al lienzo
+  // (miniatura 384 o proyección 1920) para que ambos se vean IDÉNTICOS.
+  const cvk = W/1920;
+
   // Auto-ajuste de tamaño para que no se desborde
-  let fs=st.tamano;
+  let fs=st.tamano*cvk;
   (function autoFit(){
     if(!lines.length) return;
     ctx.font=st.peso+' '+fs+'px '+fam;
@@ -1433,6 +1453,7 @@ async function cvRenderCantoSlides(){
     await cvRenderTo(cards[i].querySelector('canvas'), secs[i], st);
   }
   cards.forEach((c,i)=>c.onclick=()=>cvSendToPreview('canto', secs, i, cfg.cv.canto));
+  if(cvCtx&&cvCtx.kind==='canto') cvHighlight('canto',cvCtx.idx);
 }
 
 function cvRenderCantoList(){
@@ -1521,6 +1542,7 @@ async function cvLoadHimno(num){
     await cvRenderTo(cards[i].querySelector('canvas'), h.sections[i], st);
   }
   cards.forEach((c,i)=>c.onclick=()=>cvSendToPreview('himno', h.sections, i, cfg.cv.himno));
+  if(cvCtx&&cvCtx.kind==='himno') cvHighlight('himno',cvCtx.idx);
 }
 
 async function cvHimnToBanners(){
@@ -1535,8 +1557,39 @@ async function cvHimnToBanners(){
   toast(h.sections.length+' diapositiva(s) en Banners');
 }
 
-/* ============ Modal de Estilo (compartido cantos/himnos) ============ */
+/* ============ Panel lateral de Estilo (compartido cantos/himnos) ============ */
+let cvPanelPerfil=null;
+function cvClosePanel(){ $('#cvPanel').classList.remove('show'); cvPanelPerfil=null; }
+
+/* Devuelve una diapositiva REAL del contenido actual para la vista previa del panel.
+   Si hay algo en vivo/seleccionado, usa esa misma sección; si no, la primera; si no hay nada, un ejemplo. */
+function cvCurrentSampleFor(perfil){
+  if(perfil==='canto'){
+    const secs=cvParseLetra($('#cantoLetra').value);
+    if(secs.length){ const i=(cvCtx&&cvCtx.kind==='canto')?Math.min(cvCtx.idx,secs.length-1):0; return secs[i]; }
+    return {type:'Diapositiva 1', text:'Grande es tu fidelidad,\nGrande es tu fidelidad;\ncada mañana se renuevan tus bondades.'};
+  } else {
+    if(himnoActual){ const h=HYMNAL.find(x=>x.number===himnoActual); if(h&&h.sections.length){ const i=(cvCtx&&cvCtx.kind==='himno')?Math.min(cvCtx.idx,h.sections.length-1):0; return h.sections[i]; } }
+    return {type:'Coro', text:'CANTAD DEL AMOR DE CRISTO,\nENSALZAD AL REDENTOR;\nTRIBUTADLE SANTOS TODOS\nGRANDE GLORIA Y LOOR.'};
+  }
+}
+
+/* Si hay una diapositiva de este perfil en vivo/previa, la regenera con el estilo nuevo
+   para que la proyección refleje el cambio en tiempo real. */
+async function cvRefreshLivePreview(perfil){
+  if(!cvCtx) return;
+  if(perfil==='canto' && cvCtx.kind!=='canto') return;
+  if(perfil==='himno' && cvCtx.kind!=='himno') return;
+  const sec=cvCtx.sections[cvCtx.idx]; if(!sec) return;
+  const state=await cvSlideToState(sec, cvCtx.st);
+  state._cv={kind:cvCtx.kind, idx:cvCtx.idx, total:cvCtx.sections.length, sectionType:sec.type};
+  setPreview(state);
+  if(liveState.kind==='image' && liveState._cv) pushLive(state);
+}
+
 function cvOpenEstilo(perfil){
+  if(cvPanelPerfil===perfil){ cvClosePanel(); return; }   // toca de nuevo = cerrar
+  cvPanelPerfil=perfil;
   const st=cfg.cv[perfil];
   const FS=['Cormorant Garamond','Playfair Display','Lora','EB Garamond','Fraunces'];
   const FN=['Poppins','Montserrat','Outfit','Inter'];
@@ -1545,9 +1598,8 @@ function cvOpenEstilo(perfil){
   opts+='<optgroup label="Sans (modernas)">'+FN.map(f=>'<option value="'+f+'"'+(f===st.fuente?' selected':'')+'>'+f+'</option>').join('')+'</optgroup>';
   if(!inList) opts+='<option value="'+st.fuente+'" selected>'+st.fuente+' (Google Fonts)</option>';
   opts+='<option value="__gf">➕ Cargar desde Google Fonts…</option>';
-  let h=modalHeader('Estilo · '+(perfil==='canto'?'Cantos':'Himnario'))+'<div class="modal-b">';
-  h+='<div class="tprev screen" id="cvPrev"><canvas width="1920" height="1080" style="width:100%;height:100%;display:block"></canvas></div>';
-  h+='<div style="font-size:11px;color:var(--muted);text-align:center;margin:6px 0 14px">Vista previa del estilo</div>';
+  let h='<div class="tprev screen" id="cvPrev"><canvas width="1920" height="1080" style="width:100%;height:100%;display:block"></canvas></div>';
+  h+='<div style="font-size:11px;color:var(--muted);text-align:center;margin:6px 0 16px">Vista previa real de la diapositiva</div>';
   h+='<div class="form-row"><label>Fuente</label><select class="input" id="cvF">'+opts+'</select><div class="gf" id="cvGfRow"><input class="input" id="cvGfName" placeholder="Nombre exacto (ej. Spectral)"><button id="cvGfLoad">Cargar</button></div></div>';
   h+='<div class="grid2-modal"><div class="form-row"><label>Tamaño <span id="cvSv" style="color:var(--royal);font-weight:600"></span></label><input type="range" id="cvS" min="36" max="120" value="'+st.tamano+'"></div>';
   h+='<div class="form-row"><label>Interlineado <span id="cvIv" style="color:var(--royal);font-weight:600"></span></label><input type="range" id="cvI" min="100" max="200" value="'+Math.round(st.interlineado*100)+'"></div></div>';
@@ -1557,14 +1609,17 @@ function cvOpenEstilo(perfil){
   h+='<div class="form-row"><label>Capa oscura <span id="cvOv" style="color:var(--royal);font-weight:600"></span></label><input type="range" id="cvO" min="0" max="90" value="'+Math.round(st.overlay*100)+'"></div></div>';
   h+='<div class="setrow"><div class="sr-info"><div class="t">Sombra del texto</div></div><button class="switch'+(st.sombra?' on':'')+'" id="cvSh"></button></div>';
   h+='<div class="setrow"><div class="sr-info"><div class="t">Mostrar etiqueta (Verso/Coro)</div></div><button class="switch'+(st.mostrarEtiqueta?' on':'')+'" id="cvLb"></button></div>';
-  h+='<div class="modal-foot"><button class="btn primary" data-close>Listo</button></div></div>';
-  openModal(h);
+  h+='<div class="modal-foot"><button class="btn primary" id="cvDone">Listo</button></div>';
+  $('#cvPanelTitle').textContent='Estilo · '+(perfil==='canto'?'Cantos':'Himnario');
+  $('#cvPanelBody').innerHTML=h;
+  $('#cvPanel').classList.add('show');
   $('#cvW').value=String(st.peso); $('#cvA').value=st.align;
   $('#cvSv').textContent=st.tamano+'px'; $('#cvIv').textContent=st.interlineado.toFixed(2); $('#cvOv').textContent=Math.round(st.overlay*100)+'%';
-  const sample={type:'Coro', text:(perfil==='canto'?'Grande es tu fidelidad,\nGrande es tu fidelidad;\ncada mañana se renuevan tus bondades.':'CANTAD DEL AMOR DE CRISTO,\nENSALZAD AL REDENTOR;\nTRIBUTADLE SANTOS TODOS\nGRANDE GLORIA Y LOOR.')};
-  const prev=async()=>{ const c=$('#cvPrev canvas'); if(!c)return; await ensureFont(st.fuente); await cvFontReady(st.fuente,st.peso,st.tamano); await cvRenderTo(c, sample, st); };
-  const sv=()=>{ saveCfg(); prev(); cvRefreshActive(perfil); };
+  const prev=async()=>{ const c=$('#cvPrev canvas'); if(!c)return; const sample=cvCurrentSampleFor(perfil); await ensureFont(st.fuente); await cvFontReady(st.fuente,st.peso,st.tamano); await cvRenderTo(c, sample, st); };
+  let svT;
+  const sv=()=>{ saveCfg(); prev(); clearTimeout(svT); svT=setTimeout(()=>{ cvRefreshActive(perfil); cvRefreshLivePreview(perfil); },120); };
   setTimeout(prev,40); setTimeout(prev,420);
+  $('#cvDone').onclick=cvClosePanel;
   $('#cvF').onchange=e=>{ if(e.target.value==='__gf'){ $('#cvGfRow').classList.add('show'); return; } $('#cvGfRow').classList.remove('show'); st.fuente=e.target.value; ensureFont(st.fuente); setTimeout(sv,60); };
   $('#cvGfLoad').onclick=()=>{ const n=$('#cvGfName').value.trim(); if(!n)return; ensureFont(n); st.fuente=n; setTimeout(sv,600); toast('Fuente «'+n+'» cargada'); };
   $('#cvS').oninput=e=>{st.tamano=+e.target.value;$('#cvSv').textContent=st.tamano+'px';sv();};
@@ -1610,6 +1665,8 @@ function cvWire(){
   $('#cantoSearch').oninput=cvRenderCantoList;
   // Himnario
   $('#himnSearch').oninput=cvRenderHimnList;
+  // Panel lateral de estilo
+  $('#cvPanelClose').onclick=cvClosePanel;
 }
 
 /* ===== FIN FASE 2 ===== */
