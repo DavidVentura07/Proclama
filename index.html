@@ -389,13 +389,13 @@
   .pl-mini:hover{border-color:var(--royal);color:var(--royal);background:var(--royal-soft)}
   .pl-mini.danger:hover{border-color:var(--ruby);color:var(--ruby);background:rgba(192,51,77,.08)}
   .pl-mini svg{width:14px;height:14px}
-  .pl-main{display:flex;flex-direction:column;gap:14px;min-height:0}
+  .pl-main{display:flex;flex-direction:column;gap:14px;min-height:0;min-width:0}
   .pl-main-h{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
   .pl-main-h .ti{font-family:'Fraunces',serif;font-size:21px;font-weight:500;color:var(--ink)}
   .pl-main-h .au{font-size:12px;color:var(--muted)}
   .kbd-hint{margin-left:auto;display:inline-flex;align-items:center;gap:7px;font-size:11.5px;font-weight:600;color:var(--royal);background:var(--royal-soft);padding:6px 12px;border-radius:999px}
   .kbd{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 5px;background:#fff;border:1px solid var(--line);border-radius:5px;font-size:11px;font-weight:700;color:var(--royal)}
-  .pl-slides{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;overflow-y:auto;max-height:calc(100vh - 200px);padding-bottom:6px}
+  .pl-wrap{max-height:calc(100vh - 215px)}
   .pl-empty{display:grid;place-items:center;height:55vh;color:var(--muted);text-align:center;gap:12px}
   .pl-empty svg{width:52px;height:52px;color:var(--gold-soft)}
 
@@ -959,12 +959,12 @@ function wireControls(){
     if(liveState.kind==='verse'){ liveState.overlay=cfg.capaOscura; pushLiveRaw(liveState); }
     if(typeof renderModalPreview==='function') renderModalPreview(); };
   $('#btnTexto').onclick=()=>{
-    if($('#m-cantos').classList.contains('active')) return cvOpenEstilo('canto');
+    if($('#m-cantos').classList.contains('active')||$('#m-lista').classList.contains('active')) return cvOpenEstilo('canto');
     if($('#m-himnario').classList.contains('active')) return cvOpenEstilo('himno');
     openTextoModal();
   };
   $('#btnFondo').onclick=()=>{
-    if($('#m-cantos').classList.contains('active')) return cvOpenFondo('canto');
+    if($('#m-cantos').classList.contains('active')||$('#m-lista').classList.contains('active')) return cvOpenFondo('canto');
     if($('#m-himnario').classList.contains('active')) return cvOpenFondo('himno');
     openFondoModal();
   };
@@ -1194,7 +1194,7 @@ async function renderPraiseSlides(){
   const secs=cvParseLetra(song.letra);
   host.innerHTML='<div class="pl-main-h"><span class="ti">'+escapeHTML(song.titulo)+'</span>'+(song.autor?'<span class="au">'+escapeHTML(song.autor)+'</span>':'')
     +'<span class="kbd-hint"><span class="kbd">&larr;</span><span class="kbd">&rarr;</span> Navega las diapositivas</span></div>'
-    +'<div class="cv-slides pl-slides" id="plSlides">'+secs.map((s,i)=>'<div class="cv-slide" data-idx="'+i+'"><canvas width="384" height="216"></canvas><span class="nn">'+(i+1)+'/'+secs.length+'</span></div>').join('')+'</div>';
+    +'<div class="cv-slides-wrap pl-wrap"><div class="cv-slides cv-slides-2col" id="plSlides">'+secs.map((s,i)=>'<div class="cv-slide" data-idx="'+i+'"><canvas width="384" height="216"></canvas><span class="nn">'+(i+1)+'/'+secs.length+'</span></div>').join('')+'</div></div>';
   const st=cfg.cv.canto;
   await ensureFont(st.fuente); await cvFontReady(st.fuente, st.peso, st.tamano);
   const cards=$$('#plSlides .cv-slide');
@@ -1819,6 +1819,11 @@ function cvClosePanel(){ $('#cvPanel').classList.remove('show'); cvPanelPerfil=n
    Si hay algo en vivo/seleccionado, usa esa misma sección; si no, la primera; si no hay nada, un ejemplo. */
 function cvCurrentSampleFor(perfil){
   if(perfil==='canto'){
+    // En la Lista de alabanza, la muestra es el canto seleccionado (no el editor de Cantos).
+    if($('#m-lista').classList.contains('active') && praiseList[praiseSel]){
+      const ps=cvParseLetra(praiseList[praiseSel].letra);
+      if(ps.length){ const i=praiseCtx?Math.min(praiseCtx.idx,ps.length-1):0; return ps[i]; }
+    }
     const secs=cvParseLetra($('#cantoLetra').value);
     if(secs.length){ const i=(cvCtx&&cvCtx.kind==='canto')?Math.min(cvCtx.idx,secs.length-1):0; return secs[i]; }
     return {type:'Diapositiva 1', text:'Grande es tu fidelidad,\nGrande es tu fidelidad;\ncada mañana se renuevan tus bondades.'};
@@ -1833,6 +1838,16 @@ function cvCurrentSampleFor(perfil){
      para que el público no vea los cambios en tiempo real.
    - commit=true (al pulsar "Listo"): además envía el cambio al "en vivo" (2ª ventana). */
 async function cvRefreshLivePreview(perfil, commit){
+  // En la Lista de alabanza el contexto de diapositiva activa es praiseCtx (no cvCtx).
+  if(perfil==='canto' && $('#m-lista').classList.contains('active')){
+    if(!praiseCtx) return;
+    const sec=praiseCtx.sections[praiseCtx.idx]; if(!sec) return;
+    const state=await cvSlideToState(sec, cfg.cv.canto);
+    state._cv={kind:'canto', idx:praiseCtx.idx, total:praiseCtx.sections.length, sectionType:sec.type};
+    setPreview(state);
+    if(commit && liveState.kind==='image' && liveState._cv) pushLive(state);
+    return;
+  }
   if(!cvCtx) return;
   if(perfil==='canto' && cvCtx.kind!=='canto') return;
   if(perfil==='himno' && cvCtx.kind!=='himno') return;
@@ -1891,6 +1906,7 @@ function cvOpenEstilo(perfil){
 /* Refresca miniaturas del módulo activo tras cambiar estilo */
 function cvRefreshActive(perfil){
   if(perfil==='canto' && $('#m-cantos').classList.contains('active')) cvRenderCantoSlides();
+  if(perfil==='canto' && $('#m-lista').classList.contains('active')) renderPraiseSlides();
   if(perfil==='himno' && $('#m-himnario').classList.contains('active') && himnoActual) cvLoadHimno(himnoActual);
 }
 
