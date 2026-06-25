@@ -49,10 +49,10 @@
   .wordgroup{display:flex;flex-direction:column;align-items:center;gap:8px}
   .wordmark{font-family:'Fraunces',serif;font-weight:500;font-size:56px;letter-spacing:.4px;color:var(--ink);
     opacity:0;transform:translateY(14px);animation:word-in 1s ease .55s forwards}
-  .verse{font-family:'Fraunces',serif;font-style:italic;font-weight:400;font-size:17.5px;line-height:1.5;
-    color:var(--muted);max-width:440px;text-align:center;opacity:0;animation:fade-in .9s ease .9s forwards}
-  .verse .ref{display:block;margin-top:7px;font-style:normal;font-family:'Inter',sans-serif;font-size:11px;
-    letter-spacing:2.5px;text-transform:uppercase;color:var(--gold-deep);font-weight:600}
+  .splash-verse{font-family:'Fraunces',serif;font-style:italic;font-weight:400;font-size:17.5px;line-height:1.5;
+    color:var(--muted);max-width:440px;text-align:center;margin:0 auto;opacity:0;animation:fade-in .9s ease .9s forwards}
+  .splash-verse .ref{display:block;margin-top:9px;font-style:normal;font-family:'Inter',sans-serif;font-size:11px;
+    letter-spacing:2.5px;text-transform:uppercase;text-align:center;color:var(--gold-deep);font-weight:600}
   @keyframes word-in{to{opacity:1;transform:translateY(0)}}@keyframes fade-in{to{opacity:1}}
 
   /* ===== App shell ===== */
@@ -356,8 +356,48 @@
   .cv-editor-wrap textarea{flex:1;min-height:420px;border:1px solid var(--line);border-radius:11px;padding:12px 14px;font-size:15px;line-height:1.6;resize:vertical;outline:none;color:var(--ink);font-family:'Inter',sans-serif}
   .cv-editor-wrap textarea:focus{border-color:var(--royal)}
   .cv-slides-wrap{overflow-y:auto;max-height:calc(100vh - 145px)}
-  .cv-slides.cv-slides-2col{grid-template-columns:1fr 1fr;gap:16px}
+  .cv-slides.cv-slides-2col{grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
   .cv-slides.cv-slides-lg{grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+
+  /* ---- Botón estrella: Mandar a lista de alabanza ---- */
+  .btn-praise{height:40px;padding:0 18px;border-radius:11px;border:0;font-size:13.5px;font-weight:700;color:#3A2A0A;
+    background:var(--gold-grad);box-shadow:0 6px 16px rgba(169,130,58,.34);display:inline-flex;align-items:center;gap:9px;transition:all .16s}
+  .btn-praise:hover{transform:translateY(-1px);box-shadow:0 9px 22px rgba(169,130,58,.44)}
+  .btn-praise svg{width:18px;height:18px}
+
+  /* ---- Lista de alabanza ---- */
+  .pl-grid{display:grid;grid-template-columns:320px 1fr;gap:16px;min-height:0}
+  .pl-side{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column}
+  .pl-side-h{padding:12px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px}
+  .pl-side-h .t{font-size:10.5px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted)}
+  .pl-side-h .res{margin-left:auto;font-weight:600;color:var(--gold-deep);font-size:10px}
+  .pl-body{overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:6px;max-height:calc(100vh - 200px)}
+  .pl-item{display:flex;align-items:center;gap:9px;padding:10px;border-radius:11px;background:var(--ivory);border:1.5px solid transparent;transition:all .14s;cursor:pointer}
+  .pl-item:hover{background:var(--ivory-2)}
+  .pl-item.sel{background:linear-gradient(135deg,rgba(90,42,130,.10),rgba(198,160,83,.12));border-color:rgba(90,42,130,.30)}
+  .pl-item.drag{opacity:.4}
+  .pl-item.over{border-color:var(--royal);border-style:dashed}
+  .pl-item .grip{color:var(--muted);cursor:grab;display:flex;flex-shrink:0}
+  .pl-item .grip svg{width:16px;height:16px}
+  .pl-item .pos{font-family:'Fraunces',serif;font-weight:600;color:var(--gold-deep);min-width:20px;font-size:14px;text-align:center;flex-shrink:0}
+  .pl-item .meta{flex:1;min-width:0}
+  .pl-item .meta b{display:block;font-size:13.5px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pl-item .meta span{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+  .pl-item .acts{display:flex;gap:2px;flex-shrink:0;opacity:.4;transition:opacity .14s}
+  .pl-item:hover .acts,.pl-item.sel .acts{opacity:1}
+  .pl-mini{width:26px;height:26px;border-radius:7px;border:1px solid var(--line);background:#fff;display:grid;place-items:center;color:var(--muted);transition:all .14s}
+  .pl-mini:hover{border-color:var(--royal);color:var(--royal);background:var(--royal-soft)}
+  .pl-mini.danger:hover{border-color:var(--ruby);color:var(--ruby);background:rgba(192,51,77,.08)}
+  .pl-mini svg{width:14px;height:14px}
+  .pl-main{display:flex;flex-direction:column;gap:14px;min-height:0}
+  .pl-main-h{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .pl-main-h .ti{font-family:'Fraunces',serif;font-size:21px;font-weight:500;color:var(--ink)}
+  .pl-main-h .au{font-size:12px;color:var(--muted)}
+  .kbd-hint{margin-left:auto;display:inline-flex;align-items:center;gap:7px;font-size:11.5px;font-weight:600;color:var(--royal);background:var(--royal-soft);padding:6px 12px;border-radius:999px}
+  .kbd{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 5px;background:#fff;border:1px solid var(--line);border-radius:5px;font-size:11px;font-weight:700;color:var(--royal)}
+  .pl-slides{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;overflow-y:auto;max-height:calc(100vh - 200px);padding-bottom:6px}
+  .pl-empty{display:grid;place-items:center;height:55vh;color:var(--muted);text-align:center;gap:12px}
+  .pl-empty svg{width:52px;height:52px;color:var(--gold-soft)}
 
   /* ---- Panel lateral de Estilo (cantos/himnos) ---- */
   .cvpanel{position:fixed;top:0;right:0;width:344px;max-width:92vw;height:100vh;background:#fff;border-left:1px solid var(--line);
@@ -384,7 +424,7 @@
     <div class="splash-tile"><svg viewBox="0 0 24 24"><path d="M10.4 2h3.2v5h5.4v3h-5.4v12h-3.2V10H5V7h5.4z" fill="#fff"/></svg></div>
     <div class="wordgroup">
       <div class="wordmark">Proclama</div>
-      <div class="verse">&ldquo;Clama a voz en cuello, no te detengas; alza tu voz como trompeta&hellip;&rdquo;<span class="ref">Isaías 58:1</span></div>
+      <div class="splash-verse">&ldquo;Clama a voz en cuello, no te detengas; alza tu voz como trompeta&hellip;&rdquo;<span class="ref">Isaías 58:1</span></div>
     </div>
   </div>
 </div>
@@ -412,7 +452,7 @@
       <button class="rail-item" data-mod="himnario"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3l2.5 5 5.5.8-4 3.9.9 5.5L12 21l-4.9 2.6.9-5.5-4-3.9 5.5-.8z" transform="scale(.85) translate(2 1)"/></svg><span>Himnario</span></button>
       <button class="rail-item" data-mod="predicas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg><span>Predicas</span></button>
       <button class="rail-item" data-mod="banners"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 15 5-4 4 3 3-2 6 4"/><circle cx="8" cy="10" r="1.4"/></svg><span>Banners</span></button>
-      <button class="rail-item" data-mod="servicio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg><span>Servicio</span></button>
+      <button class="rail-item" data-mod="lista"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16" cy="16" r="2.5"/><path d="M3 5h3M3 9h3"/></svg><span>Lista</span></button>
     </nav>
 
     <section class="workspace">
@@ -450,6 +490,7 @@
           <div class="ws-title">Cantos</div>
           <div class="ws-sub">Escribe la letra · doble salto de línea separa cada diapositiva</div>
           <div class="ws-actions">
+            <button class="btn-praise" id="cantoMandar">Mandar a lista de alabanza<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
             <button class="btn primary" id="cantoNuevo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Nuevo canto</button>
           </div>
         </div>
@@ -523,11 +564,17 @@
         <div id="bannerGrid"></div>
       </div>
 
-      <!-- SERVICIO -->
-      <div class="module" id="m-servicio">
-        <div class="ws-head"><div class="ws-title">Servicio</div><div class="ws-sub">Tu lista en orden para el culto</div>
-          <div class="ws-actions"><button class="btn sm ghost" id="btnClearService">Vaciar lista</button></div></div>
-        <div id="serviceList"></div>
+      <!-- LISTA DE ALABANZA -->
+      <div class="module" id="m-lista">
+        <div class="ws-head"><div class="ws-title">Lista de alabanza</div><div class="ws-sub">Tus cantos en orden para el culto</div>
+          <div class="ws-actions"><button class="btn sm ghost" id="btnClearPraise">Vaciar lista</button></div></div>
+        <div class="pl-grid">
+          <div class="pl-side">
+            <div class="pl-side-h"><span class="t">Orden del culto</span><span class="res" id="praiseCount">0</span></div>
+            <div class="pl-body" id="plBody"></div>
+          </div>
+          <div class="pl-main" id="plMain"></div>
+        </div>
       </div>
     </section>
 
@@ -556,7 +603,6 @@
         <div class="oc-tools">
           <button id="btnTexto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7V5h16v2M9 19h6M12 5v14"/></svg>Texto</button>
           <button id="btnFondo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="m3 14 5-4 4 3 3-2 6 4"/><circle cx="8.5" cy="9" r="1.3"/></svg>Fondo</button>
-          <button id="btnAddToService" title="Agregar a la lista del servicio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg></button>
         </div>
       </div>
     </aside>
@@ -902,7 +948,6 @@ function wireControls(){
   $('#cfgPausa').onclick=()=>openPantallaModal('pausa');
   $('#btnProy').onclick=toggleProy;
   $('#btnConfig').onclick=openSettings;
-  $('#btnAddToService').onclick=()=>addToService(previewState);
   // transicion
   $('#transTipo').value=cfg.transicion.tipo; $('#transMs').value=String(cfg.transicion.ms);
   $('#transTipo').onchange=e=>{cfg.transicion.tipo=e.target.value;saveCfg();};
@@ -935,11 +980,13 @@ function wireControls(){
     if(e.key==='ArrowRight'||e.key==='ArrowDown'){
       if($('#m-versiculos').classList.contains('active')){ stepVerse(1); e.preventDefault(); }
       else if(typeof cvSectionsActive==='function' && cvSectionsActive() && ($('#m-cantos').classList.contains('active')||$('#m-himnario').classList.contains('active'))){ cvStep(1); e.preventDefault(); }
+      else if($('#m-lista').classList.contains('active') && praiseCtx){ praiseStep(1); e.preventDefault(); }
       else if($('#m-predicas').classList.contains('active') && predCtx){ predStep(1); e.preventDefault(); }
     }
     else if(e.key==='ArrowLeft'||e.key==='ArrowUp'){
       if($('#m-versiculos').classList.contains('active')){ stepVerse(-1); e.preventDefault(); }
       else if(typeof cvSectionsActive==='function' && cvSectionsActive() && ($('#m-cantos').classList.contains('active')||$('#m-himnario').classList.contains('active'))){ cvStep(-1); e.preventDefault(); }
+      else if($('#m-lista').classList.contains('active') && praiseCtx){ praiseStep(-1); e.preventDefault(); }
       else if($('#m-predicas').classList.contains('active') && predCtx){ predStep(-1); e.preventDefault(); }
     }
     else if(e.key==='Escape'){ activarPantalla('pausa'); }
@@ -953,11 +1000,11 @@ function switchModule(mod){
   if(typeof cvClosePanel==='function') cvClosePanel();
   $$('.rail-item').forEach(b=>b.classList.toggle('active',b.dataset.mod===mod));
   $$('.module').forEach(m=>m.classList.toggle('active',m.id==='m-'+mod));
-  const names={versiculos:'Versículos',cantos:'Cantos',himnario:'Himnario',predicas:'Predicaciones',banners:'Banners',servicio:'Servicio'};
+  const names={versiculos:'Versículos',cantos:'Cantos',himnario:'Himnario',predicas:'Predicaciones',banners:'Banners',lista:'Lista de alabanza'};
   $('#crumb').textContent=names[mod]||'';
   if(mod==='banners') renderBanners();
   if(mod==='predicas') renderSermons();
-  if(mod==='servicio') renderService();
+  if(mod==='lista') renderPraise();
   if(mod==='cantos' && typeof cvRenderCantoList==='function'){ cvRenderCantoList(); cvRenderCantoSlides(); }
   if(mod==='himnario' && typeof cvRenderHimnList==='function'){ cvRenderHimnList(); }
 }
@@ -968,8 +1015,7 @@ function dataURLToBlob(d){const i=d.indexOf(',');const meta=d.slice(0,i),b64=d.s
 function pickFiles(accept,cb){ const inp=$('#filePick'); inp.accept=accept; inp.value=''; inp.onchange=()=>{ const f=Array.from(inp.files||[]); if(f.length) cb(f); }; inp.click(); }
 function emptyState(kind){
   const m={banners:['Aún no hay banners','Sube imágenes de anuncios para proyectarlas durante el culto.'],
-    predicas:['Aún no hay predicaciones','Agrega las diapositivas (PNG o PDF) que comparten los pastores.'],
-    servicio:['Tu lista está vacía','Agrega versículos, banners o predicaciones con el botón de lista (☰) junto a la capa oscura.']};
+    predicas:['Aún no hay predicaciones','Agrega las diapositivas (PNG o PDF) que comparten los pastores.']};
   const x=m[kind]||['Vacío',''];
   return '<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 15 5-4 4 3 3-2 6 4"/><circle cx="8" cy="10" r="1.4"/></svg><h3>'+x[0]+'</h3><p>'+x[1]+'</p></div>';
 }
@@ -1067,28 +1113,119 @@ async function deleteOldSermons(){
 }
 
 /* ============ SERVICIO (escaleta) ============ */
-let service=JSON.parse(localStorage.getItem('proclama.servicio.v1')||'[]');
-function saveService(){ localStorage.setItem('proclama.servicio.v1',JSON.stringify(service)); }
-function addToService(state){
-  if(!state||state.kind==='clear'||state.kind==='black'){ toast('Nada que agregar'); return; }
-  let item;
-  if(state._cvsrc){
-    // Canto/himno: se guarda la fuente (texto + estilo), no la imagen temporal, para que
-    // sobreviva al reinicio. Se re-genera la diapositiva al proyectar.
-    item={kind:'cvslide', sec:state._cvsrc.sec, st:state._cvsrc.st, ref:(state._cv&&state._cv.sectionType)||'Diapositiva'};
-  } else {
-    item=Object.assign({}, state); delete item._cvsrc; delete item._cv; delete item._pred;
-  }
-  service.push(item); saveService(); toast('Agregado al servicio'); if($('#m-servicio').classList.contains('active')) renderService();
+/* ============ LISTA DE ALABANZA ============
+   Lista ordenada de cantos para el culto. Cada item guarda la "receta" del canto
+   (título, autor, letra) y se re-genera con el estilo actual de Cantos (cfg.cv.canto)
+   al proyectar, igual que en la sección Cantos. Solo cantos (no versículos/imágenes). */
+let praiseList = JSON.parse(localStorage.getItem('proclama.lista.v1')||'[]');
+function savePraise(){ localStorage.setItem('proclama.lista.v1', JSON.stringify(praiseList)); }
+let praiseSel = -1;   /* índice del canto seleccionado en praiseList */
+let praiseCtx = null; /* {sections:[], idx} para navegación con flechas dentro del canto */
+
+/* Llamado desde el botón "Mandar a lista de alabanza" en la sección Cantos. */
+function cvMandarALista(){
+  const letra=$('#cantoLetra').value;
+  const secs=cvParseLetra(letra);
+  if(!secs.length){ toast('Escribe o elige un canto primero'); return; }
+  const titulo=($('#cantoTitulo').value||'').trim()||'Canto sin título';
+  const autor=($('#cantoAutor').value||'').trim();
+  praiseList.push({id:uid(), srcId:cantoActual||null, titulo, autor, letra});
+  savePraise();
+  toast('Agregado a la lista de alabanza');
+  if($('#m-lista').classList.contains('active')) renderPraise();
 }
-function serviceLabel(s){ return s.kind==='verse'?(s.ref||'Versículo'):s.kind==='cvslide'?(s.ref||'Canto'):s.kind==='image'?'Imagen':s.kind==='logo'?'Logo':s.kind; }
-function serviceSub(s){ return s.kind==='verse'?(s.text||''):s.kind==='cvslide'?((s.sec&&s.sec.text)||''):''; }
-function renderService(){
-  const host=$('#serviceList'); if(!service.length){ host.innerHTML=emptyState('servicio'); return; }
-  let h=''; service.forEach((s,i)=>{ h+='<div class="sermon" style="margin-bottom:8px"><div class="sermon-h"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M8 6h13M8 12h13M3 6h.01M3 12h.01"/></svg></div><div class="info"><div class="t">'+escapeHTML(serviceLabel(s))+'</div><div class="s">'+escapeHTML(serviceSub(s).replace(/\n/g,' ').slice(0,70))+'</div></div><button class="btn sm" data-go="'+i+'">A previa</button><button class="iconbtn danger" data-rm="'+i+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div></div>'; });
-  host.innerHTML=h;
-  $$('[data-go]',host).forEach(b=>b.onclick=async()=>{ const it=service[+b.dataset.go]; if(it.kind==='cvslide'){ const stt=await cvSlideToState(it.sec, it.st); setPreview(stt); } else setPreview(it); toast('En vista previa'); });
-  $$('[data-rm]',host).forEach(b=>b.onclick=()=>{ service.splice(+b.dataset.rm,1); saveService(); renderService(); });
+
+function renderPraise(){ renderPraiseList(); renderPraiseSlides(); }
+
+function renderPraiseList(){
+  const host=$('#plBody'); $('#praiseCount').textContent=praiseList.length;
+  if(praiseSel<0 && praiseList.length) praiseSel=0;
+  if(praiseSel>=praiseList.length) praiseSel=praiseList.length-1;
+  if(!praiseList.length){ host.innerHTML='<div class="cv-empty-hint" style="padding:14px">Aún no has enviado cantos. Ve a <b>Cantos</b> y pulsa «Mandar a lista de alabanza».</div>'; return; }
+  host.innerHTML=praiseList.map((s,i)=>{
+    const n=cvParseLetra(s.letra).length;
+    const sub=[s.autor, n+' diapositiva'+(n===1?'':'s')].filter(Boolean).join(' · ');
+    return '<div class="pl-item'+(i===praiseSel?' sel':'')+'" draggable="true" data-i="'+i+'">'
+      +'<span class="grip" title="Arrastra para reordenar"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></svg></span>'
+      +'<span class="pos">'+(i+1)+'</span>'
+      +'<span class="meta"><b>'+escapeHTML(s.titulo)+'</b><span>'+escapeHTML(sub)+'</span></span>'
+      +'<span class="acts">'
+      +'<button class="pl-mini" data-up title="Subir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 14l6-6 6 6"/></svg></button>'
+      +'<button class="pl-mini" data-down title="Bajar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 10l6 6 6-6"/></svg></button>'
+      +'<button class="pl-mini danger" data-del title="Quitar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>'
+      +'</span></div>';
+  }).join('');
+  $$('.pl-item',host).forEach(el=>{
+    const i=+el.dataset.i;
+    el.querySelector('.meta').onclick=()=>praiseSelect(i);
+    el.querySelector('.pos').onclick=()=>praiseSelect(i);
+    el.querySelector('[data-up]').onclick=e=>{ e.stopPropagation(); praiseMove(i,i-1); };
+    el.querySelector('[data-down]').onclick=e=>{ e.stopPropagation(); praiseMove(i,i+1); };
+    el.querySelector('[data-del]').onclick=e=>{ e.stopPropagation(); praiseRemove(i); };
+    el.ondragstart=()=>{ praiseDragFrom=i; el.classList.add('drag'); };
+    el.ondragend=()=>{ el.classList.remove('drag'); $$('.pl-item',host).forEach(x=>x.classList.remove('over')); };
+    el.ondragover=e=>{ e.preventDefault(); el.classList.add('over'); };
+    el.ondragleave=()=>el.classList.remove('over');
+    el.ondrop=e=>{ e.preventDefault(); if(praiseDragFrom!=null && praiseDragFrom!==i) praiseMove(praiseDragFrom,i); praiseDragFrom=null; };
+  });
+}
+let praiseDragFrom=null;
+
+function praiseSelect(i){ praiseSel=i; praiseCtx=null; renderPraise(); }
+
+function praiseMove(from,to){
+  if(to<0||to>=praiseList.length) return;
+  const [it]=praiseList.splice(from,1); praiseList.splice(to,0,it); savePraise();
+  if(praiseSel===from) praiseSel=to;
+  else if(from<praiseSel && to>=praiseSel) praiseSel--;
+  else if(from>praiseSel && to<=praiseSel) praiseSel++;
+  renderPraiseList();
+}
+
+function praiseRemove(i){
+  praiseList.splice(i,1); savePraise();
+  if(praiseSel===i){ praiseSel=praiseList.length?Math.min(i,praiseList.length-1):-1; praiseCtx=null; renderPraise(); }
+  else { if(i<praiseSel) praiseSel--; renderPraiseList(); }
+}
+
+async function renderPraiseSlides(){
+  const host=$('#plMain'); const song=praiseList[praiseSel];
+  if(!song){ host.innerHTML='<div class="pl-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16" cy="16" r="2.5"/></svg><div>Selecciona un canto de la lista para ver sus diapositivas.</div></div>'; return; }
+  const secs=cvParseLetra(song.letra);
+  host.innerHTML='<div class="pl-main-h"><span class="ti">'+escapeHTML(song.titulo)+'</span>'+(song.autor?'<span class="au">'+escapeHTML(song.autor)+'</span>':'')
+    +'<span class="kbd-hint"><span class="kbd">&larr;</span><span class="kbd">&rarr;</span> Navega las diapositivas</span></div>'
+    +'<div class="cv-slides pl-slides" id="plSlides">'+secs.map((s,i)=>'<div class="cv-slide" data-idx="'+i+'"><canvas width="384" height="216"></canvas><span class="nn">'+(i+1)+'/'+secs.length+'</span></div>').join('')+'</div>';
+  const st=cfg.cv.canto;
+  await ensureFont(st.fuente); await cvFontReady(st.fuente, st.peso, st.tamano);
+  const cards=$$('#plSlides .cv-slide');
+  for(let i=0;i<secs.length;i++){ await cvRenderTo(cards[i].querySelector('canvas'), secs[i], st); }
+  cards.forEach((c,i)=>c.onclick=()=>praiseSend(secs,i));
+  if(praiseCtx) praiseHighlight(praiseCtx.idx);
+}
+
+async function praiseSend(secs, idx){
+  praiseCtx={sections:secs, idx};
+  const st=cfg.cv.canto;
+  const state=await cvSlideToState(secs[idx], st);
+  state._cv={kind:'canto', idx, total:secs.length, sectionType:secs[idx].type};
+  setPreview(state);
+  praiseHighlight(idx);
+}
+async function praiseStep(dir){
+  if(!praiseCtx) return;
+  const n=praiseCtx.idx+dir;
+  if(n<0||n>=praiseCtx.sections.length) return;
+  praiseCtx.idx=n;
+  const st=cfg.cv.canto;
+  const state=await cvSlideToState(praiseCtx.sections[n], st);
+  state._cv={kind:'canto', idx:n, total:praiseCtx.sections.length, sectionType:praiseCtx.sections[n].type};
+  setPreview(state);
+  if(liveState.kind==='image' && liveState._cv) pushLive(state);
+  praiseHighlight(n);
+}
+function praiseHighlight(idx){
+  const host=$('#plSlides'); if(!host) return;
+  $$('.cv-slide',host).forEach(el=>el.classList.toggle('live', +el.dataset.idx===idx));
 }
 
 /* ============ Modales ============ */
@@ -1253,7 +1390,7 @@ async function exportBackup(){
   const ls={
     cantos: localStorage.getItem('proclama.cantos.v1'),
     himnos: localStorage.getItem('proclama.himnos.v1'),
-    servicio: localStorage.getItem('proclama.servicio.v1'),
+    lista: localStorage.getItem('proclama.lista.v1'),
     predicasCol: localStorage.getItem('proclama.predicas.colapsadas')
   };
   const out={app:'proclama',schema:2,fecha:Date.now(),cfg,data,ls};
@@ -1268,14 +1405,14 @@ async function importBackup(file){
   if(obj.ls){
     if(obj.ls.cantos!=null){ localStorage.setItem('proclama.cantos.v1',obj.ls.cantos); cvCantos=JSON.parse(obj.ls.cantos||'[]'); }
     if(obj.ls.himnos!=null){ localStorage.setItem('proclama.himnos.v1',obj.ls.himnos); cvHimnoOv=JSON.parse(obj.ls.himnos||'{}'); }
-    if(obj.ls.servicio!=null){ localStorage.setItem('proclama.servicio.v1',obj.ls.servicio); service=JSON.parse(obj.ls.servicio||'[]'); }
+    if(obj.ls.lista!=null){ localStorage.setItem('proclama.lista.v1',obj.ls.lista); praiseList=JSON.parse(obj.ls.lista||'[]'); praiseSel=-1; praiseCtx=null; }
     if(obj.ls.predicasCol!=null){ localStorage.setItem('proclama.predicas.colapsadas',obj.ls.predicasCol); predCollapsed=new Set(JSON.parse(obj.ls.predicasCol||'[]')); }
   }
   _urls.clear(); BIBLE_CACHE.clear(); await loadBible(cfg.versionActual);
   current={bookIdx:0,chapter:null,verse:1}; renderBooks(); renderChaps();
   if(typeof cvRenderCantoList==='function') cvRenderCantoList();
   if(typeof cvRenderHimnList==='function') cvRenderHimnList();
-  renderService();
+  if($('#m-lista').classList.contains('active')) renderPraise();
   toast('Respaldo restaurado');
 }
 
@@ -1297,7 +1434,7 @@ async function init(){
   $('#btnAddSermon').onclick=openAddSermon;
   $('#sermonSearch').oninput=()=>renderSermons();
   $('#sermonSort').onchange=()=>renderSermons();
-  $('#btnClearService').onclick=()=>{ if(confirm('¿Vaciar la lista del servicio?')){ service=[]; saveService(); renderService(); } };
+  $('#btnClearPraise').onclick=()=>{ if(confirm('¿Vaciar la lista de alabanza?')){ praiseList=[]; praiseSel=-1; praiseCtx=null; savePraise(); renderPraise(); } };
   wireControls();
   await loadBible(cfg.versionActual);
   await renderVersionChips();
@@ -1489,8 +1626,8 @@ async function cvSlideToState(sec, st){
   // Creamos un id temporal y lo registramos en IndexedDB store 'sermonpages' (buffer de imágenes)
   const id = 'cv_'+uid();
   await idbPut('sermonpages',{id, blob, _cvtmp:true});
-  // _cvsrc guarda la fuente (sección + estilo) para poder re-generar la diapositiva
-  // si se agrega al Servicio (el buffer temporal se borra al reiniciar).
+  // _cvsrc guarda la fuente (sección + estilo) por si se necesita re-generar la
+  // diapositiva (el buffer temporal en IndexedDB se borra al reiniciar).
   return {kind:'image', imgStore:'sermonpages', imgId:id, _cvsrc:{sec, st:Object.assign({}, st)}};
 }
 
@@ -1781,6 +1918,7 @@ function cvWire(){
   $('#cantoLetra').oninput=()=>{ clearTimeout(cvWire._t); cvWire._t=setTimeout(cvRenderCantoSlides,250); };
   $('#cantoGuardar').onclick=cvGuardarCanto;
   $('#cantoNuevo').onclick=cvNuevoCanto;
+  $('#cantoMandar').onclick=cvMandarALista;
   $('#cantoSearch').oninput=cvRenderCantoList;
   // Himnario
   $('#himnSearch').oninput=cvRenderHimnList;
