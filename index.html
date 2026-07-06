@@ -481,7 +481,7 @@
           <div class="panel"><div class="panel-h" id="versesHead">Versículos</div><div class="verses-body" id="versesPanel"></div></div>
         </div>
         <div id="wordResults" style="display:none"></div>
-        <div class="hint"><span class="kbd">←</span><span class="kbd">→</span> Cambia el versículo en vivo · <span class="kbd">Esc</span> Pantalla negra</div>
+        <div class="hint"><span class="kbd">←</span><span class="kbd">→</span> Cambia el versículo en vivo · <span class="kbd">Esc</span> Pantalla de pausa</div>
       </div>
 
       <!-- CANTOS (WorshipSlides integrado) -->
@@ -663,6 +663,12 @@ async function blobURL(store,id){
   const rec=await idbGet(store,id); if(!rec||!rec.blob) return null;
   const u=URL.createObjectURL(rec.blob); _urls.set(key,u); return u;
 }
+/* Libera el object-URL además de sacarlo del cache (antes solo se borraba la
+   entrada del Map y la memoria del blob quedaba retenida toda la sesión). */
+function dropURL(store,id){
+  const k=store+':'+id; const u=_urls.get(k);
+  if(u){ try{URL.revokeObjectURL(u);}catch(e){} _urls.delete(k); }
+}
 
 /* ============ Configuracion (localStorage) ============ */
 const CFG_KEY='proclama.cfg.v1';
@@ -745,8 +751,16 @@ function verseTextHTML(state){
   h+='</div>'; return h;
 }
 
-/* Escala el lienzo 1920x1080 para caber en su contenedor */
-function fitStage(host){ if(!host)return; const st=$('.stage',host); if(!st)return; st.style.transform='scale('+((host.clientWidth||0)/1920)+')'; }
+/* Escala el lienzo 1920x1080 para caber en su contenedor.
+   Usa el MENOR factor entre ancho y alto (letterbox) y centra el lienzo:
+   así nunca se recorta ni queda anclado arriba-izquierda cuando la ventana
+   de proyección no es exactamente 16:9 (barra del navegador, barra de tareas,
+   resolución 16:10 / 4:3, etc.). */
+function fitStage(host){ if(!host)return; const st=$('.stage',host); if(!st)return;
+  const w=host.clientWidth||0, h=host.clientHeight||0;
+  const k=h? Math.min(w/1920, h/1080) : w/1920;
+  st.style.transform='translate('+((w-1920*k)/2)+'px,'+((h-1080*k)/2)+'px) scale('+k+')';
+}
 function fitAllControl(){ fitStage($('#previewScreen')); fitStage($('#programScreen')); }
 
 /* Renderiza un estado dentro de un host que contiene .stage > .s-bg/.s-ov/.s-content */
@@ -778,14 +792,25 @@ async function renderStage(host, state){
 }
 
 /* ====== Vista PROYECCION (segunda ventana) ====== */
-let pjActive='A';
+/* Los renders se serializan: si llegan varios estados mientras uno se dibuja
+   (flechas rápidas), se salta a el MÁS RECIENTE. Sin cola, dos renders async
+   podían escribir la misma capa en desorden y dejar proyectada una diapositiva vieja. */
+let pjActive='A', _pjPending=null, _pjBusy=false;
 async function pjRender(state){
-  const root=$('#proyeccion'); const ms=cfg.transicion.tipo==='corte'?0:cfg.transicion.ms;
-  root.style.setProperty('--tdur',ms+'ms');
-  const next=pjActive==='A'?$('#pjB'):$('#pjA'); const cur=pjActive==='A'?$('#pjA'):$('#pjB');
-  await renderStage(next,state);
-  next.classList.add('show'); cur.classList.remove('show');
-  pjActive=pjActive==='A'?'B':'A';
+  _pjPending=state;
+  if(_pjBusy) return;
+  _pjBusy=true;
+  try{
+    while(_pjPending){
+      const st=_pjPending; _pjPending=null;
+      const root=$('#proyeccion'); const ms=cfg.transicion.tipo==='corte'?0:cfg.transicion.ms;
+      root.style.setProperty('--tdur',ms+'ms');
+      const next=pjActive==='A'?$('#pjB'):$('#pjA'); const cur=pjActive==='A'?$('#pjA'):$('#pjB');
+      await renderStage(next,st);
+      next.classList.add('show'); cur.classList.remove('show');
+      pjActive=pjActive==='A'?'B':'A';
+    }
+  }finally{ _pjBusy=false; }
 }
 
 /* ====== CONTROL: previa, programa, envio ====== */
@@ -793,8 +818,29 @@ let loopTimer=null, currentScreen=null;
 function updateScreenPills(){ const pb=id=>{const e=$(id);return e?e.closest('.pillbtn'):null;}; const a=pb('#btnBienvenida'),b=pb('#btnPausa'); if(a)a.classList.toggle('live',currentScreen==='bienvenida'); if(b)b.classList.toggle('live',currentScreen==='pausa'); }
 function clearLoop(){ if(loopTimer){clearInterval(loopTimer);loopTimer=null;} currentScreen=null; updateScreenPills(); }
 function setPreview(state){ previewState=state; renderStage($('#previewScreen'),state); }
-function pushLiveRaw(state){ liveState=state; renderStage($('#programScreen'),state); if(channel) channel.postMessage({type:'state',state}); }
-function pushLive(state){ clearLoop(); liveIsVerse=(state.kind==='verse'); pushLiveRaw(state); }
+function pushLiveRaw(state){
+  liveState=state;
+  liveIsVerse=(state.kind==='verse');   // siempre coherente: pausa/bienvenida (imágenes) la apagan
+  try{ localStorage.setItem('proclama.live.v1', JSON.stringify({t:Date.now(),state})); }catch(e){}
+  renderStage($('#programScreen'),state); if(channel) channel.postMessage({type:'state',state});
+}
+function pushLive(state){ clearLoop(); pushLiveRaw(state); }
+/* Restaura lo último proyectado si el control se recargó hace poco (F5 accidental).
+   Solo dentro de una ventana de 6 h, para no proyectar contenido de la semana pasada. */
+async function restoreLive(){
+  try{
+    const raw=localStorage.getItem('proclama.live.v1'); if(!raw) return null;
+    const {t,state}=JSON.parse(raw);
+    if(!state || !t || Date.now()-t > 6*3600*1000) return null;
+    // Las diapositivas de canto/himno viven en un buffer temporal que se limpia al
+    // arrancar; se re-generan desde su receta (_cvsrc) con el mismo estilo.
+    if(state.kind==='image' && state._cvsrc){
+      const fresh=await cvSlideToState(state._cvsrc.sec, state._cvsrc.st);
+      fresh._cv=state._cv; return fresh;
+    }
+    return state;
+  }catch(e){ return null; }
+}
 function goLive(){ pushLive(previewState); }
 function activarPantalla(which){
   clearLoop();
@@ -976,6 +1022,13 @@ function wireControls(){
   si.onkeydown=e=>{ if(e.key==='Enter'&&searchMode==='ref'){ const r=parseRef(si.value); if(r) gotoRef(r); else toast('No reconocí la referencia'); } };
   // teclado global
   document.addEventListener('keydown',e=>{
+    if(e.key==='Escape'){
+      // Esc cierra primero lo que esté abierto; solo toca la proyección si no hay nada abierto.
+      if($('#modalBg').classList.contains('show')){ closeModal(); return; }
+      if($('#cvPanel').classList.contains('show')){ cvClosePanel(); return; }
+      const tt=e.target.tagName; if(tt==='INPUT'||tt==='TEXTAREA'||tt==='SELECT') return;
+      activarPantalla('pausa'); return;
+    }
     const t=e.target.tagName; if(t==='INPUT'||t==='TEXTAREA'||t==='SELECT') return;
     if(e.key==='ArrowRight'||e.key==='ArrowDown'){
       if($('#m-versiculos').classList.contains('active')){ stepVerse(1); e.preventDefault(); }
@@ -989,7 +1042,6 @@ function wireControls(){
       else if($('#m-lista').classList.contains('active') && praiseCtx){ praiseStep(-1); e.preventDefault(); }
       else if($('#m-predicas').classList.contains('active') && predCtx){ predStep(-1); e.preventDefault(); }
     }
-    else if(e.key==='Escape'){ activarPantalla('pausa'); }
   });
   window.addEventListener('resize',fitAllControl);
   setInterval(updateProyBtn,1500);
@@ -1021,6 +1073,26 @@ function emptyState(kind){
 }
 
 /* ============ BANNERS ============ */
+/* Quita de la configuración las referencias a banners que ya no existen:
+   bucles de Bienvenida/Pausa (proyectaban diapositivas negras), fondo de
+   versículos y fondos de cantos/himnos. Corre al arrancar y al borrar un banner. */
+async function sanitizeBannerRefs(){
+  try{
+    const ids=new Set((await idbAll('banners')).map(b=>b.id));
+    let dirty=false;
+    ['bienvenida','pausa'].forEach(k=>{
+      const p=cfg.pantallas[k]; if(!p) return;
+      const f=(p.imgs||[]).filter(id=>ids.has(id));
+      if(f.length!==(p.imgs||[]).length){ p.imgs=f; dirty=true; }
+    });
+    if(cfg.fondoVerse && cfg.fondoVerse.store==='banners' && !ids.has(cfg.fondoVerse.id)){ cfg.fondoVerse=null; dirty=true; }
+    ['canto','himno'].forEach(k=>{
+      const st=cfg.cv&&cfg.cv[k];
+      if(st && st.fondo && st.fondo.store==='banners' && !ids.has(st.fondo.id)){ st.fondo=null; dirty=true; }
+    });
+    if(dirty) saveCfg();
+  }catch(e){}
+}
 async function addBanners(files){
   for(const f of files){ if(!f.type.startsWith('image/')) continue; await idbPut('banners',{id:uid(),nombre:f.name.replace(/\.[^.]+$/,''),blob:f,fecha:Date.now(),fondoFav:false}); }
   toast('Imágenes guardadas'); renderBanners();
@@ -1037,7 +1109,7 @@ async function renderBanners(){
   h+='</div>'; host.innerHTML=h;
   for(const b of list){ const u=await blobURL('banners',b.id); const th=$('.thumb[data-id="'+b.id+'"]',host); if(u) th.style.backgroundImage='url('+u+')'; th.onclick=()=>setPreview({kind:'image',imgStore:'banners',imgId:b.id}); }
   $$('[data-fav]',host).forEach(x=>x.onclick=async()=>{ const rec=await idbGet('banners',x.dataset.fav); rec.fondoFav=!rec.fondoFav; await idbPut('banners',rec); renderBanners(); });
-  $$('[data-del]',host).forEach(x=>x.onclick=async()=>{ await idbDel('banners',x.dataset.del); _urls.delete('banners:'+x.dataset.del); renderBanners(); });
+  $$('[data-del]',host).forEach(x=>x.onclick=async()=>{ const id=x.dataset.del; await idbDel('banners',id); dropURL('banners',id); _bgImgCache.delete('banners:'+id); await sanitizeBannerRefs(); renderBanners(); });
 }
 
 /* ============ PREDICACIONES (PNG + PDF) ============ */
@@ -1102,7 +1174,7 @@ async function renderSermons(){
       btn.onclick=()=>{ const idx=s.pageIds.indexOf(pid); predCtx={pageIds:s.pageIds, idx}; setPreview({kind:'image',imgStore:'sermonpages',imgId:pid,_pred:true,fit:'contain'}); predHighlight(); }; }
   }
   $$('.sermon-h',host).forEach(hd=>hd.onclick=e=>{ if(e.target.closest('[data-del]')) return; const card=hd.closest('.sermon'); const id=card.dataset.sid; card.classList.toggle('collapsed'); if(card.classList.contains('collapsed')) predCollapsed.add(id); else predCollapsed.delete(id); predSaveCollapsed(); });
-  $$('[data-del]',host).forEach(b=>b.onclick=async()=>{ const s=list.find(x=>x.id===b.dataset.del); if(!confirm('¿Eliminar «'+s.tema+'»?')) return; for(const pid of s.pageIds){ await idbDel('sermonpages',pid); _urls.delete('sermonpages:'+pid); } await idbDel('sermones',s.id); if(predCtx && s.pageIds.includes(predCtx.pageIds[predCtx.idx])) predCtx=null; renderSermons(); });
+  $$('[data-del]',host).forEach(b=>b.onclick=async()=>{ const s=list.find(x=>x.id===b.dataset.del); if(!confirm('¿Eliminar «'+s.tema+'»?')) return; for(const pid of s.pageIds){ await idbDel('sermonpages',pid); dropURL('sermonpages',pid); } await idbDel('sermones',s.id); if(predCtx && s.pageIds.includes(predCtx.pageIds[predCtx.idx])) predCtx=null; renderSermons(); });
   predHighlight();
 }
 async function deleteOldSermons(){
@@ -1372,34 +1444,63 @@ function openSettings(){
   let h=modalHeader('Ajustes')+'<div class="modal-b">';
   h+='<div class="setrow"><div class="sr-info"><div class="t">Borrado automático de predicaciones</div><div class="s">Elimina en silencio las predicaciones antiguas para liberar espacio.</div></div><button class="switch'+(ab.activo?' on':'')+'" id="abSw"></button></div>';
   h+='<div class="setrow"><div class="sr-info"><div class="t">Antigüedad para borrar</div><div class="s">Tiempo desde que se subió la predicación.</div></div><select class="input" id="abMes" style="width:130px;flex:0 0 auto"><option value="1">1 mes</option><option value="3">3 meses</option><option value="6">6 meses</option><option value="12">12 meses</option></select></div>';
-  h+='<div class="setrow" style="display:block"><div class="sr-info" style="margin-bottom:11px"><div class="t">Respaldo de datos (JSON)</div><div class="s">Guarda o restaura todo: versículos importados, banners, predicaciones, fondos y ajustes. Sirve para pasar todo a otra computadora.</div></div><div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn" id="bkExp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 4v12M8 12l4 4 4-4M5 20h14"/></svg>Exportar respaldo</button><button class="btn" id="bkImp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 16V4M8 8l4-4 4 4M5 20h14"/></svg>Importar respaldo</button></div></div>';
+  h+='<div class="setrow" style="display:block"><div class="sr-info" style="margin-bottom:11px"><div class="t">Respaldo de datos (JSON)</div><div class="s">Guarda o restaura todo: versículos importados, banners, predicaciones, fondos y ajustes. Sirve para pasar todo a otra computadora. El respaldo <b>ligero</b> omite las predicaciones (pesan mucho) — ideal para respaldar cantos, listas y ajustes.</div></div><div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn" id="bkExp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 4v12M8 12l4 4 4-4M5 20h14"/></svg>Exportar respaldo</button><button class="btn" id="bkExpL"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 4v12M8 12l4 4 4-4M5 20h14"/></svg>Exportar ligero</button><button class="btn" id="bkImp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 16V4M8 8l4-4 4 4M5 20h14"/></svg>Importar respaldo</button></div></div>';
   h+='<div class="setrow"><div class="sr-info"><div class="t">Cómo proyectar</div><div class="s">Pulsa «Abrir proyección», arrastra esa ventana al proyector y presiona la tecla F para pantalla completa.</div></div></div>';
   h+='<div class="modal-foot"><button class="btn primary" data-close>Listo</button></div></div>';
   openModal(h,true);
   $('#abMes').value=String(ab.meses);
   $('#abSw').onclick=e=>{ab.activo=!ab.activo;e.target.classList.toggle('on',ab.activo);saveCfg();};
   $('#abMes').onchange=e=>{ab.meses=+e.target.value;saveCfg();};
-  $('#bkExp').onclick=exportBackup;
+  $('#bkExp').onclick=()=>exportBackup(true);
+  $('#bkExpL').onclick=()=>exportBackup(false);
   $('#bkImp').onclick=()=>pickFiles('application/json,.json',async f=>{ if(confirm('Se restaurarán los datos del respaldo (se combinan con los actuales). ¿Continuar?')){ try{ await importBackup(f[0]); closeModal(); await renderVersionChips(); }catch(err){ toast('Error: '+err.message); } } });
 }
 
 /* ============ Respaldo JSON ============ */
-async function exportBackup(){
-  const stores=['banners','fondos','sermones','sermonpages','biblias']; const data={};
-  for(const s of stores){ const recs=await idbAll(s); data[s]=[]; for(const r of recs){ if(r._cvtmp) continue; const c=Object.assign({},r); if(c.blob instanceof Blob) c.blob=await blobToDataURL(c.blob); data[s].push(c); } }
+/* incluirPredicas=false → respaldo "ligero" sin sermones/páginas (los PDF rasterizados
+   a 1920px pesan mucho; el respaldo completo puede ser de cientos de MB). */
+async function exportBackup(incluirPredicas){
+  const conPred = incluirPredicas!==false;
+  const stores=['banners','fondos','biblias'].concat(conPred?['sermones','sermonpages']:[]);
   const ls={
     cantos: localStorage.getItem('proclama.cantos.v1'),
     himnos: localStorage.getItem('proclama.himnos.v1'),
     lista: localStorage.getItem('proclama.lista.v1'),
     predicasCol: localStorage.getItem('proclama.predicas.colapsadas')
   };
-  const out={app:'proclama',schema:2,fecha:Date.now(),cfg,data,ls};
-  const blob=new Blob([JSON.stringify(out)],{type:'application/json'});
-  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='proclama-respaldo-'+new Date().toISOString().slice(0,10)+'.json'; a.click();
-  toast('Respaldo exportado');
+  // El JSON se arma por PARTES (una cadena por registro) y el Blob las une al final:
+  // evita construir una sola cadena gigante con JSON.stringify, que congelaba la
+  // pestaña cuando había muchas páginas de predicación.
+  const parts=['{"app":"proclama","schema":2,"fecha":'+Date.now()+',"cfg":'+JSON.stringify(cfg)+',"ls":'+JSON.stringify(ls)+',"data":{'];
+  let firstStore=true;
+  for(const s of stores){
+    const recs=await idbAll(s);
+    parts.push((firstStore?'':',')+JSON.stringify(s)+':['); firstStore=false;
+    let first=true;
+    for(const r of recs){
+      if(r._cvtmp) continue;
+      const c=Object.assign({},r);
+      if(c.blob instanceof Blob) c.blob=await blobToDataURL(c.blob);
+      parts.push((first?'':',')+JSON.stringify(c)); first=false;
+    }
+    parts.push(']');
+  }
+  parts.push('}}');
+  const blob=new Blob(parts,{type:'application/json'});
+  const u=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=u;
+  a.download='proclama-respaldo-'+new Date().toISOString().slice(0,10)+(conPred?'':'-ligero')+'.json'; a.click();
+  setTimeout(()=>URL.revokeObjectURL(u),60000);
+  toast(conPred?'Respaldo exportado':'Respaldo ligero exportado (sin predicaciones)');
 }
 async function importBackup(file){
-  const obj=JSON.parse(await file.text());
+  let obj;
+  try{ obj=JSON.parse(await file.text()); }catch(e){ throw new Error('el archivo no es un JSON válido'); }
+  // Validar ANTES de tocar nada: importar un JSON ajeno (p. ej. una Biblia)
+  // aplicaba datos parciales y podía corromper la configuración.
+  if(!obj || obj.app!=='proclama' || !obj.schema || typeof obj.data!=='object'){
+    throw new Error('el archivo no es un respaldo de Proclama');
+  }
   if(obj.cfg){ cfg=Object.assign(JSON.parse(JSON.stringify(DEFAULT_CFG)),obj.cfg); saveCfg(); }
   if(obj.data){ for(const s of Object.keys(obj.data)){ for(const r of obj.data[s]){ const c=Object.assign({},r); if(typeof c.blob==='string') c.blob=dataURLToBlob(c.blob); await idbPut(s,c); } } }
   if(obj.ls){
@@ -1408,7 +1509,8 @@ async function importBackup(file){
     if(obj.ls.lista!=null){ localStorage.setItem('proclama.lista.v1',obj.ls.lista); praiseList=JSON.parse(obj.ls.lista||'[]'); praiseSel=-1; praiseCtx=null; }
     if(obj.ls.predicasCol!=null){ localStorage.setItem('proclama.predicas.colapsadas',obj.ls.predicasCol); predCollapsed=new Set(JSON.parse(obj.ls.predicasCol||'[]')); }
   }
-  _urls.clear(); BIBLE_CACHE.clear(); await loadBible(cfg.versionActual);
+  for(const u of _urls.values()){ try{URL.revokeObjectURL(u);}catch(e){} }
+  _urls.clear(); _bgImgCache.clear(); BIBLE_CACHE.clear(); await loadBible(cfg.versionActual);
   current={bookIdx:0,chapter:null,verse:1}; renderBooks(); renderChaps();
   if(typeof cvRenderCantoList==='function') cvRenderCantoList();
   if(typeof cvRenderHimnList==='function') cvRenderHimnList();
@@ -1417,12 +1519,22 @@ async function importBackup(file){
 }
 
 /* ============ Arranque ============ */
+/* Wake Lock: evita que la pantalla de proyección se apague o entre el protector
+   durante diapositivas estáticas largas (predicación, canto). Se re-adquiere al
+   volver a ser visible porque el sistema lo libera al minimizar/cambiar de pestaña. */
+let _wakeLock=null;
+async function pjWakeLock(){
+  if(!('wakeLock' in navigator)) return;
+  try{ _wakeLock=await navigator.wakeLock.request('screen'); }catch(e){}
+}
 function initProyeccion(){
   document.title='Proclama — Proyección';
   $('#splash').style.display='none'; $('#app').style.display='none'; $('#proyeccion').classList.add('on');
   if(channel){ channel.onmessage=e=>{ if(e.data&&e.data.type==='state'){ $('#pjHint').style.display='none'; pjRender(e.data.state); } }; channel.postMessage({type:'ready'}); }
   document.addEventListener('keydown',e=>{ if(e.key==='f'||e.key==='F'){ if(!document.fullscreenElement){ if(document.documentElement.requestFullscreen) document.documentElement.requestFullscreen(); } else { document.exitFullscreen(); } } });
   window.addEventListener('resize',()=>{ fitStage($('#pjA')); fitStage($('#pjB')); });
+  pjWakeLock();
+  document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') pjWakeLock(); });
   pjRender({kind:'logo'});
 }
 async function init(){
@@ -1440,10 +1552,12 @@ async function init(){
   await renderVersionChips();
   renderBooks(); renderChaps();
   ensureFont(cfg.texto.fuente);
-  setPreview({kind:'logo'}); pushLiveRaw({kind:'logo'});
+  await sanitizeBannerRefs();
+  if(typeof cvCleanTemp==='function') await cvCleanTemp();   // ANTES de restaurar: la restauración crea un buffer nuevo
+  const restored=await restoreLive();
+  setPreview(restored||{kind:'logo'}); pushLiveRaw(restored||{kind:'logo'});
   setTimeout(fitAllControl,60); setTimeout(fitAllControl,500);
   deleteOldSermons();
-  if(typeof cvCleanTemp==='function') cvCleanTemp();
   if(typeof cvWire==='function') cvWire();
   if('serviceWorker' in navigator){ try{ await navigator.serviceWorker.register('sw.js'); }catch(e){} }
   updateProyBtn();
@@ -1621,11 +1735,24 @@ async function cvFontReady(name, weight, size){
    reutilizando el pipeline de imágenes. Usamos el store 'sermonpages' como buffer temporal
    con id prefijado 'cvtmp_' que limpiamos. Para simplicidad y solidez, guardamos en 'banners'
    un registro temporal oculto NO — mejor: store dedicado en memoria vía _urls + objeto. */
+const _cvTmpIds=[];
 async function cvSlideToState(sec, st){
   const blob = await cvToBlob(sec, st);
   // Creamos un id temporal y lo registramos en IndexedDB store 'sermonpages' (buffer de imágenes)
   const id = 'cv_'+uid();
   await idbPut('sermonpages',{id, blob, _cvtmp:true});
+  // Ventana rodante: antes los buffers _cvtmp se acumulaban toda la sesión (cada movimiento
+  // de slider o flecha creaba uno) y solo se limpiaban al reiniciar. Se conservan los últimos
+  // 24 más los que la vista previa o el vivo aún referencian (para que un reload de la
+  // ventana de proyección pueda volver a pedirlos).
+  _cvTmpIds.push(id);
+  if(_cvTmpIds.length>32){
+    const cand=_cvTmpIds.splice(0,_cvTmpIds.length-24);
+    for(const old of cand){
+      if((liveState&&liveState.imgId===old)||(previewState&&previewState.imgId===old)){ _cvTmpIds.unshift(old); continue; }
+      idbDel('sermonpages',old); dropURL('sermonpages',old);
+    }
+  }
   // _cvsrc guarda la fuente (sección + estilo) por si se necesita re-generar la
   // diapositiva (el buffer temporal en IndexedDB se borra al reiniciar).
   return {kind:'image', imgStore:'sermonpages', imgId:id, _cvsrc:{sec, st:Object.assign({}, st)}};
@@ -1635,7 +1762,7 @@ async function cvSlideToState(sec, st){
 async function cvCleanTemp(){
   try{
     const all=await idbAll('sermonpages');
-    for(const r of all){ if(r._cvtmp){ await idbDel('sermonpages',r.id); _urls.delete('sermonpages:'+r.id); } }
+    for(const r of all){ if(r._cvtmp){ await idbDel('sermonpages',r.id); dropURL('sermonpages',r.id); } }
   }catch(e){}
 }
 
