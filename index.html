@@ -425,7 +425,69 @@
 <div id="proyeccion">
   <div class="pj-layer" id="pjA"><div class="stage"><div class="s-bg"></div><div class="s-ov"></div><div class="s-content"></div></div></div>
   <div class="pj-layer" id="pjB"><div class="stage"><div class="s-bg"></div><div class="s-ov"></div><div class="s-content"></div></div></div>
+  <div class="pj-layer" id="pjDraw"><div class="stage"><div class="s-ov" id="pjDrawBoard" style="opacity:1;background:#0B0B0D"></div><canvas id="pjDrawCv" class="s-draw" width="1920" height="1080"></canvas></div></div>
   <div class="pj-hint" id="pjHint">Arrastra esta ventana al proyector y presiona <b>F</b> para pantalla completa.</div>
+</div>
+
+<!-- ===================== VISTA PIZARRA (TABLET DEL PASTOR · Fase B) ===================== -->
+<style>
+  #pizarraGuest{position:fixed;inset:0;z-index:1200;background:#0B0B0D;display:none;flex-direction:column;color:#fff;font-family:'Inter',system-ui,sans-serif}
+  #pizarraGuest.on{display:flex}
+  .pz-connect{flex:1;display:flex;align-items:center;justify-content:center;padding:22px}
+  .pz-card{width:min(420px,92vw);background:#17151c;border:1px solid #2a2731;border-radius:20px;padding:30px 26px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+  .pz-brand{font-family:'Fraunces',serif;font-size:26px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:.4em;margin-bottom:8px}
+  .pz-brand .cross{color:#E6C878}
+  .pz-lead{color:#a49db0;font-size:15px;line-height:1.5;margin:0 0 20px}
+  .pz-code{width:100%;font-size:44px;letter-spacing:.35em;text-align:center;font-weight:700;color:#fff;background:#0e0d12;border:2px solid #34313d;border-radius:14px;padding:14px 0;outline:none;font-family:'Fraunces',serif}
+  .pz-code:focus{border-color:#E6C878}
+  .pz-connect-btn{margin-top:16px;width:100%;font-size:18px;font-weight:600;color:#2a2109;background:linear-gradient(135deg,#E6C878,#C9A24B);border:0;border-radius:14px;padding:15px 0;cursor:pointer}
+  .pz-connect-btn:active{transform:translateY(1px)}
+  .pz-status{margin-top:14px;min-height:22px;color:#c9c2d4;font-size:14px}
+  .pz-stage{flex:1;display:flex;align-items:center;justify-content:center;min-height:0;padding:8px}
+  .pz-pad{position:relative;border-radius:12px;overflow:hidden;touch-action:none;background:#0B0B0D;box-shadow:0 8px 30px rgba(0,0,0,.55)}
+  .pz-board{position:absolute;inset:0;background:#0B0B0D}
+  #pzCv{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+  .pz-hint{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.45);font-size:18px;pointer-events:none}
+  .pz-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:#141219;border-top:1px solid #2a2731}
+  .pz-swatches{display:flex;gap:9px}
+  .pz-sw{width:38px;height:38px;border-radius:50%;border:2px solid #3a3743;padding:0}
+  .pz-sw.sel{outline:3px solid #E6C878;outline-offset:2px}
+  .pz-sizes{display:flex;gap:8px}
+  .pz-sz{width:46px;height:42px;border-radius:11px;border:1px solid #3a3743;background:#1d1b23;display:flex;align-items:center;justify-content:center}
+  .pz-sz .d{background:#fff;border-radius:50%}
+  .pz-sz.sel{border-color:#E6C878;background:#2a2517}
+  .pz-tool{height:42px;padding:0 15px;border-radius:11px;border:1px solid #3a3743;background:#1d1b23;color:#eee;font-size:15px;font-weight:600}
+  .pz-tool:active{background:#2a2731}
+  .pz-tool.on{background:#C9A24B;border-color:#C9A24B;color:#2a2109}
+  .pz-conn{margin-left:auto;font-size:13px;color:#7bd88f;font-weight:600;letter-spacing:.02em}
+  .pz-conn.off{color:#e08a8a}
+</style>
+<div id="pizarraGuest">
+  <div class="pz-connect" id="pzConnect">
+    <div class="pz-card">
+      <div class="pz-brand"><span class="cross">✝</span> Pizarra del pastor</div>
+      <p class="pz-lead">Escribe el código de 4 dígitos que aparece en la laptop.</p>
+      <input id="pzCode" class="pz-code" inputmode="numeric" maxlength="4" placeholder="0000" autocomplete="off">
+      <button class="pz-connect-btn" id="pzConnectBtn">Conectar</button>
+      <div class="pz-status" id="pzStatus"></div>
+    </div>
+  </div>
+  <div class="pz-stage" id="pzPadWrap" style="display:none">
+    <div class="pz-pad" id="pzPad">
+      <div class="pz-board" id="pzBoard"></div>
+      <canvas id="pzCv" width="1920" height="1080"></canvas>
+      <div class="pz-hint" id="pzHint">Dibuja con el dedo o el lápiz ✏️</div>
+    </div>
+  </div>
+  <div class="pz-toolbar" id="pzToolbar" style="display:none">
+    <div class="pz-swatches" id="pzSwatches"></div>
+    <div class="pz-sizes" id="pzSizes"></div>
+    <button class="pz-tool" id="pzEraser">Borrador</button>
+    <button class="pz-tool" id="pzUndo">Deshacer</button>
+    <button class="pz-tool" id="pzClear">Limpiar</button>
+    <button class="pz-tool" id="pzBoardBtn">Fondo claro</button>
+    <div class="pz-conn" id="pzConn">● conectada</div>
+  </div>
 </div>
 
 <!-- ===================== INTRO ===================== -->
@@ -463,6 +525,7 @@
       <button class="rail-item" data-mod="predicas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg><span>Predicas</span></button>
       <button class="rail-item" data-mod="banners"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 15 5-4 4 3 3-2 6 4"/><circle cx="8" cy="10" r="1.4"/></svg><span>Banners</span></button>
       <button class="rail-item" data-mod="lista"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16" cy="16" r="2.5"/><path d="M3 5h3M3 9h3"/></svg><span>Lista</span></button>
+      <button class="rail-item" data-mod="pizarra"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg><span>Pizarra</span></button>
       <div class="rail-spacer"></div>
       <div class="rail-ver" id="railVer" title="Versión de Proclama"></div>
     </nav>
@@ -588,6 +651,72 @@
           <div class="pl-main" id="plMain"></div>
         </div>
       </div>
+
+      <!-- PIZARRA -->
+      <style>
+        .draw-wrap{display:flex;flex-direction:column;gap:14px;max-width:1000px}
+        .draw-pad{position:relative;aspect-ratio:16/9;width:100%;border-radius:14px;overflow:hidden;border:1px solid var(--line);box-shadow:var(--shadow);cursor:crosshair;touch-action:none}
+        .draw-board{position:absolute;inset:0;background:#0B0B0D}
+        #drawPadCv{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+        .draw-hint{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.5);font-size:16px;pointer-events:none;text-align:center;padding:0 14px}
+        .draw-tools{display:flex;align-items:center;gap:10px 8px;flex-wrap:wrap}
+        .draw-swatches{display:flex;gap:7px}
+        .draw-sw{width:28px;height:28px;border-radius:50%;border:2px solid var(--line);cursor:pointer;padding:0;transition:transform .12s}
+        .draw-sw:hover{transform:scale(1.08)}
+        .draw-sw.sel{outline:2px solid var(--royal);outline-offset:2px}
+        .draw-divider{width:1px;align-self:stretch;background:var(--line);margin:2px 2px}
+        .draw-sizes{display:flex;gap:6px}
+        .draw-sz{width:36px;height:32px;border-radius:9px;border:1px solid var(--line);background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer}
+        .draw-sz .d{background:var(--ink);border-radius:50%}
+        .draw-sz.sel{border-color:var(--royal);background:var(--royal-soft)}
+        .draw-sz.sel .d{background:var(--royal)}
+        #drawEraser.on{background:var(--royal);border-color:var(--royal);color:#fff}
+        #drawLiveBtn.on{background:var(--ruby);border-color:var(--ruby)}
+        .draw-tools.disabled{opacity:.45;pointer-events:none}
+        .draw-pad.remote{cursor:default}
+        .draw-pad.remote .draw-hint{color:rgba(230,200,120,.85);font-weight:600}
+        .draw-pair{background:var(--royal-soft);border:1px solid var(--line);border-radius:12px;padding:11px 14px;margin-bottom:12px;max-width:1000px}
+        .draw-pair .dp-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+        .dp-label{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
+        .dp-code{font-family:'Fraunces',serif;font-size:30px;font-weight:600;letter-spacing:.25em;color:var(--royal)}
+        .dp-status{font-size:13.5px;font-weight:600;color:var(--body)}
+        .draw-pair .cv-tool{margin-left:auto}
+        .dp-hint{margin-top:8px;font-size:12.5px;color:var(--muted)}
+        .dp-hint b{color:var(--ink);font-weight:600}
+        .dp-link{background:none;border:0;color:var(--royal);font:inherit;font-size:12.5px;text-decoration:underline;cursor:pointer;padding:0}
+        /* Capas de dibujo escaladas */
+        .s-draw{position:absolute;top:0;left:0;width:1920px;height:1080px}
+        .s-draw-host{position:absolute;inset:0;display:none;overflow:hidden}
+        .screen.prog.draw-on .s-draw-host{display:block}
+      </style>
+      <div class="module" id="m-pizarra">
+        <div class="ws-head">
+          <div class="ws-title">Pizarra</div>
+          <div class="ws-sub">Dibuja bocetos sencillos y proyéctalos al instante</div>
+          <div class="ws-actions"><button class="btn" id="drawPairBtn">Conectar tablet</button><button class="btn primary" id="drawLiveBtn">Proyectar pizarra</button></div>
+        </div>
+        <div class="draw-pair" id="drawPairPanel" style="display:none">
+          <div class="dp-row"><span class="dp-label">Código para la tablet</span><span class="dp-code" id="drawPairCode">····</span><span class="dp-status" id="drawPairStatus">Iniciando…</span><button class="cv-tool" id="drawPairClose">Cerrar</button></div>
+          <div class="dp-hint">En la tablet abre <b id="drawPairUrl">…</b> y escribe el código. (<button class="dp-link" id="drawPairHere">abrir modo tablet en este equipo</button>)</div>
+        </div>
+        <div class="draw-wrap">
+          <div class="draw-pad" id="drawPad">
+            <div class="draw-board" id="drawPadBoard"></div>
+            <canvas id="drawPadCv" width="1920" height="1080"></canvas>
+            <div class="draw-hint" id="drawHint">Dibuja aquí con el mouse ✏️</div>
+          </div>
+          <div class="draw-tools">
+            <div class="draw-swatches" id="drawSwatches" role="group" aria-label="Color"></div>
+            <span class="draw-divider" aria-hidden="true"></span>
+            <div class="draw-sizes" id="drawSizes" role="group" aria-label="Grosor"></div>
+            <span class="draw-divider" aria-hidden="true"></span>
+            <button class="cv-tool" id="drawEraser">Borrador</button>
+            <button class="cv-tool" id="drawUndo">Deshacer</button>
+            <button class="cv-tool" id="drawClear">Limpiar</button>
+            <button class="cv-tool" id="drawBoard">Fondo claro</button>
+          </div>
+        </div>
+      </div>
     </section>
 
     <!-- PROGRAM RAIL -->
@@ -600,7 +729,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
       <div>
         <div class="stage-h prog"><span class="live-dot"></span>En vivo <span class="res" id="proyStatus">PANTALLA 2</span></div>
-        <div class="screen prog" id="programScreen"><div class="stage"><div class="s-bg"></div><div class="s-ov"></div><div class="s-content"></div></div></div>
+        <div class="screen prog" id="programScreen"><div class="stage"><div class="s-bg"></div><div class="s-ov"></div><div class="s-content"></div></div><div class="s-draw-host" id="progDraw"><div class="stage"><div class="s-ov" id="progDrawBoard" style="opacity:1;background:#0B0B0D"></div><canvas id="progDrawCv" class="s-draw" width="1920" height="1080"></canvas></div></div></div>
       </div>
       <div class="row">
         <span class="lbl">Transición</span>
@@ -639,7 +768,7 @@
 /* Versión de la app. Se muestra al pie de la barra lateral para verificar de un
    vistazo si el navegador ya cargó el index.html actualizado tras recargar.
    Debe mantenerse igual que la constante CACHE de sw.js. */
-const APP_VERSION='v19';
+const APP_VERSION='v20';
 const SAMPLE = {"id":"rvr1909","version":"RVR 1909 (muestra)","abbr":"RVR 1909","books":[{"name":"Salmos","t":"AT","chapters":{"23":["JEHOVA es mi pastor; nada me faltará.","En lugares de delicados pastos me hará yacer: Junto á aguas de reposo me pastoreará.","Confortará mi alma; Guiárame por sendas de justicia por amor de su nombre.","Aunque ande en valle de sombra de muerte, No temeré mal alguno; porque tú estarás conmigo: Tu vara y tu cayado me infundirán aliento.","Aderezarás mesa delante de mí, en presencia de mis angustiadores: Ungiste mi cabeza con aceite: mi copa está rebosando.","Ciertamente el bien y la misericordia me seguirán todos los días de mi vida: Y en la casa de Jehová moraré por largos días."]}},{"name":"Juan","t":"NT","chapters":{"3":["Y HABIA un hombre de los Fariseos que se llamaba Nicodemo, príncipe de los Judíos.","Este vino á Jesús de noche, y díjole: Rabbí, sabemos que has venido de Dios por maestro; porque nadie puede hacer estas señales que tú haces, si no fuere Dios con él.","Respondió Jesús, y díjole: De cierto, de cierto te digo, que el que no naciere otra vez, no puede ver el reino de Dios.","Dícele Nicodemo: ¿Cómo puede el hombre nacer siendo viejo? ¿puede entrar otra vez en el vientre de su madre, y nacer?","Respondió Jesús: De cierto, de cierto te digo, que el que no naciere de agua y del Espíritu, no puede entrar en el reino de Dios.","Lo que es nacido de la carne, carne es; y lo que es nacido del Espíritu, espíritu es.","No te maravilles de que te dije: Os es necesario nacer otra vez.","El viento de donde quiere sopla, y oyes su sonido; mas ni sabes de dónde viene, ni á dónde vaya: así es todo aquel que es nacido del Espíritu.","Respondió Nicodemo, y díjole: ¿Cómo puede esto hacerse?","Respondió Jesús, y díjole: ¿Tú eres el maestro de Israel, y no sabes esto?","De cierto, de cierto te digo, que lo que sabemos hablamos, y lo que hemos visto, testificamos; y no recibís nuestro testimonio.","Si os he dicho cosas terrenas, y no creéis, ¿cómo creeréis si os dijere las celestiales?","Y nadie subió al cielo, sino el que descendió del cielo, el Hijo del hombre, que está en el cielo.","Y como Moisés levantó la serpiente en el desierto, así es necesario que el Hijo del hombre sea levantado;","Para que todo aquel que en él creyere, no se pierda, sino que tenga vida eterna.","Porque de tal manera amó Dios al mundo, que ha dado á su Hijo unigénito, para que todo aquel que en él cree, no se pierda, mas tenga vida eterna.","Porque no envió Dios á su Hijo al mundo, para que condene al mundo, mas para que el mundo sea salvo por él.","El que en él cree, no es condenado; mas el que no cree, ya es condenado, porque no creyó en el nombre del unigénito Hijo de Dios.","Y esta es la condenación: porque la luz vino al mundo, y los hombres amaron más las tinieblas que la luz; porque sus obras eran malas.","Porque todo aquel que hace lo malo, aborrece la luz y no viene á la luz, porque sus obras no sean redargüidas.","Mas el que obra verdad, viene á la luz, para que sus obras sean manifestadas que son hechas en Dios.","Pasado esto, vino Jesús con sus discípulos á la tierra de Judea; y estaba allí con ellos, y bautizaba.","Y bautizaba también Juan en Enón junto á Salim, porque había allí muchas aguas; y venían, y eran bautizados.","Porque Juan, no había sido aún puesto en la carcel.","Y hubo cuestión entre los discípulos de Juan y los Judíos acerca de la purificación.","Y vinieron á Juan, y dijéronle: Rabbí, el que estaba contigo de la otra parte del Jordán, del cual tú diste testimonio, he aquí bautiza, y todos vienen á él.","Respondió Juan, y dijo: No puede el hombre recibir algo, si no le fuere dado del cielo.","Vosotros mismos me sois testigos que dije: Yo no soy el Cristo, sino que soy enviado delante de él.","El que tiene la esposa, es el esposo; mas el amigo del esposo, que está en pie y le oye, se goza grandemente de la voz del esposo; así pues, este mi gozo es cumplido.","A él conviene crecer, mas á mí menguar.","El que de arriba viene, sobre todos es: el que es de la tierra, terreno es, y cosas terrenas habla: el que viene del cielo, sobre todos es.","Y lo que vió y oyó, esto testifica: y nadie recibe su testimonio.","El que recibe su testimonio, éste signó que Dios es verdadero.","Porque el que Dios envió, las palabras de Dios habla: porque no da Dios el Espíritu por medida.","El Padre ama al Hijo, y todas las cosas dió en su mano.","El que cree en el Hijo, tiene vida eterna; mas el que es incrédulo al Hijo, no verá la vida, sino que la ira de Dios está sobre él."]}},{"name":"Filipenses","t":"NT","chapters":{"4":["ASI que, hermanos míos amados y deseados, gozo y corona mía, estad así firmes en el Señor, amados.","A Euodias ruego, y á Syntychê exhorto, que sientan lo mismo en el Señor.","Asimismo te ruego también á ti, hermano compañero, ayuda á las que trabajaron juntamente conmigo en el evangelio, con Clemente también, y los demás mis colaboradores, cuyos nombres están en el libro de la vida.","Gozaos en el Señor siempre: otra vez digo: Que os gocéis.","Vuestra modestia sea conocida de todos los hombres. El Señor está cerca.","Por nada estéis afanosos; sino sean notorias vuestras peticiones delante de Dios en toda oración y ruego, con hacimiento de gracias.","Y la paz de Dios, que sobrepuja todo entendimiento, guardará vuestros corazones y vuestros entendimientos en Cristo Jesús.","Por lo demás, hermanos, todo lo que es verdadero, todo lo honesto, todo lo justo, todo lo puro, todo lo amable, todo lo que es de buen nombre; si hay virtud alguna, si alguna alabanza, en esto pensad.","Lo que aprendisteis y recibisteis y oísteis y visteis en mí, esto haced; y el Dios de paz será con vosotros.","Mas en gran manera me gocé en el Señor de que ya al fin ha reflorecido vuestro cuidado de mí; de lo cual aun estabais solícitos, pero os faltaba la oportunidad.","No lo digo en razón de indigencia, pues he aprendido á contentarme con lo que tengo.","Sé estar humillado, y sé tener abundancia: en todo y por todo estoy enseñado, así para hartura como para hambre, así para tener abundancia como para padecer necesidad.","Todo lo puedo en Cristo que me fortalece.","Sin embargo, bien hicisteis que comunicasteis juntamente á mi tribulación.","Y sabéis también vosotros, oh Filipenses, que al principio del evangelio, cuando partí de Macedonia, ninguna iglesia me comunicó en razón de dar y recibir, sino vosotros solos.","Porque aun á Tesalónica me enviasteis lo necesario una y dos veces.","No porque busque dádivas; mas busco fruto que abunde en vuestra cuenta.","Empero todo lo he recibido, y tengo abundancia: estoy lleno, habiendo recibido de Epafrodito lo que enviasteis, olor de suavidad, sacrificio acepto, agradable á Dios.","Mi Dios, pues, suplirá todo lo que os falta conforme á sus riquezas en gloria en Cristo Jesús.","Al Dios pues y Padre nuestro sea gloria por los siglos de los siglos. Amén.","Saludad á todos los santos en Cristo Jesús. Los hermanos que están conmigo os saludan.","Todos los santos os saludan, y mayormente los que son de casa de César.","La gracia de nuestro Señor Jesucristo sea con todos vosotros. Amén."]}}]};
 
 /* ============ Utilidades ============ */
@@ -649,6 +778,7 @@ const uid = ()=> Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 const norm = s => (s||'').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
 const fmtDate = ms => new Date(ms).toLocaleDateString('es-MX',{day:'2-digit',month:'short',year:'numeric'});
 const IS_PROY = new URLSearchParams(location.search).get('view')==='proyeccion';
+const IS_PZ   = new URLSearchParams(location.search).get('view')==='pizarra';   // vista de la tablet del pastor (Fase B)
 
 function toast(msg){ const t=$('#toast'); if(!t)return; t.textContent=msg; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),2200); }
 
@@ -804,7 +934,7 @@ function fitStage(host){ if(!host)return; const st=$('.stage',host); if(!st)retu
   const k=h? Math.min(w/1920, h/1080) : w/1920;
   st.style.transform='translate('+((w-1920*k)/2)+'px,'+((h-1080*k)/2)+'px) scale('+k+')';
 }
-function fitAllControl(){ fitStage($('#previewScreen')); fitStage($('#programScreen')); }
+function fitAllControl(){ fitStage($('#previewScreen')); fitStage($('#programScreen')); fitStage($('#progDraw')); }
 
 /* Renderiza un estado dentro de un host que contiene .stage > .s-bg/.s-ov/.s-content */
 async function renderStage(host, state){
@@ -882,6 +1012,7 @@ function updateScreenPills(){ const pb=id=>{const e=$(id);return e?e.closest('.p
 function clearLoop(){ if(loopTimer){clearInterval(loopTimer);loopTimer=null;} currentScreen=null; updateScreenPills(); }
 function setPreview(state){ previewState=state; renderStage($('#previewScreen'),state); }
 function pushLiveRaw(state){
+  if(typeof drawForceOff==='function') drawForceOff();   // cualquier fuente normal apaga la pizarra (el dibujo se conserva)
   liveState=state;
   liveIsVerse=(state.kind==='verse');   // siempre coherente: pausa/bienvenida (imágenes) la apagan
   try{ localStorage.setItem('proclama.live.v1', JSON.stringify({t:Date.now(),state})); }catch(e){}
@@ -916,7 +1047,255 @@ function activarPantalla(which){
 }
 
 if(channel && !IS_PROY){
-  channel.onmessage=e=>{ if(e.data && e.data.type==='ready'){ channel.postMessage({type:'state',state:liveState}); } };
+  channel.onmessage=e=>{ if(e.data && e.data.type==='ready'){ channel.postMessage({type:'state',state:liveState});
+    if(drawLive) channel.postMessage({type:'draw',op:'show',board:drawModel.board,strokes:drawModel.strokes}); } };
+}
+
+/* ============ PIZARRA (Fase A) ============ */
+/* Boceto del pastor proyectado en vivo. Los trazos se transmiten por el mismo
+   BroadcastChannel que el resto (mismo equipo). En la Fase B, la tablet será
+   otro emisor de estos mismos mensajes 'draw'. No usa IndexedDB: los trazos son
+   de momento y no se guardan, así evitamos tocar el esquema de la base. */
+const DRAW_COLORS=['#FFFFFF','#141414','#E9C46A','#E76F51','#6EC1E4','#8AB17D'];
+const DRAW_SIZES=[0.006,0.012,0.021];
+const drawModel={strokes:[],board:'dark'};
+let drawPen={color:'#FFFFFF',w:DRAW_SIZES[1],erase:false};
+let drawLive=false, drawCur=null;
+
+function drawBoardColor(b){ return (b||drawModel.board)==='light' ? '#F4EFE3' : '#0B0B0D'; }
+function drawPaint(cv){
+  if(!cv) return; const ctx=cv.getContext('2d'); const W=cv.width,H=cv.height;
+  ctx.clearRect(0,0,W,H); ctx.lineCap='round'; ctx.lineJoin='round';
+  for(const s of drawModel.strokes){ const p=s.pts; if(!p||!p.length) continue;
+    if(s.erase){ ctx.globalCompositeOperation='destination-out'; ctx.strokeStyle='#000'; ctx.fillStyle='#000'; }
+    else { ctx.globalCompositeOperation='source-over'; ctx.strokeStyle=s.color; ctx.fillStyle=s.color; }
+    ctx.lineWidth=Math.max(1,s.w*H);
+    if(p.length===1){ ctx.beginPath(); ctx.arc(p[0].x*W,p[0].y*H,ctx.lineWidth/2,0,7); ctx.fill(); continue; }
+    ctx.beginPath(); ctx.moveTo(p[0].x*W,p[0].y*H);
+    for(let k=1;k<p.length;k++) ctx.lineTo(p[k].x*W,p[k].y*H);
+    ctx.stroke();
+  }
+  ctx.globalCompositeOperation='source-over';
+}
+
+/* --- Lado CONTROL --- */
+function drawSend(msg){ if(channel){ msg.type='draw'; channel.postMessage(msg); } }
+function drawHideHint(){ const h=$('#drawHint'); if(h) h.style.display= drawModel.strokes.length? 'none':'flex'; }
+function drawRenderControl(){
+  drawPaint($('#drawPadCv')); drawPaint($('#progDrawCv'));
+  const bc=drawBoardColor();
+  const pb=$('#drawPadBoard'); if(pb) pb.style.background=bc;
+  const gb=$('#progDrawBoard'); if(gb) gb.style.background=bc;
+  drawHideHint();
+}
+function drawPadPoint(e){ const cv=$('#drawPadCv'); const r=cv.getBoundingClientRect();
+  return { x:Math.min(1,Math.max(0,(e.clientX-r.left)/r.width)), y:Math.min(1,Math.max(0,(e.clientY-r.top)/r.height)) }; }
+function drawPadDown(e){ if(drawRemote) return; e.preventDefault(); const cv=$('#drawPadCv'); try{ cv.setPointerCapture(e.pointerId); }catch(_){}
+  const pt=drawPadPoint(e);
+  drawCur={color:drawPen.color,w:drawPen.w,erase:drawPen.erase,pts:[pt]};
+  drawModel.strokes.push(drawCur);
+  if(drawLive) drawSend({op:'begin',s:{color:drawCur.color,w:drawCur.w,erase:drawCur.erase},pt});
+  drawRenderControl();
+}
+function drawPadMove(e){ if(!drawCur) return; e.preventDefault(); const pt=drawPadPoint(e);
+  drawCur.pts.push(pt); if(drawLive) drawSend({op:'pt',x:pt.x,y:pt.y}); drawRenderControl(); }
+function drawPadUp(){ if(!drawCur) return; drawCur=null; if(drawLive) drawSend({op:'end'}); }
+function drawUndo(){ drawModel.strokes.pop(); drawRenderControl(); if(drawLive) drawSend({op:'undo'}); }
+function drawClear(){ drawModel.strokes=[]; drawRenderControl(); if(drawLive) drawSend({op:'clear'}); }
+function drawToggleBoard(){ drawModel.board = drawModel.board==='light'?'dark':'light';
+  const b=$('#drawBoard'); if(b) b.textContent = drawModel.board==='light'?'Fondo oscuro':'Fondo claro';
+  drawRenderControl(); if(drawLive) drawSend({op:'board',board:drawModel.board}); }
+function drawForceOff(){ if(!drawLive) return; drawLive=false;
+  const btn=$('#drawLiveBtn'); if(btn){ btn.classList.remove('on'); btn.textContent='Proyectar pizarra'; }
+  const ps=$('#programScreen'); if(ps) ps.classList.remove('draw-on');
+  if(channel) channel.postMessage({type:'draw',op:'hide'}); }
+function drawSetLive(on){
+  if(on){ clearLoop(); drawLive=true;
+    const btn=$('#drawLiveBtn'); if(btn){ btn.classList.add('on'); btn.textContent='Quitar de proyección'; }
+    const ps=$('#programScreen'); if(ps) ps.classList.add('draw-on');
+    drawRenderControl(); fitStage($('#progDraw'));
+    if(channel) channel.postMessage({type:'draw',op:'show',board:drawModel.board,strokes:drawModel.strokes});
+  } else { drawForceOff(); }
+}
+function drawInitControl(){
+  const sw=$('#drawSwatches');
+  if(sw){ DRAW_COLORS.forEach(c=>{ const b=document.createElement('button'); b.className='draw-sw'; b.style.background=c;
+      b.setAttribute('aria-label','Color'); b.onclick=()=>{ drawPen.color=c; drawPen.erase=false;
+        const er=$('#drawEraser'); if(er) er.classList.remove('on');
+        $$('.draw-sw',sw).forEach(x=>x.classList.toggle('sel',x===b)); }; sw.appendChild(b); });
+    if(sw.firstChild) sw.firstChild.classList.add('sel'); }
+  const sz=$('#drawSizes');
+  if(sz){ DRAW_SIZES.forEach((w,i)=>{ const b=document.createElement('button'); b.className='draw-sz';
+      const d=document.createElement('span'); d.className='d'; const px=7+i*6; d.style.width=px+'px'; d.style.height=px+'px'; b.appendChild(d);
+      b.onclick=()=>{ drawPen.w=w; $$('.draw-sz',sz).forEach(x=>x.classList.toggle('sel',x===b)); }; sz.appendChild(b); });
+    if(sz.children[1]) sz.children[1].classList.add('sel'); }
+  const pad=$('#drawPadCv');
+  if(pad){ pad.addEventListener('pointerdown',drawPadDown); pad.addEventListener('pointermove',drawPadMove);
+    pad.addEventListener('pointerup',drawPadUp); pad.addEventListener('pointercancel',drawPadUp); pad.addEventListener('pointerleave',drawPadUp); }
+  const on=(id,fn)=>{ const el=$('#'+id); if(el) el.onclick=fn; };
+  on('drawEraser',()=>{ drawPen.erase=!drawPen.erase; const el=$('#drawEraser'); if(el) el.classList.toggle('on',drawPen.erase); });
+  on('drawUndo',drawUndo); on('drawClear',drawClear); on('drawBoard',drawToggleBoard);
+  on('drawLiveBtn',()=>drawSetLive(!drawLive));
+  on('drawPairBtn',drawPairStart);
+  on('drawPairClose',drawPairStop);
+  on('drawPairHere',()=>{ location.href=location.pathname+'?view=pizarra'; });
+  drawRenderControl();
+}
+
+/* --- Lado PROYECCION --- */
+function pjDrawRender(){ drawPaint($('#pjDrawCv')); const b=$('#pjDrawBoard'); if(b) b.style.background=drawBoardColor(); }
+function pjDrawShow(on){ const el=$('#pjDraw'); if(!el) return; el.classList.toggle('show',!!on); if(on) fitStage(el); }
+function pjHandleDraw(m){
+  switch(m.op){
+    case 'show': drawModel.strokes=m.strokes||[]; drawModel.board=m.board||'dark'; pjDrawRender(); pjDrawShow(true); break;
+    case 'hide': pjDrawShow(false); break;
+    case 'begin': drawModel.strokes.push({color:m.s.color,w:m.s.w,erase:m.s.erase,pts:[m.pt]}); pjDrawRender(); break;
+    case 'pt': { const st=drawModel.strokes[drawModel.strokes.length-1]; if(st){ st.pts.push({x:m.x,y:m.y}); pjDrawRender(); } break; }
+    case 'end': break;
+    case 'undo': drawModel.strokes.pop(); pjDrawRender(); break;
+    case 'clear': drawModel.strokes=[]; pjDrawRender(); break;
+    case 'board': drawModel.board=m.board; pjDrawRender(); break;
+  }
+}
+
+/* ============ PIZARRA · Fase B: enlace con la tablet (WebRTC / PeerJS) ============ */
+/* La tablet abre ?view=pizarra, se empareja con un código de 4 dígitos y manda
+   sus trazos al host (laptop) por WebRTC. Solo el emparejamiento usa internet;
+   una vez conectados, los trazos van P2P por la Wi-Fi. El host los mete en el
+   mismo drawModel de la Fase A y (si está "en vivo") los reenvía a proyección. */
+let PEER=null, HCONN=null, PZCONN=null, drawRemote=false, pairCode=null, pzWired=false;
+function loadPeerJS(){ return new Promise((res,rej)=>{ if(window.Peer) return res();
+  const s=document.createElement('script'); s.src='peerjs.min.js';
+  s.onload=()=>{ if(!window.Peer && window.peerjs && window.peerjs.Peer) window.Peer=window.peerjs.Peer; window.Peer?res():rej(new Error('sin Peer')); };
+  s.onerror=()=>rej(new Error('peerjs')); document.head.appendChild(s); }); }
+function pairId(code){ return 'proclama-pizarra-'+code; }
+
+/* --- HOST (laptop): recibe trazos de la tablet --- */
+function drawApplyRemote(m){
+  if(!m||!m.op) return;
+  switch(m.op){
+    case 'begin': drawModel.strokes.push({color:m.s.color,w:m.s.w,erase:m.s.erase,pts:[m.pt]}); break;
+    case 'pt': { const st=drawModel.strokes[drawModel.strokes.length-1]; if(st) st.pts.push({x:m.x,y:m.y}); break; }
+    case 'end': break;
+    case 'undo': drawModel.strokes.pop(); break;
+    case 'clear': drawModel.strokes=[]; break;
+    case 'board': drawModel.board=m.board; { const b=$('#drawBoard'); if(b) b.textContent=drawModel.board==='light'?'Fondo oscuro':'Fondo claro'; } break;
+    default: return;
+  }
+  drawRenderControl();
+  if(drawLive) drawSend(m);   // reenvía el mismo trazo a la ventana de proyección
+}
+function drawSetRemoteMonitor(on){
+  drawRemote=!!on;
+  const pad=$('#drawPad'); if(pad) pad.classList.toggle('remote',drawRemote);
+  const tools=$('.draw-tools'); if(tools) tools.classList.toggle('disabled',drawRemote);
+  const h=$('#drawHint'); if(h) h.textContent= drawRemote?'Dibujando desde la tablet del pastor':'Dibuja aquí con el mouse ✏️';
+  drawHideHint();
+}
+function drawPairSetStatus(t){ const s=$('#drawPairStatus'); if(s) s.textContent=t; }
+async function drawPairStart(){
+  const panel=$('#drawPairPanel'); if(panel) panel.style.display='block';
+  { const u=$('#drawPairUrl'); if(u) u.textContent=location.origin+location.pathname+'?view=pizarra'; }
+  drawPairSetStatus('Cargando conexión…');
+  try{ await loadPeerJS(); }catch(_){ drawPairSetStatus('No se pudo cargar la conexión (revisa el internet).'); return; }
+  drawPairReg();
+}
+function drawPairReg(){
+  const code=(''+Math.floor(1000+Math.random()*9000));
+  pairCode=code; { const c=$('#drawPairCode'); if(c) c.textContent=code; }
+  drawPairSetStatus('Esperando a la tablet…');
+  if(PEER){ try{ PEER.destroy(); }catch(_){} PEER=null; }
+  PEER=new Peer(pairId(code));
+  PEER.on('error',err=>{ const t=(err&&err.type)||'?';
+    if(t==='unavailable-id'){ drawPairReg(); }          // código ocupado: prueba otro
+    else { drawPairSetStatus('Error de conexión ('+t+').'); } });
+  PEER.on('connection',conn=>{
+    HCONN=conn;
+    conn.on('open',()=>{ drawPairSetStatus('Tablet conectada ✓'); drawSetRemoteMonitor(true);
+      try{ conn.send({op:'sync',board:drawModel.board,strokes:drawModel.strokes}); }catch(_){} });
+    conn.on('data',m=>drawApplyRemote(m));
+    conn.on('close',()=>{ drawPairSetStatus('Tablet desconectada. Esperando…'); HCONN=null; drawSetRemoteMonitor(false); });
+  });
+}
+function drawPairStop(){
+  if(PEER){ try{ PEER.destroy(); }catch(_){} PEER=null; }
+  HCONN=null; drawSetRemoteMonitor(false);
+  const panel=$('#drawPairPanel'); if(panel) panel.style.display='none';
+}
+
+/* --- GUEST (tablet del pastor): dibuja y envía --- */
+function pzSend(m){ if(PZCONN && PZCONN.open){ try{ PZCONN.send(m); }catch(_){} } }
+function pzStatus(t){ const s=$('#pzStatus'); if(s) s.textContent=t||''; }
+function pzSetConn(on){ const c=$('#pzConn'); if(c){ c.classList.toggle('off',!on); c.textContent= on?'● conectada':'● sin conexión'; } }
+function pzRender(){ drawPaint($('#pzCv')); const b=$('#pzBoard'); if(b) b.style.background=drawBoardColor();
+  const h=$('#pzHint'); if(h) h.style.display= drawModel.strokes.length?'none':'flex'; }
+function pzFitPad(){ const wrap=$('#pzPadWrap'), pad=$('#pzPad'); if(!wrap||!pad) return;
+  const W=wrap.clientWidth-16, H=wrap.clientHeight-16; if(W<=0||H<=0) return;
+  let w=W, h=w*9/16; if(h>H){ h=H; w=h*16/9; }
+  pad.style.width=Math.floor(w)+'px'; pad.style.height=Math.floor(h)+'px'; }
+function pzPoint(e){ const cv=$('#pzCv'); const r=cv.getBoundingClientRect();
+  return {x:Math.min(1,Math.max(0,(e.clientX-r.left)/r.width)), y:Math.min(1,Math.max(0,(e.clientY-r.top)/r.height))}; }
+function pzDown(e){ e.preventDefault(); const cv=$('#pzCv'); try{ cv.setPointerCapture(e.pointerId); }catch(_){}
+  const pt=pzPoint(e); drawCur={color:drawPen.color,w:drawPen.w,erase:drawPen.erase,pts:[pt]}; drawModel.strokes.push(drawCur);
+  pzSend({op:'begin',s:{color:drawCur.color,w:drawCur.w,erase:drawCur.erase},pt}); pzRender(); }
+function pzMove(e){ if(!drawCur) return; e.preventDefault(); const pt=pzPoint(e); drawCur.pts.push(pt); pzSend({op:'pt',x:pt.x,y:pt.y}); pzRender(); }
+function pzUp(){ if(!drawCur) return; drawCur=null; pzSend({op:'end'}); }
+function pzShowPad(){ $('#pzConnect').style.display='none'; $('#pzPadWrap').style.display='flex'; $('#pzToolbar').style.display='flex';
+  pzFitPad(); pzRender();
+  if(!pzWired){ const cv=$('#pzCv');
+    cv.addEventListener('pointerdown',pzDown); cv.addEventListener('pointermove',pzMove);
+    cv.addEventListener('pointerup',pzUp); cv.addEventListener('pointercancel',pzUp); cv.addEventListener('pointerleave',pzUp);
+    pzWired=true; } }
+function pzShowConnect(){ $('#pzConnect').style.display='flex'; $('#pzPadWrap').style.display='none'; $('#pzToolbar').style.display='none'; }
+async function pzConnect(code){
+  if(!/^\d{4}$/.test(code||'')){ pzStatus('El código son 4 dígitos.'); return; }
+  pzStatus('Conectando…');
+  try{ await loadPeerJS(); }catch(_){ pzStatus('No se pudo cargar la conexión. Revisa el internet.'); return; }
+  if(PEER){ try{ PEER.destroy(); }catch(_){} PEER=null; }
+  let done=false;
+  PEER=new Peer();
+  PEER.on('open',()=>{
+    const c=PEER.connect(pairId(code),{reliable:true}); PZCONN=c;
+    c.on('open',()=>{ done=true; pzSetConn(true); pzShowPad(); });
+    c.on('data',m=>{ if(m&&m.op==='sync'){ drawModel.strokes=m.strokes||[]; drawModel.board=m.board||'dark';
+      const b=$('#pzBoardBtn'); if(b) b.textContent=drawModel.board==='light'?'Fondo oscuro':'Fondo claro'; pzRender(); } });
+    c.on('close',()=>{ pzSetConn(false); pzStatus('Se perdió la conexión. Vuelve a conectar.'); pzShowConnect(); });
+    c.on('error',()=>{ if(!done) pzStatus('No se pudo conectar. Revisa el código.'); });
+  });
+  PEER.on('error',err=>{ if(!done){ const t=(err&&err.type)||'';
+    if(t==='peer-unavailable') pzStatus('No encontré ese código. Verifícalo en la laptop.');
+    else pzStatus('Error de conexión ('+t+'). Revisa el internet.'); } });
+  setTimeout(()=>{ if(!done) pzStatus('Tardando… revisa el internet y que el código siga en la laptop.'); },10000);
+}
+function initPizarraGuest(){
+  document.title='Proclama — Pizarra';
+  const sp=$('#splash'); if(sp) sp.style.display='none';
+  const app=$('#app'); if(app) app.style.display='none';
+  $('#pizarraGuest').classList.add('on');
+  const sw=$('#pzSwatches');
+  if(sw){ DRAW_COLORS.forEach(c=>{ const b=document.createElement('button'); b.className='pz-sw'; b.style.background=c;
+      b.onclick=()=>{ drawPen.color=c; drawPen.erase=false; const er=$('#pzEraser'); if(er) er.classList.remove('on');
+        $$('.pz-sw',sw).forEach(x=>x.classList.toggle('sel',x===b)); }; sw.appendChild(b); });
+    if(sw.firstChild) sw.firstChild.classList.add('sel'); }
+  const sz=$('#pzSizes');
+  if(sz){ DRAW_SIZES.forEach((w,i)=>{ const b=document.createElement('button'); b.className='pz-sz';
+      const d=document.createElement('span'); d.className='d'; const px=9+i*7; d.style.width=px+'px'; d.style.height=px+'px'; b.appendChild(d);
+      b.onclick=()=>{ drawPen.w=w; $$('.pz-sz',sz).forEach(x=>x.classList.toggle('sel',x===b)); }; sz.appendChild(b); });
+    if(sz.children[1]) sz.children[1].classList.add('sel'); }
+  const on=(id,fn)=>{ const el=$('#'+id); if(el) el.onclick=fn; };
+  on('pzEraser',()=>{ drawPen.erase=!drawPen.erase; const el=$('#pzEraser'); if(el) el.classList.toggle('on',drawPen.erase); });
+  on('pzUndo',()=>{ drawModel.strokes.pop(); pzRender(); pzSend({op:'undo'}); });
+  on('pzClear',()=>{ drawModel.strokes=[]; pzRender(); pzSend({op:'clear'}); });
+  on('pzBoardBtn',()=>{ drawModel.board=drawModel.board==='light'?'dark':'light';
+    const b=$('#pzBoardBtn'); if(b) b.textContent=drawModel.board==='light'?'Fondo oscuro':'Fondo claro';
+    pzRender(); pzSend({op:'board',board:drawModel.board}); });
+  const codeInput=$('#pzCode');
+  const go=()=>{ try{ if(document.documentElement.requestFullscreen) document.documentElement.requestFullscreen(); }catch(_){}
+    pzConnect(((codeInput&&codeInput.value)||'').trim()); };
+  on('pzConnectBtn',go);
+  if(codeInput) codeInput.addEventListener('keydown',e=>{ if(e.key==='Enter') go(); });
+  window.addEventListener('resize',pzFitPad);
+  if('wakeLock' in navigator){ try{ navigator.wakeLock.request('screen').catch(()=>{}); }catch(_){} }
 }
 
 /* ============ MODULO VERSICULOS ============ */
@@ -1108,6 +1487,7 @@ function wireControls(){
   });
   window.addEventListener('resize',fitAllControl);
   setInterval(updateProyBtn,1500);
+  drawInitControl();
 }
 
 /* ============ Navegacion entre modulos ============ */
@@ -1115,7 +1495,7 @@ function switchModule(mod){
   if(typeof cvClosePanel==='function') cvClosePanel();
   $$('.rail-item').forEach(b=>b.classList.toggle('active',b.dataset.mod===mod));
   $$('.module').forEach(m=>m.classList.toggle('active',m.id==='m-'+mod));
-  const names={versiculos:'Versículos',cantos:'Cantos',himnario:'Himnario',predicas:'Predicaciones',banners:'Banners',lista:'Lista de alabanza'};
+  const names={versiculos:'Versículos',cantos:'Cantos',himnario:'Himnario',predicas:'Predicaciones',banners:'Banners',lista:'Lista de alabanza',pizarra:'Pizarra'};
   $('#crumb').textContent=names[mod]||'';
   if(mod==='banners') renderBanners();
   if(mod==='predicas') renderSermons();
@@ -1648,14 +2028,17 @@ async function pjWakeLock(){
 function initProyeccion(){
   document.title='Proclama — Proyección';
   $('#splash').style.display='none'; $('#app').style.display='none'; $('#proyeccion').classList.add('on');
-  if(channel){ channel.onmessage=e=>{ if(e.data&&e.data.type==='state'){ $('#pjHint').style.display='none'; pjRender(e.data.state); } }; channel.postMessage({type:'ready'}); }
+  if(channel){ channel.onmessage=e=>{ if(!e.data) return;
+    if(e.data.type==='state'){ $('#pjHint').style.display='none'; pjRender(e.data.state); }
+    else if(e.data.type==='draw'){ $('#pjHint').style.display='none'; pjHandleDraw(e.data); } }; channel.postMessage({type:'ready'}); }
   document.addEventListener('keydown',e=>{ if(e.key==='f'||e.key==='F'){ if(!document.fullscreenElement){ if(document.documentElement.requestFullscreen) document.documentElement.requestFullscreen(); } else { document.exitFullscreen(); } } });
-  window.addEventListener('resize',()=>{ fitStage($('#pjA')); fitStage($('#pjB')); });
+  window.addEventListener('resize',()=>{ fitStage($('#pjA')); fitStage($('#pjB')); fitStage($('#pjDraw')); });
   pjWakeLock();
   document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') pjWakeLock(); });
   pjRender({kind:'logo'});
 }
 async function init(){
+  if(IS_PZ){ initPizarraGuest(); return; }
   if(IS_PROY){ initProyeccion(); return; }
   setTimeout(()=>{ $('#splash').classList.add('hide'); $('#app').classList.add('show'); },2300);
   { const rv=$('#railVer'); if(rv) rv.textContent=APP_VERSION; }
