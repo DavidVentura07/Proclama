@@ -368,6 +368,21 @@
   .cv-slides-wrap{overflow-y:auto;max-height:calc(100vh - 145px)}
   .cv-slides.cv-slides-2col{grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
   .cv-slides.cv-slides-lg{grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+  /* Selector de columnas (1 o 2) para tarjetas de Cantos / Himnario */
+  .cv-slidecol{display:flex;flex-direction:column;min-height:0}
+  .cv-slidecol .cv-slides-wrap{flex:1}
+  .cv-colbar{display:flex;align-items:center;gap:6px;margin-bottom:10px}
+  .cv-collbl{font-size:10.5px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin-right:2px}
+  .cv-colbtn{min-width:34px;height:28px;padding:0 9px;border-radius:8px;border:1px solid var(--line);background:#fff;font-size:12.5px;font-weight:700;color:var(--body);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:5px}
+  .cv-colbtn:hover{border-color:var(--royal);color:var(--royal)}
+  .cv-colbtn.on{background:var(--royal);border-color:var(--royal);color:#fff}
+  .cv-colbtn svg{width:14px;height:14px}
+  /* Controles de video en vivo */
+  .vid-controls{display:flex;gap:8px;margin-top:6px}
+  .vc-btn{flex:1;height:36px;border-radius:9px;border:1px solid var(--line);background:#fff;font-size:12.5px;font-weight:600;color:var(--body);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:7px}
+  .vc-btn:hover{border-color:var(--royal);color:var(--royal)}
+  .vc-btn.on{background:var(--royal);border-color:var(--royal);color:#fff}
+  .vc-btn svg{width:15px;height:15px}
 
   /* ---- Botón estrella: Mandar a lista de alabanza ---- */
   .btn-praise{height:40px;padding:0 18px;border-radius:11px;border:0;font-size:13.5px;font-weight:700;color:#3A2A0A;
@@ -425,7 +440,7 @@
 <div id="proyeccion">
   <div class="pj-layer" id="pjA"><div class="stage"><div class="s-bg"></div><div class="s-ov"></div><div class="s-content"></div></div></div>
   <div class="pj-layer" id="pjB"><div class="stage"><div class="s-bg"></div><div class="s-ov"></div><div class="s-content"></div></div></div>
-  <div class="pj-layer" id="pjDraw"><div class="stage"><div class="s-ov" id="pjDrawBoard" style="opacity:1;background:#0B0B0D"></div><canvas id="pjDrawCv" class="s-draw" width="1920" height="1080"></canvas></div></div>
+  <div class="pj-layer" id="pjDraw"><div class="stage"><div class="s-ov" id="pjDrawBoard" style="opacity:1;background:#F4EFE3"></div><canvas id="pjDrawCv" class="s-draw" width="1920" height="1080"></canvas></div></div>
   <div class="pj-hint" id="pjHint">Arrastra esta ventana al proyector y presiona <b>F</b> para pantalla completa.</div>
 </div>
 
@@ -445,9 +460,9 @@
   .pz-status{margin-top:14px;min-height:22px;color:#c9c2d4;font-size:14px}
   .pz-stage{flex:1;display:flex;align-items:center;justify-content:center;min-height:0;padding:8px}
   .pz-pad{position:relative;border-radius:12px;overflow:hidden;touch-action:none;background:#0B0B0D;box-shadow:0 8px 30px rgba(0,0,0,.55)}
-  .pz-board{position:absolute;inset:0;background:#0B0B0D}
+  .pz-board{position:absolute;inset:0;background:#F4EFE3}
   #pzCv{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
-  .pz-hint{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.45);font-size:18px;pointer-events:none}
+  .pz-hint{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:rgba(110,105,120,.7);font-size:18px;pointer-events:none}
   .pz-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:#141219;border-top:1px solid #2a2731}
   .pz-swatches{display:flex;gap:9px}
   .pz-sw{width:38px;height:38px;border-radius:50%;border:2px solid #3a3743;padding:0}
@@ -485,7 +500,7 @@
     <button class="pz-tool" id="pzEraser">Borrador</button>
     <button class="pz-tool" id="pzUndo">Deshacer</button>
     <button class="pz-tool" id="pzClear">Limpiar</button>
-    <button class="pz-tool" id="pzBoardBtn">Fondo claro</button>
+    <button class="pz-tool" id="pzBoardBtn">Fondo oscuro</button>
     <div class="pz-conn" id="pzConn">● conectada</div>
   </div>
 </div>
@@ -584,8 +599,11 @@
               <span class="cv-empty-hint" id="cantoHint">Haz clic en una diapositiva para enviarla a vista previa; usa ← → para pasar versos en vivo.</span>
             </div>
           </div>
-          <div class="cv-slides-wrap">
-            <div class="cv-slides cv-slides-2col" id="cantoSlides"></div>
+          <div class="cv-slidecol">
+            <div class="cv-colbar" id="cvColsCanto"><span class="cv-collbl">Columnas</span><button class="cv-colbtn" data-cols="1">1</button><button class="cv-colbtn" data-cols="2">2</button></div>
+            <div class="cv-slides-wrap">
+              <div class="cv-slides cv-slides-2col" id="cantoSlides"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -605,7 +623,7 @@
             <div class="cv-list"><div class="cv-list-h">Himnos <span class="res" id="himnCount">160</span></div><div class="cv-list-body" id="himnList"></div></div>
           </div>
           <div class="cv-main">
-            <div class="cv-toolbar"><span class="cv-empty-hint" id="himnHint">Elige un himno de la lista. Haz clic en una diapositiva para enviarla a vista previa; usa ← → para pasar versos en vivo.</span></div>
+            <div class="cv-toolbar"><span class="cv-empty-hint" id="himnHint">Elige un himno de la lista. Haz clic en una diapositiva para enviarla a vista previa; usa ← → para pasar versos en vivo.</span><div class="cv-colbar" id="cvColsHimno" style="margin-left:auto;margin-bottom:0"><span class="cv-collbl">Columnas</span><button class="cv-colbtn" data-cols="1">1</button><button class="cv-colbtn" data-cols="2">2</button></div></div>
             <div class="cv-slides cv-slides-lg" id="himnSlides"></div>
           </div>
         </div>
@@ -656,9 +674,9 @@
       <style>
         .draw-wrap{display:flex;flex-direction:column;gap:14px;max-width:1000px}
         .draw-pad{position:relative;aspect-ratio:16/9;width:100%;border-radius:14px;overflow:hidden;border:1px solid var(--line);box-shadow:var(--shadow);cursor:crosshair;touch-action:none}
-        .draw-board{position:absolute;inset:0;background:#0B0B0D}
+        .draw-board{position:absolute;inset:0;background:#F4EFE3}
         #drawPadCv{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
-        .draw-hint{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.5);font-size:16px;pointer-events:none;text-align:center;padding:0 14px}
+        .draw-hint{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:rgba(110,105,120,.7);font-size:16px;pointer-events:none;text-align:center;padding:0 14px}
         .draw-tools{display:flex;align-items:center;gap:10px 8px;flex-wrap:wrap}
         .draw-swatches{display:flex;gap:7px}
         .draw-sw{width:28px;height:28px;border-radius:50%;border:2px solid var(--line);cursor:pointer;padding:0;transition:transform .12s}
@@ -713,7 +731,7 @@
             <button class="cv-tool" id="drawEraser">Borrador</button>
             <button class="cv-tool" id="drawUndo">Deshacer</button>
             <button class="cv-tool" id="drawClear">Limpiar</button>
-            <button class="cv-tool" id="drawBoard">Fondo claro</button>
+            <button class="cv-tool" id="drawBoard">Fondo oscuro</button>
           </div>
         </div>
       </div>
@@ -729,7 +747,11 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
       <div>
         <div class="stage-h prog"><span class="live-dot"></span>En vivo <span class="res" id="proyStatus">PANTALLA 2</span></div>
-        <div class="screen prog" id="programScreen"><div class="stage"><div class="s-bg"></div><div class="s-ov"></div><div class="s-content"></div></div><div class="s-draw-host" id="progDraw"><div class="stage"><div class="s-ov" id="progDrawBoard" style="opacity:1;background:#0B0B0D"></div><canvas id="progDrawCv" class="s-draw" width="1920" height="1080"></canvas></div></div></div>
+        <div class="screen prog" id="programScreen"><div class="stage"><div class="s-bg"></div><div class="s-ov"></div><div class="s-content"></div></div><div class="s-draw-host" id="progDraw"><div class="stage"><div class="s-ov" id="progDrawBoard" style="opacity:1;background:#F4EFE3"></div><canvas id="progDrawCv" class="s-draw" width="1920" height="1080"></canvas></div></div></div>
+        <div class="vid-controls" id="vidControls" style="display:none">
+          <button class="vc-btn" id="vidPlayPause"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>Pausar</button>
+          <button class="vc-btn" id="vidLoop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>Bucle: off</button>
+        </div>
       </div>
       <div class="row">
         <span class="lbl">Transición</span>
@@ -768,7 +790,7 @@
 /* Versión de la app. Se muestra al pie de la barra lateral para verificar de un
    vistazo si el navegador ya cargó el index.html actualizado tras recargar.
    Debe mantenerse igual que la constante CACHE de sw.js. */
-const APP_VERSION='v20';
+const APP_VERSION='v21';
 const SAMPLE = {"id":"rvr1909","version":"RVR 1909 (muestra)","abbr":"RVR 1909","books":[{"name":"Salmos","t":"AT","chapters":{"23":["JEHOVA es mi pastor; nada me faltará.","En lugares de delicados pastos me hará yacer: Junto á aguas de reposo me pastoreará.","Confortará mi alma; Guiárame por sendas de justicia por amor de su nombre.","Aunque ande en valle de sombra de muerte, No temeré mal alguno; porque tú estarás conmigo: Tu vara y tu cayado me infundirán aliento.","Aderezarás mesa delante de mí, en presencia de mis angustiadores: Ungiste mi cabeza con aceite: mi copa está rebosando.","Ciertamente el bien y la misericordia me seguirán todos los días de mi vida: Y en la casa de Jehová moraré por largos días."]}},{"name":"Juan","t":"NT","chapters":{"3":["Y HABIA un hombre de los Fariseos que se llamaba Nicodemo, príncipe de los Judíos.","Este vino á Jesús de noche, y díjole: Rabbí, sabemos que has venido de Dios por maestro; porque nadie puede hacer estas señales que tú haces, si no fuere Dios con él.","Respondió Jesús, y díjole: De cierto, de cierto te digo, que el que no naciere otra vez, no puede ver el reino de Dios.","Dícele Nicodemo: ¿Cómo puede el hombre nacer siendo viejo? ¿puede entrar otra vez en el vientre de su madre, y nacer?","Respondió Jesús: De cierto, de cierto te digo, que el que no naciere de agua y del Espíritu, no puede entrar en el reino de Dios.","Lo que es nacido de la carne, carne es; y lo que es nacido del Espíritu, espíritu es.","No te maravilles de que te dije: Os es necesario nacer otra vez.","El viento de donde quiere sopla, y oyes su sonido; mas ni sabes de dónde viene, ni á dónde vaya: así es todo aquel que es nacido del Espíritu.","Respondió Nicodemo, y díjole: ¿Cómo puede esto hacerse?","Respondió Jesús, y díjole: ¿Tú eres el maestro de Israel, y no sabes esto?","De cierto, de cierto te digo, que lo que sabemos hablamos, y lo que hemos visto, testificamos; y no recibís nuestro testimonio.","Si os he dicho cosas terrenas, y no creéis, ¿cómo creeréis si os dijere las celestiales?","Y nadie subió al cielo, sino el que descendió del cielo, el Hijo del hombre, que está en el cielo.","Y como Moisés levantó la serpiente en el desierto, así es necesario que el Hijo del hombre sea levantado;","Para que todo aquel que en él creyere, no se pierda, sino que tenga vida eterna.","Porque de tal manera amó Dios al mundo, que ha dado á su Hijo unigénito, para que todo aquel que en él cree, no se pierda, mas tenga vida eterna.","Porque no envió Dios á su Hijo al mundo, para que condene al mundo, mas para que el mundo sea salvo por él.","El que en él cree, no es condenado; mas el que no cree, ya es condenado, porque no creyó en el nombre del unigénito Hijo de Dios.","Y esta es la condenación: porque la luz vino al mundo, y los hombres amaron más las tinieblas que la luz; porque sus obras eran malas.","Porque todo aquel que hace lo malo, aborrece la luz y no viene á la luz, porque sus obras no sean redargüidas.","Mas el que obra verdad, viene á la luz, para que sus obras sean manifestadas que son hechas en Dios.","Pasado esto, vino Jesús con sus discípulos á la tierra de Judea; y estaba allí con ellos, y bautizaba.","Y bautizaba también Juan en Enón junto á Salim, porque había allí muchas aguas; y venían, y eran bautizados.","Porque Juan, no había sido aún puesto en la carcel.","Y hubo cuestión entre los discípulos de Juan y los Judíos acerca de la purificación.","Y vinieron á Juan, y dijéronle: Rabbí, el que estaba contigo de la otra parte del Jordán, del cual tú diste testimonio, he aquí bautiza, y todos vienen á él.","Respondió Juan, y dijo: No puede el hombre recibir algo, si no le fuere dado del cielo.","Vosotros mismos me sois testigos que dije: Yo no soy el Cristo, sino que soy enviado delante de él.","El que tiene la esposa, es el esposo; mas el amigo del esposo, que está en pie y le oye, se goza grandemente de la voz del esposo; así pues, este mi gozo es cumplido.","A él conviene crecer, mas á mí menguar.","El que de arriba viene, sobre todos es: el que es de la tierra, terreno es, y cosas terrenas habla: el que viene del cielo, sobre todos es.","Y lo que vió y oyó, esto testifica: y nadie recibe su testimonio.","El que recibe su testimonio, éste signó que Dios es verdadero.","Porque el que Dios envió, las palabras de Dios habla: porque no da Dios el Espíritu por medida.","El Padre ama al Hijo, y todas las cosas dió en su mano.","El que cree en el Hijo, tiene vida eterna; mas el que es incrédulo al Hijo, no verá la vida, sino que la ira de Dios está sobre él."]}},{"name":"Filipenses","t":"NT","chapters":{"4":["ASI que, hermanos míos amados y deseados, gozo y corona mía, estad así firmes en el Señor, amados.","A Euodias ruego, y á Syntychê exhorto, que sientan lo mismo en el Señor.","Asimismo te ruego también á ti, hermano compañero, ayuda á las que trabajaron juntamente conmigo en el evangelio, con Clemente también, y los demás mis colaboradores, cuyos nombres están en el libro de la vida.","Gozaos en el Señor siempre: otra vez digo: Que os gocéis.","Vuestra modestia sea conocida de todos los hombres. El Señor está cerca.","Por nada estéis afanosos; sino sean notorias vuestras peticiones delante de Dios en toda oración y ruego, con hacimiento de gracias.","Y la paz de Dios, que sobrepuja todo entendimiento, guardará vuestros corazones y vuestros entendimientos en Cristo Jesús.","Por lo demás, hermanos, todo lo que es verdadero, todo lo honesto, todo lo justo, todo lo puro, todo lo amable, todo lo que es de buen nombre; si hay virtud alguna, si alguna alabanza, en esto pensad.","Lo que aprendisteis y recibisteis y oísteis y visteis en mí, esto haced; y el Dios de paz será con vosotros.","Mas en gran manera me gocé en el Señor de que ya al fin ha reflorecido vuestro cuidado de mí; de lo cual aun estabais solícitos, pero os faltaba la oportunidad.","No lo digo en razón de indigencia, pues he aprendido á contentarme con lo que tengo.","Sé estar humillado, y sé tener abundancia: en todo y por todo estoy enseñado, así para hartura como para hambre, así para tener abundancia como para padecer necesidad.","Todo lo puedo en Cristo que me fortalece.","Sin embargo, bien hicisteis que comunicasteis juntamente á mi tribulación.","Y sabéis también vosotros, oh Filipenses, que al principio del evangelio, cuando partí de Macedonia, ninguna iglesia me comunicó en razón de dar y recibir, sino vosotros solos.","Porque aun á Tesalónica me enviasteis lo necesario una y dos veces.","No porque busque dádivas; mas busco fruto que abunde en vuestra cuenta.","Empero todo lo he recibido, y tengo abundancia: estoy lleno, habiendo recibido de Epafrodito lo que enviasteis, olor de suavidad, sacrificio acepto, agradable á Dios.","Mi Dios, pues, suplirá todo lo que os falta conforme á sus riquezas en gloria en Cristo Jesús.","Al Dios pues y Padre nuestro sea gloria por los siglos de los siglos. Amén.","Saludad á todos los santos en Cristo Jesús. Los hermanos que están conmigo os saludan.","Todos los santos os saludan, y mayormente los que son de casa de César.","La gracia de nuestro Señor Jesucristo sea con todos vosotros. Amén."]}}]};
 
 /* ============ Utilidades ============ */
@@ -970,7 +992,7 @@ async function renderStage(host, state){
     const u=await blobURL(state.videoStore||'videos', state.videoId);
     if(u){
       const v=document.createElement('video');
-      v.className='s-vid'; v.src=u; v.setAttribute('playsinline',''); v.controls=false; v.loop=false;
+      v.className='s-vid'; v.src=u; v.setAttribute('playsinline',''); v.controls=false; v.loop=!!state.loop;
       /* Con sonido solo en la ventana de proyección; la previa/programa del control
          van en mudo para no duplicar el audio en el equipo del operador. */
       v.muted = !(IS_PROY && state.sound!==false);
@@ -1005,6 +1027,15 @@ async function pjRender(state){
     }
   }finally{ _pjBusy=false; }
 }
+/* Comando de video en la ventana de proyección: actúa sobre el video visible
+   (capa activa) sin re-renderizar, para no reiniciar la reproducción. */
+function pjVidCmd(m){
+  const layer = pjActive==='A' ? $('#pjA') : $('#pjB');
+  const v = layer && $('video',layer); if(!v) return;
+  if(m.op==='pause'){ try{ v.pause(); }catch(_){} }
+  else if(m.op==='play'){ v.play&&v.play().catch(()=>{}); }
+  else if(m.op==='loop'){ v.loop=!!m.on; }
+}
 
 /* ====== CONTROL: previa, programa, envio ====== */
 let loopTimer=null, currentScreen=null;
@@ -1017,8 +1048,30 @@ function pushLiveRaw(state){
   liveIsVerse=(state.kind==='verse');   // siempre coherente: pausa/bienvenida (imágenes) la apagan
   try{ localStorage.setItem('proclama.live.v1', JSON.stringify({t:Date.now(),state})); }catch(e){}
   renderStage($('#programScreen'),state); if(channel) channel.postMessage({type:'state',state});
+  updateVidControls();
 }
 function pushLive(state){ clearLoop(); pushLiveRaw(state); }
+
+/* ====== Controles de video en vivo (pausar/reanudar y bucle) ======
+   Los comandos viajan por su propio mensaje (type:'vid') para NO re-renderizar
+   el video (eso lo reiniciaría). Afectan a la ventana de proyección y al monitor
+   del control. El bucle se guarda en liveState para que persista si se reenvía. */
+let vidPaused=false;
+function vidSet(op,on){
+  const v=$('#programScreen video');
+  if(v){ if(op==='pause'){ try{v.pause();}catch(_){} } else if(op==='play'){ v.play&&v.play().catch(()=>{}); } else if(op==='loop'){ v.loop=!!on; } }
+  if(channel) channel.postMessage(on!=null?{type:'vid',op,on}:{type:'vid',op});
+}
+const _svgPause='<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>';
+const _svgPlay ='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
+function setPlayPauseBtn(){ const pp=$('#vidPlayPause'); if(pp) pp.innerHTML=(vidPaused?_svgPlay+'Reanudar':_svgPause+'Pausar'); }
+function updateVidControls(){
+  const on = !!(liveState && liveState.kind==='video');
+  const el=$('#vidControls'); if(el) el.style.display= on?'flex':'none';
+  if(!on) return;
+  vidPaused=false; setPlayPauseBtn();
+  const lb=$('#vidLoop'); if(lb){ lb.lastChild.textContent='Bucle: '+(liveState.loop?'on':'off'); lb.classList.toggle('on',!!liveState.loop); }
+}
 /* Restaura lo último proyectado si el control se recargó hace poco (F5 accidental).
    Solo dentro de una ventana de 6 h, para no proyectar contenido de la semana pasada. */
 async function restoreLive(){
@@ -1058,8 +1111,8 @@ if(channel && !IS_PROY){
    de momento y no se guardan, así evitamos tocar el esquema de la base. */
 const DRAW_COLORS=['#FFFFFF','#141414','#E9C46A','#E76F51','#6EC1E4','#8AB17D'];
 const DRAW_SIZES=[0.006,0.012,0.021];
-const drawModel={strokes:[],board:'dark'};
-let drawPen={color:'#FFFFFF',w:DRAW_SIZES[1],erase:false};
+const drawModel={strokes:[],board:'light'};   // fondo claro por defecto (el más usado)
+let drawPen={color:'#141414',w:DRAW_SIZES[1],erase:false};   // tinta oscura para que resalte en fondo claro
 let drawLive=false, drawCur=null;
 
 function drawBoardColor(b){ return (b||drawModel.board)==='light' ? '#F4EFE3' : '#0B0B0D'; }
@@ -1123,7 +1176,7 @@ function drawInitControl(){
       b.setAttribute('aria-label','Color'); b.onclick=()=>{ drawPen.color=c; drawPen.erase=false;
         const er=$('#drawEraser'); if(er) er.classList.remove('on');
         $$('.draw-sw',sw).forEach(x=>x.classList.toggle('sel',x===b)); }; sw.appendChild(b); });
-    if(sw.firstChild) sw.firstChild.classList.add('sel'); }
+    if(sw.children[1]) sw.children[1].classList.add('sel'); }
   const sz=$('#drawSizes');
   if(sz){ DRAW_SIZES.forEach((w,i)=>{ const b=document.createElement('button'); b.className='draw-sz';
       const d=document.createElement('span'); d.className='d'; const px=7+i*6; d.style.width=px+'px'; d.style.height=px+'px'; b.appendChild(d);
@@ -1147,7 +1200,7 @@ function pjDrawRender(){ drawPaint($('#pjDrawCv')); const b=$('#pjDrawBoard'); i
 function pjDrawShow(on){ const el=$('#pjDraw'); if(!el) return; el.classList.toggle('show',!!on); if(on) fitStage(el); }
 function pjHandleDraw(m){
   switch(m.op){
-    case 'show': drawModel.strokes=m.strokes||[]; drawModel.board=m.board||'dark'; pjDrawRender(); pjDrawShow(true); break;
+    case 'show': drawModel.strokes=m.strokes||[]; drawModel.board=m.board||'light'; pjDrawRender(); pjDrawShow(true); break;
     case 'hide': pjDrawShow(false); break;
     case 'begin': drawModel.strokes.push({color:m.s.color,w:m.s.w,erase:m.s.erase,pts:[m.pt]}); pjDrawRender(); break;
     case 'pt': { const st=drawModel.strokes[drawModel.strokes.length-1]; if(st){ st.pts.push({x:m.x,y:m.y}); pjDrawRender(); } break; }
@@ -1257,7 +1310,7 @@ async function pzConnect(code){
   PEER.on('open',()=>{
     const c=PEER.connect(pairId(code),{reliable:true}); PZCONN=c;
     c.on('open',()=>{ done=true; pzSetConn(true); pzShowPad(); });
-    c.on('data',m=>{ if(m&&m.op==='sync'){ drawModel.strokes=m.strokes||[]; drawModel.board=m.board||'dark';
+    c.on('data',m=>{ if(m&&m.op==='sync'){ drawModel.strokes=m.strokes||[]; drawModel.board=m.board||'light';
       const b=$('#pzBoardBtn'); if(b) b.textContent=drawModel.board==='light'?'Fondo oscuro':'Fondo claro'; pzRender(); } });
     c.on('close',()=>{ pzSetConn(false); pzStatus('Se perdió la conexión. Vuelve a conectar.'); pzShowConnect(); });
     c.on('error',()=>{ if(!done) pzStatus('No se pudo conectar. Revisa el código.'); });
@@ -1276,7 +1329,7 @@ function initPizarraGuest(){
   if(sw){ DRAW_COLORS.forEach(c=>{ const b=document.createElement('button'); b.className='pz-sw'; b.style.background=c;
       b.onclick=()=>{ drawPen.color=c; drawPen.erase=false; const er=$('#pzEraser'); if(er) er.classList.remove('on');
         $$('.pz-sw',sw).forEach(x=>x.classList.toggle('sel',x===b)); }; sw.appendChild(b); });
-    if(sw.firstChild) sw.firstChild.classList.add('sel'); }
+    if(sw.children[1]) sw.children[1].classList.add('sel'); }
   const sz=$('#pzSizes');
   if(sz){ DRAW_SIZES.forEach((w,i)=>{ const b=document.createElement('button'); b.className='pz-sz';
       const d=document.createElement('span'); d.className='d'; const px=9+i*7; d.style.width=px+'px'; d.style.height=px+'px'; b.appendChild(d);
@@ -1485,6 +1538,10 @@ function wireControls(){
       else if($('#m-predicas').classList.contains('active') && predCtx){ predStep(-1); e.preventDefault(); }
     }
   });
+  $('#vidPlayPause').onclick=()=>{ vidPaused=!vidPaused; vidSet(vidPaused?'pause':'play'); setPlayPauseBtn(); };
+  $('#vidLoop').onclick=()=>{ if(!liveState||liveState.kind!=='video') return; liveState.loop=!liveState.loop;
+    try{ localStorage.setItem('proclama.live.v1', JSON.stringify({t:Date.now(),state:liveState})); }catch(_){}
+    vidSet('loop',liveState.loop); const lb=$('#vidLoop'); if(lb){ lb.lastChild.textContent='Bucle: '+(liveState.loop?'on':'off'); lb.classList.toggle('on',!!liveState.loop); } };
   window.addEventListener('resize',fitAllControl);
   setInterval(updateProyBtn,1500);
   drawInitControl();
@@ -1570,7 +1627,7 @@ async function renderBanners(){
   });
   h+='</div>'; host.innerHTML=h;
   for(const b of imgs){ const u=await blobURL('banners',b.id); const th=$('.thumb[data-id="'+b.id+'"]',host); if(u&&th) th.style.backgroundImage='url('+u+')'; if(th) th.onclick=()=>setPreview({kind:'image',imgStore:'banners',imgId:b.id}); }
-  for(const v of vids){ const th=$('.thumb[data-vid="'+v.id+'"]',host); if(!th) continue; th.onclick=()=>setPreview({kind:'video',videoStore:'videos',videoId:v.id,sound:true}); const u=await blobURL('videos',v.id); if(u){ const poster=await videoPoster(u); if(poster) th.style.backgroundImage='url('+poster+')'; } }
+  for(const v of vids){ const th=$('.thumb[data-vid="'+v.id+'"]',host); if(!th) continue; th.onclick=()=>setPreview({kind:'video',videoStore:'videos',videoId:v.id,sound:true,loop:false}); const u=await blobURL('videos',v.id); if(u){ const poster=await videoPoster(u); if(poster) th.style.backgroundImage='url('+poster+')'; } }
   $$('[data-fav]',host).forEach(x=>x.onclick=async()=>{ const rec=await idbGet('banners',x.dataset.fav); rec.fondoFav=!rec.fondoFav; await idbPut('banners',rec); renderBanners(); });
   $$('[data-del]',host).forEach(x=>x.onclick=async()=>{ const id=x.dataset.del; await idbDel('banners',id); dropURL('banners',id); _bgImgCache.delete('banners:'+id); await sanitizeBannerRefs(); renderBanners(); });
   $$('[data-delvid]',host).forEach(x=>x.onclick=async()=>{ const id=x.dataset.delvid; if(!await cvConfirm('¿Eliminar este video?',{ok:'Eliminar'})) return; await idbDel('videos',id); dropURL('videos',id); renderBanners(); });
@@ -2030,7 +2087,8 @@ function initProyeccion(){
   $('#splash').style.display='none'; $('#app').style.display='none'; $('#proyeccion').classList.add('on');
   if(channel){ channel.onmessage=e=>{ if(!e.data) return;
     if(e.data.type==='state'){ $('#pjHint').style.display='none'; pjRender(e.data.state); }
-    else if(e.data.type==='draw'){ $('#pjHint').style.display='none'; pjHandleDraw(e.data); } }; channel.postMessage({type:'ready'}); }
+    else if(e.data.type==='draw'){ $('#pjHint').style.display='none'; pjHandleDraw(e.data); }
+    else if(e.data.type==='vid'){ pjVidCmd(e.data); } }; channel.postMessage({type:'ready'}); }
   document.addEventListener('keydown',e=>{ if(e.key==='f'||e.key==='F'){ if(!document.fullscreenElement){ if(document.documentElement.requestFullscreen) document.documentElement.requestFullscreen(); } else { document.exitFullscreen(); } } });
   window.addEventListener('resize',()=>{ fitStage($('#pjA')); fitStage($('#pjB')); fitStage($('#pjDraw')); });
   pjWakeLock();
@@ -2585,7 +2643,24 @@ async function cvOpenFondo(perfil){
 }
 
 /* ============ Cableado de eventos Fase 2 ============ */
+/* Columnas (1 o 2) para las tarjetas de Cantos / Himnario. Se recuerda por sección. */
+function cvGetCols(which){ return localStorage.getItem('proclama.cols.'+which)==='1' ? 1 : 2; }
+function cvApplyCols(which){
+  const n=cvGetCols(which);
+  const grid = which==='canto' ? $('#cantoSlides') : $('#himnSlides');
+  if(grid) grid.style.gridTemplateColumns = (n===1 ? 'minmax(0,1fr)' : 'repeat(2,minmax(0,1fr))');
+  const bar = which==='canto' ? $('#cvColsCanto') : $('#cvColsHimno');
+  if(bar) $$('.cv-colbtn',bar).forEach(b=>b.classList.toggle('on',+b.dataset.cols===n));
+}
+function cvSetCols(which,n){ localStorage.setItem('proclama.cols.'+which,String(n)); cvApplyCols(which); }
+function cvWireCols(){
+  const wire=(barId,which)=>{ const bar=$('#'+barId); if(!bar) return; $$('.cv-colbtn',bar).forEach(b=>b.onclick=()=>cvSetCols(which,+b.dataset.cols)); };
+  wire('cvColsCanto','canto'); wire('cvColsHimno','himno');
+  cvApplyCols('canto'); cvApplyCols('himno');
+}
+
 function cvWire(){
+  cvWireCols();
   // Cantos
   $('#cantoLetra').oninput=()=>{ clearTimeout(cvWire._t); cvWire._t=setTimeout(cvRenderCantoSlides,250); };
   $('#cantoGuardar').onclick=cvGuardarCanto;
