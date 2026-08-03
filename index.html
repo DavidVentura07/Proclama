@@ -10,7 +10,11 @@
 <link rel="manifest" href="manifest.json">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Inter:wght@400;500;600;700&family=Cormorant+Garamond:wght@500;600&family=Playfair+Display:wght@500;600&family=Lora:wght@500;600&family=EB+Garamond:wght@500&family=Outfit:wght@400;500;600&family=Montserrat:wght@500;600&family=Poppins:wght@500;600&display=swap" rel="stylesheet">
+<!-- Tipografias SIN bloquear el arranque. Con media="print" el navegador no espera
+     esta hoja para ejecutar el <script> de abajo: si la red del templo esta saturada
+     o sin salida a internet, la app arranca igual (con fuentes del sistema) en vez de
+     quedarse congelada en el splash. Al terminar de bajar, onload la activa. -->
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Inter:wght@400;500;600;700&family=Cormorant+Garamond:wght@500;600&family=Playfair+Display:wght@500;600&family=Lora:wght@500;600&family=EB+Garamond:wght@500&family=Outfit:wght@400;500;600&family=Montserrat:wght@500;600&family=Poppins:wght@500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all';this.onload=null">
 <style>
   :root{
     --ivory:#F5F3FB;--ivory-2:#EFEBF8;--surface:#FFFFFF;
@@ -732,6 +736,11 @@
         .dp-hint{margin-top:8px;font-size:12.5px;color:var(--muted)}
         .dp-hint b{color:var(--ink);font-weight:600}
         .dp-link{background:none;border:0;color:var(--royal);font:inherit;font-size:12.5px;text-decoration:underline;cursor:pointer;padding:0}
+        .draw-pair .dp-main{display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap}
+        .draw-pair .dp-col{flex:1 1 340px;min-width:250px}
+        .dp-qrbox{flex:0 0 auto;background:#fff;border:1px solid var(--line);border-radius:12px;padding:9px 9px 6px;text-align:center}
+        .dp-qrbox canvas{display:block}
+        .dp-qrcap{margin-top:5px;font-size:10px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--muted)}
         /* Capas de dibujo escaladas */
         .s-draw{position:absolute;top:0;left:0;width:1920px;height:1080px}
         .s-draw-host{position:absolute;inset:0;display:none;overflow:hidden}
@@ -744,8 +753,16 @@
           <div class="ws-actions"><button class="btn" id="drawPairBtn">Conectar tablet</button><button class="btn primary" id="drawLiveBtn">Proyectar pizarra</button></div>
         </div>
         <div class="draw-pair" id="drawPairPanel" style="display:none">
-          <div class="dp-row"><span class="dp-label">Código para la tablet</span><span class="dp-code" id="drawPairCode">····</span><span class="dp-status" id="drawPairStatus">Iniciando…</span><button class="cv-tool" id="drawPairClose">Cerrar</button></div>
-          <div class="dp-hint">En la tablet abre <b id="drawPairUrl">…</b> y escribe el código. (<button class="dp-link" id="drawPairHere">abrir modo tablet en este equipo</button>)</div>
+          <div class="dp-main">
+            <div class="dp-qrbox" id="drawPairQrBox" style="display:none">
+              <canvas id="drawPairQr"></canvas>
+              <div class="dp-qrcap">Escanea con la tablet</div>
+            </div>
+            <div class="dp-col">
+              <div class="dp-row"><span class="dp-label">Código para la tablet</span><span class="dp-code" id="drawPairCode">····</span><span class="dp-status" id="drawPairStatus">Iniciando…</span><button class="cv-tool" id="drawPairClose">Cerrar</button></div>
+              <div class="dp-hint">Apunta la cámara de la tablet al código QR: abre la pizarra y se conecta sola. Si prefieres a mano, abre <b id="drawPairUrl">…</b> y escribe los 4 dígitos. (<button class="dp-link" id="drawPairHere">abrir modo tablet en este equipo</button>)</div>
+            </div>
+          </div>
         </div>
         <div class="draw-wrap">
           <div class="draw-pad" id="drawPad">
@@ -820,7 +837,7 @@
 /* Versión de la app. Se muestra al pie de la barra lateral para verificar de un
    vistazo si el navegador ya cargó el index.html actualizado tras recargar.
    Debe mantenerse igual que la constante CACHE de sw.js. */
-const APP_VERSION='v22';
+const APP_VERSION='v23';
 const SAMPLE = {"id":"rvr1909","version":"RVR 1909 (muestra)","abbr":"RVR 1909","books":[{"name":"Salmos","t":"AT","chapters":{"23":["JEHOVA es mi pastor; nada me faltará.","En lugares de delicados pastos me hará yacer: Junto á aguas de reposo me pastoreará.","Confortará mi alma; Guiárame por sendas de justicia por amor de su nombre.","Aunque ande en valle de sombra de muerte, No temeré mal alguno; porque tú estarás conmigo: Tu vara y tu cayado me infundirán aliento.","Aderezarás mesa delante de mí, en presencia de mis angustiadores: Ungiste mi cabeza con aceite: mi copa está rebosando.","Ciertamente el bien y la misericordia me seguirán todos los días de mi vida: Y en la casa de Jehová moraré por largos días."]}},{"name":"Juan","t":"NT","chapters":{"3":["Y HABIA un hombre de los Fariseos que se llamaba Nicodemo, príncipe de los Judíos.","Este vino á Jesús de noche, y díjole: Rabbí, sabemos que has venido de Dios por maestro; porque nadie puede hacer estas señales que tú haces, si no fuere Dios con él.","Respondió Jesús, y díjole: De cierto, de cierto te digo, que el que no naciere otra vez, no puede ver el reino de Dios.","Dícele Nicodemo: ¿Cómo puede el hombre nacer siendo viejo? ¿puede entrar otra vez en el vientre de su madre, y nacer?","Respondió Jesús: De cierto, de cierto te digo, que el que no naciere de agua y del Espíritu, no puede entrar en el reino de Dios.","Lo que es nacido de la carne, carne es; y lo que es nacido del Espíritu, espíritu es.","No te maravilles de que te dije: Os es necesario nacer otra vez.","El viento de donde quiere sopla, y oyes su sonido; mas ni sabes de dónde viene, ni á dónde vaya: así es todo aquel que es nacido del Espíritu.","Respondió Nicodemo, y díjole: ¿Cómo puede esto hacerse?","Respondió Jesús, y díjole: ¿Tú eres el maestro de Israel, y no sabes esto?","De cierto, de cierto te digo, que lo que sabemos hablamos, y lo que hemos visto, testificamos; y no recibís nuestro testimonio.","Si os he dicho cosas terrenas, y no creéis, ¿cómo creeréis si os dijere las celestiales?","Y nadie subió al cielo, sino el que descendió del cielo, el Hijo del hombre, que está en el cielo.","Y como Moisés levantó la serpiente en el desierto, así es necesario que el Hijo del hombre sea levantado;","Para que todo aquel que en él creyere, no se pierda, sino que tenga vida eterna.","Porque de tal manera amó Dios al mundo, que ha dado á su Hijo unigénito, para que todo aquel que en él cree, no se pierda, mas tenga vida eterna.","Porque no envió Dios á su Hijo al mundo, para que condene al mundo, mas para que el mundo sea salvo por él.","El que en él cree, no es condenado; mas el que no cree, ya es condenado, porque no creyó en el nombre del unigénito Hijo de Dios.","Y esta es la condenación: porque la luz vino al mundo, y los hombres amaron más las tinieblas que la luz; porque sus obras eran malas.","Porque todo aquel que hace lo malo, aborrece la luz y no viene á la luz, porque sus obras no sean redargüidas.","Mas el que obra verdad, viene á la luz, para que sus obras sean manifestadas que son hechas en Dios.","Pasado esto, vino Jesús con sus discípulos á la tierra de Judea; y estaba allí con ellos, y bautizaba.","Y bautizaba también Juan en Enón junto á Salim, porque había allí muchas aguas; y venían, y eran bautizados.","Porque Juan, no había sido aún puesto en la carcel.","Y hubo cuestión entre los discípulos de Juan y los Judíos acerca de la purificación.","Y vinieron á Juan, y dijéronle: Rabbí, el que estaba contigo de la otra parte del Jordán, del cual tú diste testimonio, he aquí bautiza, y todos vienen á él.","Respondió Juan, y dijo: No puede el hombre recibir algo, si no le fuere dado del cielo.","Vosotros mismos me sois testigos que dije: Yo no soy el Cristo, sino que soy enviado delante de él.","El que tiene la esposa, es el esposo; mas el amigo del esposo, que está en pie y le oye, se goza grandemente de la voz del esposo; así pues, este mi gozo es cumplido.","A él conviene crecer, mas á mí menguar.","El que de arriba viene, sobre todos es: el que es de la tierra, terreno es, y cosas terrenas habla: el que viene del cielo, sobre todos es.","Y lo que vió y oyó, esto testifica: y nadie recibe su testimonio.","El que recibe su testimonio, éste signó que Dios es verdadero.","Porque el que Dios envió, las palabras de Dios habla: porque no da Dios el Espíritu por medida.","El Padre ama al Hijo, y todas las cosas dió en su mano.","El que cree en el Hijo, tiene vida eterna; mas el que es incrédulo al Hijo, no verá la vida, sino que la ira de Dios está sobre él."]}},{"name":"Filipenses","t":"NT","chapters":{"4":["ASI que, hermanos míos amados y deseados, gozo y corona mía, estad así firmes en el Señor, amados.","A Euodias ruego, y á Syntychê exhorto, que sientan lo mismo en el Señor.","Asimismo te ruego también á ti, hermano compañero, ayuda á las que trabajaron juntamente conmigo en el evangelio, con Clemente también, y los demás mis colaboradores, cuyos nombres están en el libro de la vida.","Gozaos en el Señor siempre: otra vez digo: Que os gocéis.","Vuestra modestia sea conocida de todos los hombres. El Señor está cerca.","Por nada estéis afanosos; sino sean notorias vuestras peticiones delante de Dios en toda oración y ruego, con hacimiento de gracias.","Y la paz de Dios, que sobrepuja todo entendimiento, guardará vuestros corazones y vuestros entendimientos en Cristo Jesús.","Por lo demás, hermanos, todo lo que es verdadero, todo lo honesto, todo lo justo, todo lo puro, todo lo amable, todo lo que es de buen nombre; si hay virtud alguna, si alguna alabanza, en esto pensad.","Lo que aprendisteis y recibisteis y oísteis y visteis en mí, esto haced; y el Dios de paz será con vosotros.","Mas en gran manera me gocé en el Señor de que ya al fin ha reflorecido vuestro cuidado de mí; de lo cual aun estabais solícitos, pero os faltaba la oportunidad.","No lo digo en razón de indigencia, pues he aprendido á contentarme con lo que tengo.","Sé estar humillado, y sé tener abundancia: en todo y por todo estoy enseñado, así para hartura como para hambre, así para tener abundancia como para padecer necesidad.","Todo lo puedo en Cristo que me fortalece.","Sin embargo, bien hicisteis que comunicasteis juntamente á mi tribulación.","Y sabéis también vosotros, oh Filipenses, que al principio del evangelio, cuando partí de Macedonia, ninguna iglesia me comunicó en razón de dar y recibir, sino vosotros solos.","Porque aun á Tesalónica me enviasteis lo necesario una y dos veces.","No porque busque dádivas; mas busco fruto que abunde en vuestra cuenta.","Empero todo lo he recibido, y tengo abundancia: estoy lleno, habiendo recibido de Epafrodito lo que enviasteis, olor de suavidad, sacrificio acepto, agradable á Dios.","Mi Dios, pues, suplirá todo lo que os falta conforme á sus riquezas en gloria en Cristo Jesús.","Al Dios pues y Padre nuestro sea gloria por los siglos de los siglos. Amén.","Saludad á todos los santos en Cristo Jesús. Los hermanos que están conmigo os saludan.","Todos los santos os saludan, y mayormente los que son de casa de César.","La gracia de nuestro Señor Jesucristo sea con todos vosotros. Amén."]}}]};
 
 /* ============ Utilidades ============ */
@@ -1253,6 +1270,30 @@ function loadPeerJS(){ return new Promise((res,rej)=>{ if(window.Peer) return re
   s.onload=()=>{ if(!window.Peer && window.peerjs && window.peerjs.Peer) window.Peer=window.peerjs.Peer; window.Peer?res():rej(new Error('sin Peer')); };
   s.onerror=()=>rej(new Error('peerjs')); document.head.appendChild(s); }); }
 function pairId(code){ return 'proclama-pizarra-'+code; }
+/* El QR se genera AQUI, no en un servicio de internet: la red del templo no es
+   confiable y el panel tiene que servir aunque no haya salida. Misma tactica que
+   peerjs.min.js y pdf.min.js: libreria vendorizada y cargada al vuelo. */
+function loadQR(){ return new Promise((res,rej)=>{ if(window.qrcode) return res();
+  const s=document.createElement('script'); s.src='qrcode.min.js';
+  s.onload=()=>{ window.qrcode?res():rej(new Error('sin qrcode')); };
+  s.onerror=()=>rej(new Error('qrcode')); document.head.appendChild(s); }); }
+function pairUrlBase(){ return location.origin+location.pathname; }
+function pairUrlFor(code){ return pairUrlBase()+'?view=pizarra&c='+code; }
+async function drawPairQR(code){
+  const box=$('#drawPairQrBox'), cv=$('#drawPairQr'); if(!box||!cv) return;
+  try{ await loadQR(); }catch(_){ box.style.display='none'; return; }   // sin QR se sigue tecleando el codigo
+  if(pairCode!==code) return;                                          // el codigo cambio mientras cargaba
+  const q=qrcode(0,'M'); q.addData(pairUrlFor(code)); q.make();
+  const n=q.getModuleCount(), quiet=4, total=n+quiet*2;
+  const px=Math.max(2,Math.round(280/total)), size=px*total;
+  cv.width=size; cv.height=size;
+  cv.style.width=(size/2)+'px'; cv.style.height=(size/2)+'px';   // 2x para que salga nitido
+  const g=cv.getContext('2d');
+  g.fillStyle='#ffffff'; g.fillRect(0,0,size,size);
+  g.fillStyle='#241733';
+  for(let r=0;r<n;r++) for(let c=0;c<n;c++) if(q.isDark(r,c)) g.fillRect((c+quiet)*px,(r+quiet)*px,px,px);
+  box.style.display='block';
+}
 
 /* --- HOST (laptop): recibe trazos de la tablet --- */
 function drawApplyRemote(m){
@@ -1279,7 +1320,7 @@ function drawSetRemoteMonitor(on){
 function drawPairSetStatus(t){ const s=$('#drawPairStatus'); if(s) s.textContent=t; }
 async function drawPairStart(){
   const panel=$('#drawPairPanel'); if(panel) panel.style.display='block';
-  { const u=$('#drawPairUrl'); if(u) u.textContent=location.origin+location.pathname+'?view=pizarra'; }
+  { const u=$('#drawPairUrl'); if(u) u.textContent=pairUrlBase()+'?view=pizarra'; }
   drawPairSetStatus('Cargando conexión…');
   try{ await loadPeerJS(); }catch(_){ drawPairSetStatus('No se pudo cargar la conexión (revisa el internet).'); return; }
   drawPairReg();
@@ -1287,6 +1328,7 @@ async function drawPairStart(){
 function drawPairReg(){
   const code=(''+Math.floor(1000+Math.random()*9000));
   pairCode=code; { const c=$('#drawPairCode'); if(c) c.textContent=code; }
+  drawPairQR(code);            // el codigo cambia si estaba ocupado, por eso el QR se redibuja aqui
   drawPairSetStatus('Esperando a la tablet…');
   if(PEER){ try{ PEER.destroy(); }catch(_){} PEER=null; }
   PEER=new Peer(pairId(code));
@@ -1319,7 +1361,9 @@ function pzFitPad(){ const wrap=$('#pzPadWrap'), pad=$('#pzPad'); if(!wrap||!pad
   pad.style.width=Math.floor(w)+'px'; pad.style.height=Math.floor(h)+'px'; }
 function pzPoint(e){ const cv=$('#pzCv'); const r=cv.getBoundingClientRect();
   return {x:Math.min(1,Math.max(0,(e.clientX-r.left)/r.width)), y:Math.min(1,Math.max(0,(e.clientY-r.top)/r.height))}; }
+let pzFsTried=false;
 function pzDown(e){ e.preventDefault(); const cv=$('#pzCv'); try{ cv.setPointerCapture(e.pointerId); }catch(_){}
+  if(!pzFsTried){ pzFsTried=true; if(!document.fullscreenElement){ try{ if(document.documentElement.requestFullscreen) document.documentElement.requestFullscreen(); }catch(_){} } }
   const pt=pzPoint(e); drawCur={color:drawPen.color,w:drawPen.w,erase:drawPen.erase,pts:[pt]}; drawModel.strokes.push(drawCur);
   pzSend({op:'begin',s:{color:drawCur.color,w:drawCur.w,erase:drawCur.erase},pt}); pzRender(); }
 function pzMove(e){ if(!drawCur) return; e.preventDefault(); const pt=pzPoint(e); drawCur.pts.push(pt); pzSend({op:'pt',x:pt.x,y:pt.y}); pzRender(); }
@@ -1340,7 +1384,7 @@ async function pzConnect(code){
   PEER=new Peer();
   PEER.on('open',()=>{
     const c=PEER.connect(pairId(code),{reliable:true}); PZCONN=c;
-    c.on('open',()=>{ done=true; pzSetConn(true); pzShowPad(); });
+    c.on('open',()=>{ done=true; pzStatus(''); pzSetConn(true); pzShowPad(); });
     c.on('data',m=>{ if(m&&m.op==='sync'){ drawModel.strokes=m.strokes||[]; drawModel.board=m.board||'light';
       const b=$('#pzBoardBtn'); if(b) b.textContent=drawModel.board==='light'?'Fondo oscuro':'Fondo claro'; pzRender(); } });
     c.on('close',()=>{ pzSetConn(false); pzStatus('Se perdió la conexión. Vuelve a conectar.'); pzShowConnect(); });
@@ -1380,6 +1424,11 @@ function initPizarraGuest(){
   if(codeInput) codeInput.addEventListener('keydown',e=>{ if(e.key==='Enter') go(); });
   window.addEventListener('resize',pzFitPad);
   if('wakeLock' in navigator){ try{ navigator.wakeLock.request('screen').catch(()=>{}); }catch(_){} }
+  /* Si la tablet llego por el QR, el codigo viene en la URL: conectamos solos.
+     El QR no cuenta como gesto del usuario, asi que la pantalla completa la
+     pedimos en el primer trazo (ver pzDown). */
+  const auto=new URLSearchParams(location.search).get('c');
+  if(/^\d{4}$/.test(auto||'')){ if(codeInput) codeInput.value=auto; pzConnect(auto); }
 }
 
 /* ============ MODULO VERSICULOS ============ */
@@ -2204,6 +2253,10 @@ function initProyeccion(){
   pjRender({kind:'logo'});
 }
 async function init(){
+  /* El service worker se registra SIEMPRE, antes de repartir por vista: la tablet
+     entra por ?view=pizarra y antes salia por el return de abajo sin cachear nada,
+     asi que dependia del internet en cada culto. Sin await, para no retrasar nada. */
+  if('serviceWorker' in navigator){ try{ navigator.serviceWorker.register('sw.js').catch(()=>{}); }catch(e){} }
   if(IS_PZ){ initPizarraGuest(); return; }
   if(IS_PROY){ initProyeccion(); return; }
   setTimeout(()=>{ $('#splash').classList.add('hide'); $('#app').classList.add('show'); },2300);
@@ -2237,7 +2290,6 @@ async function init(){
   setTimeout(fitAllControl,60); setTimeout(fitAllControl,500);
   deleteOldSermons();
   if(typeof cvWire==='function') cvWire();
-  if('serviceWorker' in navigator){ try{ await navigator.serviceWorker.register('sw.js'); }catch(e){} }
   updateProyBtn();
 }
 
