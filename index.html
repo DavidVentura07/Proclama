@@ -199,6 +199,28 @@
   .sermon.collapsed .chev{transform:rotate(-90deg)}
   .sermon.collapsed .sermon-pages{display:none}
 
+  /* Barra rapida de versiculos dentro de Predicaciones */
+  .vbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px;
+    background:linear-gradient(180deg,#fff,#FDFCFF);border:1px solid var(--line);
+    border-radius:14px;padding:10px 12px;box-shadow:var(--shadow)}
+  .vbar .tsel{flex:0 1 260px;height:40px;box-shadow:none}
+  .vbar .tsel select{font-size:13.5px;max-width:100%}
+  .vbar .pv-ref{width:96px;height:40px;border:1px solid var(--line);border-radius:10px;background:#fff;
+    padding:0 12px;font-size:14px;font-weight:600;color:var(--ink);outline:0}
+  .vbar .pv-ref:focus{border-color:var(--royal);box-shadow:0 0 0 3px var(--royal-soft)}
+  .vbar .pv-ref::placeholder{color:var(--muted);font-weight:500}
+  .vbar .pv-sep{flex:1}
+  .vbar .pv-hint{font-size:11.5px;color:var(--muted)}
+  .swap{height:40px;padding:0 16px;border-radius:11px;border:0;font-size:13.5px;font-weight:700;
+    background:var(--royal);color:#fff;display:inline-flex;align-items:center;gap:9px;
+    box-shadow:0 6px 16px rgba(90,42,130,.28);transition:all .16s}
+  .swap:hover{transform:translateY(-1px)}
+  .swap:disabled{background:var(--ivory-2);color:var(--muted);box-shadow:none;cursor:default;transform:none}
+  .swap svg{width:17px;height:17px}
+  .swap .kbd{font-family:ui-monospace,Menlo,monospace;font-size:11px;background:rgba(255,255,255,.22);
+    border:1px solid rgba(255,255,255,.35);border-radius:5px;padding:2px 6px;font-weight:600}
+  .swap:disabled .kbd{background:transparent;border-color:var(--line)}
+
   /* Program rail */
   .prograil{background:rgba(255,255,255,.62);border-left:1px solid var(--line);padding:16px;display:flex;flex-direction:column;gap:13px;overflow-y:auto}
   .stage-h{display:flex;align-items:center;gap:8px;font-size:10.5px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;margin-bottom:7px}
@@ -638,6 +660,14 @@
             <button class="btn primary" id="btnAddSermon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Nueva predicación</button>
           </div>
         </div>
+        <div class="vbar" id="predVerseBar">
+          <div class="tsel"><span class="lbl">Libro</span><select id="pvBook"></select></div>
+          <input class="pv-ref" id="pvRef" placeholder="3:16" autocomplete="off" spellcheck="false" title="Capítulo y versículo: 3:16, 3.16, 3,16 o 3 16. También «juan 3.16».">
+          <button class="btn" id="pvGo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>Al previo</button>
+          <span class="pv-hint" id="pvRefNow"></span>
+          <div class="pv-sep"></div>
+          <button class="swap" id="pvSwap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 4 3 8l4 4M3 8h13M17 20l4-4-4-4M21 16H8"/></svg><span id="pvSwapTxt">Alternar</span><span class="kbd">Espacio</span></button>
+        </div>
         <div class="search">
           <div class="field"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
             <input id="sermonSearch" placeholder="Filtrar por tema…"></div>
@@ -790,7 +820,7 @@
 /* Versión de la app. Se muestra al pie de la barra lateral para verificar de un
    vistazo si el navegador ya cargó el index.html actualizado tras recargar.
    Debe mantenerse igual que la constante CACHE de sw.js. */
-const APP_VERSION='v21';
+const APP_VERSION='v22';
 const SAMPLE = {"id":"rvr1909","version":"RVR 1909 (muestra)","abbr":"RVR 1909","books":[{"name":"Salmos","t":"AT","chapters":{"23":["JEHOVA es mi pastor; nada me faltará.","En lugares de delicados pastos me hará yacer: Junto á aguas de reposo me pastoreará.","Confortará mi alma; Guiárame por sendas de justicia por amor de su nombre.","Aunque ande en valle de sombra de muerte, No temeré mal alguno; porque tú estarás conmigo: Tu vara y tu cayado me infundirán aliento.","Aderezarás mesa delante de mí, en presencia de mis angustiadores: Ungiste mi cabeza con aceite: mi copa está rebosando.","Ciertamente el bien y la misericordia me seguirán todos los días de mi vida: Y en la casa de Jehová moraré por largos días."]}},{"name":"Juan","t":"NT","chapters":{"3":["Y HABIA un hombre de los Fariseos que se llamaba Nicodemo, príncipe de los Judíos.","Este vino á Jesús de noche, y díjole: Rabbí, sabemos que has venido de Dios por maestro; porque nadie puede hacer estas señales que tú haces, si no fuere Dios con él.","Respondió Jesús, y díjole: De cierto, de cierto te digo, que el que no naciere otra vez, no puede ver el reino de Dios.","Dícele Nicodemo: ¿Cómo puede el hombre nacer siendo viejo? ¿puede entrar otra vez en el vientre de su madre, y nacer?","Respondió Jesús: De cierto, de cierto te digo, que el que no naciere de agua y del Espíritu, no puede entrar en el reino de Dios.","Lo que es nacido de la carne, carne es; y lo que es nacido del Espíritu, espíritu es.","No te maravilles de que te dije: Os es necesario nacer otra vez.","El viento de donde quiere sopla, y oyes su sonido; mas ni sabes de dónde viene, ni á dónde vaya: así es todo aquel que es nacido del Espíritu.","Respondió Nicodemo, y díjole: ¿Cómo puede esto hacerse?","Respondió Jesús, y díjole: ¿Tú eres el maestro de Israel, y no sabes esto?","De cierto, de cierto te digo, que lo que sabemos hablamos, y lo que hemos visto, testificamos; y no recibís nuestro testimonio.","Si os he dicho cosas terrenas, y no creéis, ¿cómo creeréis si os dijere las celestiales?","Y nadie subió al cielo, sino el que descendió del cielo, el Hijo del hombre, que está en el cielo.","Y como Moisés levantó la serpiente en el desierto, así es necesario que el Hijo del hombre sea levantado;","Para que todo aquel que en él creyere, no se pierda, sino que tenga vida eterna.","Porque de tal manera amó Dios al mundo, que ha dado á su Hijo unigénito, para que todo aquel que en él cree, no se pierda, mas tenga vida eterna.","Porque no envió Dios á su Hijo al mundo, para que condene al mundo, mas para que el mundo sea salvo por él.","El que en él cree, no es condenado; mas el que no cree, ya es condenado, porque no creyó en el nombre del unigénito Hijo de Dios.","Y esta es la condenación: porque la luz vino al mundo, y los hombres amaron más las tinieblas que la luz; porque sus obras eran malas.","Porque todo aquel que hace lo malo, aborrece la luz y no viene á la luz, porque sus obras no sean redargüidas.","Mas el que obra verdad, viene á la luz, para que sus obras sean manifestadas que son hechas en Dios.","Pasado esto, vino Jesús con sus discípulos á la tierra de Judea; y estaba allí con ellos, y bautizaba.","Y bautizaba también Juan en Enón junto á Salim, porque había allí muchas aguas; y venían, y eran bautizados.","Porque Juan, no había sido aún puesto en la carcel.","Y hubo cuestión entre los discípulos de Juan y los Judíos acerca de la purificación.","Y vinieron á Juan, y dijéronle: Rabbí, el que estaba contigo de la otra parte del Jordán, del cual tú diste testimonio, he aquí bautiza, y todos vienen á él.","Respondió Juan, y dijo: No puede el hombre recibir algo, si no le fuere dado del cielo.","Vosotros mismos me sois testigos que dije: Yo no soy el Cristo, sino que soy enviado delante de él.","El que tiene la esposa, es el esposo; mas el amigo del esposo, que está en pie y le oye, se goza grandemente de la voz del esposo; así pues, este mi gozo es cumplido.","A él conviene crecer, mas á mí menguar.","El que de arriba viene, sobre todos es: el que es de la tierra, terreno es, y cosas terrenas habla: el que viene del cielo, sobre todos es.","Y lo que vió y oyó, esto testifica: y nadie recibe su testimonio.","El que recibe su testimonio, éste signó que Dios es verdadero.","Porque el que Dios envió, las palabras de Dios habla: porque no da Dios el Espíritu por medida.","El Padre ama al Hijo, y todas las cosas dió en su mano.","El que cree en el Hijo, tiene vida eterna; mas el que es incrédulo al Hijo, no verá la vida, sino que la ira de Dios está sobre él."]}},{"name":"Filipenses","t":"NT","chapters":{"4":["ASI que, hermanos míos amados y deseados, gozo y corona mía, estad así firmes en el Señor, amados.","A Euodias ruego, y á Syntychê exhorto, que sientan lo mismo en el Señor.","Asimismo te ruego también á ti, hermano compañero, ayuda á las que trabajaron juntamente conmigo en el evangelio, con Clemente también, y los demás mis colaboradores, cuyos nombres están en el libro de la vida.","Gozaos en el Señor siempre: otra vez digo: Que os gocéis.","Vuestra modestia sea conocida de todos los hombres. El Señor está cerca.","Por nada estéis afanosos; sino sean notorias vuestras peticiones delante de Dios en toda oración y ruego, con hacimiento de gracias.","Y la paz de Dios, que sobrepuja todo entendimiento, guardará vuestros corazones y vuestros entendimientos en Cristo Jesús.","Por lo demás, hermanos, todo lo que es verdadero, todo lo honesto, todo lo justo, todo lo puro, todo lo amable, todo lo que es de buen nombre; si hay virtud alguna, si alguna alabanza, en esto pensad.","Lo que aprendisteis y recibisteis y oísteis y visteis en mí, esto haced; y el Dios de paz será con vosotros.","Mas en gran manera me gocé en el Señor de que ya al fin ha reflorecido vuestro cuidado de mí; de lo cual aun estabais solícitos, pero os faltaba la oportunidad.","No lo digo en razón de indigencia, pues he aprendido á contentarme con lo que tengo.","Sé estar humillado, y sé tener abundancia: en todo y por todo estoy enseñado, así para hartura como para hambre, así para tener abundancia como para padecer necesidad.","Todo lo puedo en Cristo que me fortalece.","Sin embargo, bien hicisteis que comunicasteis juntamente á mi tribulación.","Y sabéis también vosotros, oh Filipenses, que al principio del evangelio, cuando partí de Macedonia, ninguna iglesia me comunicó en razón de dar y recibir, sino vosotros solos.","Porque aun á Tesalónica me enviasteis lo necesario una y dos veces.","No porque busque dádivas; mas busco fruto que abunde en vuestra cuenta.","Empero todo lo he recibido, y tengo abundancia: estoy lleno, habiendo recibido de Epafrodito lo que enviasteis, olor de suavidad, sacrificio acepto, agradable á Dios.","Mi Dios, pues, suplirá todo lo que os falta conforme á sus riquezas en gloria en Cristo Jesús.","Al Dios pues y Padre nuestro sea gloria por los siglos de los siglos. Amén.","Saludad á todos los santos en Cristo Jesús. Los hermanos que están conmigo os saludan.","Todos los santos os saludan, y mayormente los que son de casa de César.","La gracia de nuestro Señor Jesucristo sea con todos vosotros. Amén."]}}]};
 
 /* ============ Utilidades ============ */
@@ -1049,6 +1079,7 @@ function pushLiveRaw(state){
   try{ localStorage.setItem('proclama.live.v1', JSON.stringify({t:Date.now(),state})); }catch(e){}
   renderStage($('#programScreen'),state); if(channel) channel.postMessage({type:'state',state});
   updateVidControls();
+  if(typeof pvUpdate==='function') pvUpdate();
 }
 function pushLive(state){ clearLoop(); pushLiveRaw(state); }
 
@@ -1374,6 +1405,7 @@ function renderBooks(){
     if(b.t==='AT') ah+=btn; else nh+=btn;
   });
   at.innerHTML=ah; nt.innerHTML=nh;
+  if(typeof pvFillBooks==='function') pvFillBooks();   // la barra de Predicaciones usa los mismos libros
   $$('.book').forEach(el=>el.onclick=()=>{ current.bookIdx=+el.dataset.bi; current.chapter=null; renderBooks(); renderChaps(); $('#versesPanel').innerHTML=''; $('#versesHead').textContent='Versículos'; });
 }
 function renderChaps(){
@@ -1397,6 +1429,7 @@ function selectVerse(v,scroll){
   const st=buildVerseState(current.bookIdx,current.chapter,v);
   setPreview(st);
   if(liveIsVerse) pushLive(st);
+  if(typeof pvUpdate==='function') pvUpdate();
 }
 function stepVerse(dir){
   if(current.chapter==null){ return; }
@@ -1525,19 +1558,29 @@ function wireControls(){
       activarPantalla('pausa'); return;
     }
     const t=e.target.tagName; if(t==='INPUT'||t==='TEXTAREA'||t==='SELECT') return;
+    // Espacio: alterna en vivo diapositiva <-> versiculo (solo en Predicaciones).
+    if((e.key===' '||e.code==='Space') && $('#m-predicas').classList.contains('active')){ e.preventDefault(); pvSwap(); return; }
+    // En Predicaciones las flechas siguen a lo que este proyectado: versiculos o diapositivas.
+    const predDir=d=>{ if(liveIsVerse) stepVerse(d); else if(predCtx) predStep(d); else return false; return true; };
     if(e.key==='ArrowRight'||e.key==='ArrowDown'){
       if($('#m-versiculos').classList.contains('active')){ stepVerse(1); e.preventDefault(); }
       else if(typeof cvSectionsActive==='function' && cvSectionsActive() && ($('#m-cantos').classList.contains('active')||$('#m-himnario').classList.contains('active'))){ cvStep(1); e.preventDefault(); }
       else if($('#m-lista').classList.contains('active') && praiseCtx){ praiseStep(1); e.preventDefault(); }
-      else if($('#m-predicas').classList.contains('active') && predCtx){ predStep(1); e.preventDefault(); }
+      else if($('#m-predicas').classList.contains('active')){ if(predDir(1)) e.preventDefault(); }
     }
     else if(e.key==='ArrowLeft'||e.key==='ArrowUp'){
       if($('#m-versiculos').classList.contains('active')){ stepVerse(-1); e.preventDefault(); }
       else if(typeof cvSectionsActive==='function' && cvSectionsActive() && ($('#m-cantos').classList.contains('active')||$('#m-himnario').classList.contains('active'))){ cvStep(-1); e.preventDefault(); }
       else if($('#m-lista').classList.contains('active') && praiseCtx){ praiseStep(-1); e.preventDefault(); }
-      else if($('#m-predicas').classList.contains('active') && predCtx){ predStep(-1); e.preventDefault(); }
+      else if($('#m-predicas').classList.contains('active')){ if(predDir(-1)) e.preventDefault(); }
     }
   });
+  // barra rapida de versiculos (Predicaciones)
+  $('#pvGo').onclick=pvGoRef;
+  $('#pvSwap').onclick=pvSwap;
+  $('#pvRef').onkeydown=e=>{ if(e.key==='Enter'){ e.preventDefault(); pvGoRef(); } };
+  // Elegir libro no proyecta nada por si solo (igual que en Versiculos): deja lista la casilla.
+  $('#pvBook').onchange=()=>{ const inp=$('#pvRef'); inp.focus(); inp.select(); };
   $('#vidPlayPause').onclick=()=>{ vidPaused=!vidPaused; vidSet(vidPaused?'pause':'play'); setPlayPauseBtn(); };
   $('#vidLoop').onclick=()=>{ if(!liveState||liveState.kind!=='video') return; liveState.loop=!liveState.loop;
     try{ localStorage.setItem('proclama.live.v1', JSON.stringify({t:Date.now(),state:liveState})); }catch(_){}
@@ -1555,7 +1598,7 @@ function switchModule(mod){
   const names={versiculos:'Versículos',cantos:'Cantos',himnario:'Himnario',predicas:'Predicaciones',banners:'Banners',lista:'Lista de alabanza',pizarra:'Pizarra'};
   $('#crumb').textContent=names[mod]||'';
   if(mod==='banners') renderBanners();
-  if(mod==='predicas') renderSermons();
+  if(mod==='predicas'){ renderSermons(); pvUpdate(); }
   if(mod==='lista') renderPraise();
   if(mod==='cantos' && typeof cvRenderCantoList==='function'){ cvRenderCantoList(); cvRenderCantoSlides(); }
   if(mod==='himnario' && typeof cvRenderHimnList==='function'){ cvRenderHimnList(); }
@@ -1634,10 +1677,20 @@ async function renderBanners(){
 }
 
 /* ============ PREDICACIONES (PNG + PDF) ============ */
+/* PDF.js vive en la carpeta de la app (y en el cache del service worker) para que
+   importar PDF funcione sin internet. Si el archivo local faltara, se intenta el CDN. */
+const PDFJS_CDN='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/';
+function loadScript(src){ return new Promise((res,rej)=>{ const s=document.createElement('script'); s.src=src; s.onload=res; s.onerror=()=>rej(new Error(src)); document.head.appendChild(s); }); }
 async function ensurePdf(){
   if(window.pdfjsLib) return;
-  await new Promise((res,rej)=>{ const s=document.createElement('script'); s.src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js'; s.onload=res; s.onerror=()=>rej(new Error('No se pudo cargar el lector de PDF (requiere internet la primera vez).')); document.head.appendChild(s); });
-  window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  let local=true;
+  try{ await loadScript('pdf.min.js'); if(!window.pdfjsLib) throw new Error('vacio'); }
+  catch(e){
+    local=false;
+    try{ await loadScript(PDFJS_CDN+'pdf.min.js'); }catch(e2){}
+    if(!window.pdfjsLib) throw new Error('No se pudo cargar el lector de PDF.');
+  }
+  window.pdfjsLib.GlobalWorkerOptions.workerSrc= local?'pdf.worker.min.js':(PDFJS_CDN+'pdf.worker.min.js');
 }
 async function pdfToBlobs(file){
   await ensurePdf();
@@ -1679,7 +1732,7 @@ function predStep(dir){
   const st={kind:'image',imgStore:'sermonpages',imgId:predCtx.pageIds[n],_pred:true,fit:'contain'};
   setPreview(st);
   if(liveState.kind==='image' && liveState._pred) pushLive(st);
-  predHighlight();
+  predHighlight(); pvUpdate();
 }
 async function renderSermons(){
   const host=$('#sermonList'); let list=await idbAll('sermones');
@@ -1692,7 +1745,7 @@ async function renderSermons(){
   host.innerHTML=h;
   for(const s of list){ const cont=$('[data-pp="'+s.id+'"]',host); let ph=''; s.pageIds.forEach((pid,i)=>{ ph+='<button class="spage" data-pid="'+pid+'"><span class="n">'+(i+1)+'</span></button>'; }); cont.innerHTML=ph;
     for(const btn of $$('.spage',cont)){ const pid=btn.dataset.pid; const u=await blobURL('sermonpages',pid); if(u) btn.style.backgroundImage='url('+u+')';
-      btn.onclick=()=>{ const idx=s.pageIds.indexOf(pid); predCtx={pageIds:s.pageIds, idx}; setPreview({kind:'image',imgStore:'sermonpages',imgId:pid,_pred:true,fit:'contain'}); predHighlight(); }; }
+      btn.onclick=()=>{ const idx=s.pageIds.indexOf(pid); predCtx={pageIds:s.pageIds, idx}; setPreview({kind:'image',imgStore:'sermonpages',imgId:pid,_pred:true,fit:'contain'}); predHighlight(); pvUpdate(); }; }
   }
   $$('.sermon-h',host).forEach(hd=>hd.onclick=e=>{ if(e.target.closest('[data-del]')) return; const card=hd.closest('.sermon'); const id=card.dataset.sid; card.classList.toggle('collapsed'); if(card.classList.contains('collapsed')) predCollapsed.add(id); else predCollapsed.delete(id); predSaveCollapsed(); });
   $$('[data-del]',host).forEach(b=>b.onclick=async()=>{ const s=list.find(x=>x.id===b.dataset.del); if(!await cvConfirm('¿Eliminar «'+s.tema+'»?',{ok:'Eliminar'})) return; for(const pid of s.pageIds){ await idbDel('sermonpages',pid); dropURL('sermonpages',pid); } await idbDel('sermones',s.id); if(predCtx && s.pageIds.includes(predCtx.pageIds[predCtx.idx])) predCtx=null; renderSermons(); });
@@ -1703,6 +1756,61 @@ async function deleteOldSermons(){
   const cutoff=Date.now()-cfg.autoBorrado.meses*30*24*3600*1000;
   const list=await idbAll('sermones');
   for(const s of list){ if(s.fecha<cutoff){ for(const pid of s.pageIds) await idbDel('sermonpages',pid); await idbDel('sermones',s.id); } }
+}
+
+/* ============ PREDICACIONES · barra rapida de versiculos ============
+   Permite alternar en vivo entre la diapositiva de la predica y un versiculo sin
+   salir del modulo. No guarda estado propio: la diapositiva la recuerda predCtx y
+   el versiculo lo recuerda `current`, asi que ambos modulos quedan sincronizados. */
+function pvFillBooks(){
+  const sel=$('#pvBook'); if(!sel||!BIBLE) return;
+  let at='',nt='';
+  BIBLE.books.forEach((b,i)=>{ const o='<option value="'+i+'">'+escapeHTML(b.name)+'</option>'; if(b.t==='AT') at+=o; else nt+=o; });
+  sel.innerHTML='<optgroup label="Antiguo Testamento">'+at+'</optgroup><optgroup label="Nuevo Testamento">'+nt+'</optgroup>';
+  sel.value=String(current.bookIdx);
+}
+/* Acepta "3:16", "3.16", "3,16", "3 16", "3" y tambien una referencia completa
+   tipo "juan 3.16" o "1 co 13.4" (reusa el interprete del modulo Versiculos). */
+function pvParse(txt){
+  const s=(txt||'').trim(); if(!s) return null;
+  if(/[a-zA-ZáéíóúüñÁÉÍÓÚÜÑ]/.test(s)) return parseRef(s);
+  const m=s.match(/^(\d+)\s*(?:[:.,\s]\s*(\d+))?$/); if(!m) return null;
+  const bi=+$('#pvBook').value||0, b=BIBLE.books[bi];
+  const ch=+m[1]; if(b.nums.indexOf(ch)<0) return {bad:b.name+' no tiene capítulo '+ch};
+  return {bookIdx:bi, chapter:ch, verse:m[2]?+m[2]:1};
+}
+function pvGoRef(){
+  const inp=$('#pvRef'); const r=pvParse(inp.value);
+  if(!r){ toast('Escribe el capítulo y el versículo, por ejemplo 3.16'); return; }
+  if(r.bad){ toast(r.bad); return; }
+  gotoRef(r);          // manda al previo (y a vivo si ya hay un versiculo proyectado)
+  inp.blur();          // libera el teclado para que la barra espaciadora alterne
+  pvUpdate();
+}
+function pvPredState(){
+  if(!predCtx) return null;
+  return {kind:'image',imgStore:'sermonpages',imgId:predCtx.pageIds[predCtx.idx],_pred:true,fit:'contain'};
+}
+function pvVerseState(){
+  if(!BIBLE || current.chapter==null) return null;
+  return buildVerseState(current.bookIdx,current.chapter,current.verse);
+}
+/* Si lo que esta en vivo es el versiculo, el boton lleva a la diapositiva; si no, al reves. */
+function pvSwap(){
+  const wantVerse=!liveIsVerse;
+  let st=wantVerse?pvVerseState():pvPredState();
+  if(!st) st=wantVerse?pvPredState():pvVerseState();   // si el destino no existe, no hacemos nada raro
+  if(!st){ toast('Elige primero una diapositiva y un versículo'); return; }
+  setPreview(st); pushLive(st); predHighlight(); pvUpdate();
+}
+function pvUpdate(){
+  const txt=$('#pvSwapTxt'); if(!txt) return;
+  const hasV=!!pvVerseState(), hasP=!!pvPredState();
+  txt.textContent= liveIsVerse ? 'Ir a la diapositiva' : 'Ir al versículo';
+  $('#pvSwap').disabled = !(hasV&&hasP);
+  const now=$('#pvRefNow');
+  if(now) now.textContent = hasV ? (BIBLE.books[current.bookIdx].name+' '+current.chapter+':'+current.verse) : '';
+  const sel=$('#pvBook'); if(sel && sel.options.length) sel.value=String(current.bookIdx);
 }
 
 /* ============ SERVICIO (escaleta) ============ */

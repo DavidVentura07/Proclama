@@ -1,8 +1,9 @@
 /* Proclama service worker. Sube el numero de version (v1 -> v2 ...) cada vez
    que actualices los archivos, para forzar refresco en los equipos instalados. */
-const CACHE = 'proclama-v21';
+const CACHE = 'proclama-v22';
 const ASSETS = [
   './','index.html','manifest.json','peerjs.min.js',
+  'pdf.min.js','pdf.worker.min.js',
   'biblias/rvr1909.json',
   'iconos/icon-180.png','iconos/icon-192.png','iconos/icon-512.png','iconos/favicon.ico'
 ];
