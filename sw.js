@@ -1,6 +1,6 @@
 /* Proclama service worker. Sube el numero de version (v1 -> v2 ...) cada vez
    que actualices los archivos, para forzar refresco en los equipos instalados. */
-const CACHE = 'proclama-v24';
+const CACHE = 'proclama-v25';
 
 /* NUCLEO: sin esto no hay app offline. Va con addAll (atomico a proposito):
    si falla, mejor que la instalacion falle y se reintente en la proxima visita. */

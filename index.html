@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <!-- Tipografias SIN bloquear el arranque. Con media="print" el navegador no espera
-     esta hoja para ejecutar el <script> de abajo: si la red del templo esta saturada
+     esta hoja para ejecutar el bloque de codigo de abajo: si la red del templo esta saturada
      o sin salida a internet, la app arranca igual (con fuentes del sistema) en vez de
      quedarse congelada en el splash. Al terminar de bajar, onload la activa. -->
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Inter:wght@400;500;600;700&family=Cormorant+Garamond:wght@500;600&family=Playfair+Display:wght@500;600&family=Lora:wght@500;600&family=EB+Garamond:wght@500&family=Outfit:wght@400;500;600&family=Montserrat:wght@500;600&family=Poppins:wght@500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all';this.onload=null">
@@ -107,6 +107,20 @@
   .vchip:hover{border-color:var(--gold)}
   .vchip.active{background:var(--gold-grad);border-color:transparent;color:#3a2a08;box-shadow:0 4px 12px rgba(169,130,58,.3)}
   .vchip.add{border-style:dashed;color:var(--muted)}
+  .vchip.manage{color:var(--royal);border-color:var(--royal-soft);background:var(--royal-soft);gap:6px}
+  .vchip.manage:hover{border-color:var(--royal)}
+  .vchip.manage svg{width:14px;height:14px;flex:0 0 auto}
+  .vrow{display:flex;align-items:center;gap:12px;padding:13px 2px;border-bottom:1px solid var(--line)}
+  .vrow:last-of-type{border-bottom:none}
+  .vrow .vr-meta{flex:1;min-width:0}
+  .vrow .vr-nm{font-size:14.5px;font-weight:600;color:var(--ink);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .vrow .vr-sub{font-size:12px;color:var(--muted);margin-top:2px}
+  .vrow .vr-acts{display:flex;gap:7px;flex:0 0 auto}
+  .vr-lock{font-size:10px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;color:var(--gold-deep);background:#FBF6E9;border:1px solid #EEE2C4;border-radius:999px;padding:2px 8px}
+  .vr-on{font-size:10px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;color:var(--royal);background:var(--royal-soft);border-radius:999px;padding:2px 8px}
+  .btn.dangerline{color:var(--ruby);border-color:#EBD3D8;background:#fff}
+  .btn.dangerline:hover{background:#FCF2F4;border-color:var(--ruby);color:var(--ruby)}
+  @media (max-width:560px){ .vrow{flex-wrap:wrap} .vrow .vr-acts{width:100%;justify-content:flex-end} }
 
   .btn{height:40px;padding:0 16px;border-radius:11px;border:1px solid var(--line);background:#fff;color:var(--body);font-size:13.5px;font-weight:600;transition:all .16s;display:inline-flex;align-items:center;gap:8px}
   .btn:hover{border-color:var(--royal);color:var(--royal)}
@@ -837,7 +851,7 @@
 /* Versión de la app. Se muestra al pie de la barra lateral para verificar de un
    vistazo si el navegador ya cargó el index.html actualizado tras recargar.
    Debe mantenerse igual que la constante CACHE de sw.js. */
-const APP_VERSION='v24';
+const APP_VERSION='v25';
 const SAMPLE = {"id":"rvr1909","version":"RVR 1909 (muestra)","abbr":"RVR 1909","books":[{"name":"Salmos","t":"AT","chapters":{"23":["JEHOVA es mi pastor; nada me faltará.","En lugares de delicados pastos me hará yacer: Junto á aguas de reposo me pastoreará.","Confortará mi alma; Guiárame por sendas de justicia por amor de su nombre.","Aunque ande en valle de sombra de muerte, No temeré mal alguno; porque tú estarás conmigo: Tu vara y tu cayado me infundirán aliento.","Aderezarás mesa delante de mí, en presencia de mis angustiadores: Ungiste mi cabeza con aceite: mi copa está rebosando.","Ciertamente el bien y la misericordia me seguirán todos los días de mi vida: Y en la casa de Jehová moraré por largos días."]}},{"name":"Juan","t":"NT","chapters":{"3":["Y HABIA un hombre de los Fariseos que se llamaba Nicodemo, príncipe de los Judíos.","Este vino á Jesús de noche, y díjole: Rabbí, sabemos que has venido de Dios por maestro; porque nadie puede hacer estas señales que tú haces, si no fuere Dios con él.","Respondió Jesús, y díjole: De cierto, de cierto te digo, que el que no naciere otra vez, no puede ver el reino de Dios.","Dícele Nicodemo: ¿Cómo puede el hombre nacer siendo viejo? ¿puede entrar otra vez en el vientre de su madre, y nacer?","Respondió Jesús: De cierto, de cierto te digo, que el que no naciere de agua y del Espíritu, no puede entrar en el reino de Dios.","Lo que es nacido de la carne, carne es; y lo que es nacido del Espíritu, espíritu es.","No te maravilles de que te dije: Os es necesario nacer otra vez.","El viento de donde quiere sopla, y oyes su sonido; mas ni sabes de dónde viene, ni á dónde vaya: así es todo aquel que es nacido del Espíritu.","Respondió Nicodemo, y díjole: ¿Cómo puede esto hacerse?","Respondió Jesús, y díjole: ¿Tú eres el maestro de Israel, y no sabes esto?","De cierto, de cierto te digo, que lo que sabemos hablamos, y lo que hemos visto, testificamos; y no recibís nuestro testimonio.","Si os he dicho cosas terrenas, y no creéis, ¿cómo creeréis si os dijere las celestiales?","Y nadie subió al cielo, sino el que descendió del cielo, el Hijo del hombre, que está en el cielo.","Y como Moisés levantó la serpiente en el desierto, así es necesario que el Hijo del hombre sea levantado;","Para que todo aquel que en él creyere, no se pierda, sino que tenga vida eterna.","Porque de tal manera amó Dios al mundo, que ha dado á su Hijo unigénito, para que todo aquel que en él cree, no se pierda, mas tenga vida eterna.","Porque no envió Dios á su Hijo al mundo, para que condene al mundo, mas para que el mundo sea salvo por él.","El que en él cree, no es condenado; mas el que no cree, ya es condenado, porque no creyó en el nombre del unigénito Hijo de Dios.","Y esta es la condenación: porque la luz vino al mundo, y los hombres amaron más las tinieblas que la luz; porque sus obras eran malas.","Porque todo aquel que hace lo malo, aborrece la luz y no viene á la luz, porque sus obras no sean redargüidas.","Mas el que obra verdad, viene á la luz, para que sus obras sean manifestadas que son hechas en Dios.","Pasado esto, vino Jesús con sus discípulos á la tierra de Judea; y estaba allí con ellos, y bautizaba.","Y bautizaba también Juan en Enón junto á Salim, porque había allí muchas aguas; y venían, y eran bautizados.","Porque Juan, no había sido aún puesto en la carcel.","Y hubo cuestión entre los discípulos de Juan y los Judíos acerca de la purificación.","Y vinieron á Juan, y dijéronle: Rabbí, el que estaba contigo de la otra parte del Jordán, del cual tú diste testimonio, he aquí bautiza, y todos vienen á él.","Respondió Juan, y dijo: No puede el hombre recibir algo, si no le fuere dado del cielo.","Vosotros mismos me sois testigos que dije: Yo no soy el Cristo, sino que soy enviado delante de él.","El que tiene la esposa, es el esposo; mas el amigo del esposo, que está en pie y le oye, se goza grandemente de la voz del esposo; así pues, este mi gozo es cumplido.","A él conviene crecer, mas á mí menguar.","El que de arriba viene, sobre todos es: el que es de la tierra, terreno es, y cosas terrenas habla: el que viene del cielo, sobre todos es.","Y lo que vió y oyó, esto testifica: y nadie recibe su testimonio.","El que recibe su testimonio, éste signó que Dios es verdadero.","Porque el que Dios envió, las palabras de Dios habla: porque no da Dios el Espíritu por medida.","El Padre ama al Hijo, y todas las cosas dió en su mano.","El que cree en el Hijo, tiene vida eterna; mas el que es incrédulo al Hijo, no verá la vida, sino que la ira de Dios está sobre él."]}},{"name":"Filipenses","t":"NT","chapters":{"4":["ASI que, hermanos míos amados y deseados, gozo y corona mía, estad así firmes en el Señor, amados.","A Euodias ruego, y á Syntychê exhorto, que sientan lo mismo en el Señor.","Asimismo te ruego también á ti, hermano compañero, ayuda á las que trabajaron juntamente conmigo en el evangelio, con Clemente también, y los demás mis colaboradores, cuyos nombres están en el libro de la vida.","Gozaos en el Señor siempre: otra vez digo: Que os gocéis.","Vuestra modestia sea conocida de todos los hombres. El Señor está cerca.","Por nada estéis afanosos; sino sean notorias vuestras peticiones delante de Dios en toda oración y ruego, con hacimiento de gracias.","Y la paz de Dios, que sobrepuja todo entendimiento, guardará vuestros corazones y vuestros entendimientos en Cristo Jesús.","Por lo demás, hermanos, todo lo que es verdadero, todo lo honesto, todo lo justo, todo lo puro, todo lo amable, todo lo que es de buen nombre; si hay virtud alguna, si alguna alabanza, en esto pensad.","Lo que aprendisteis y recibisteis y oísteis y visteis en mí, esto haced; y el Dios de paz será con vosotros.","Mas en gran manera me gocé en el Señor de que ya al fin ha reflorecido vuestro cuidado de mí; de lo cual aun estabais solícitos, pero os faltaba la oportunidad.","No lo digo en razón de indigencia, pues he aprendido á contentarme con lo que tengo.","Sé estar humillado, y sé tener abundancia: en todo y por todo estoy enseñado, así para hartura como para hambre, así para tener abundancia como para padecer necesidad.","Todo lo puedo en Cristo que me fortalece.","Sin embargo, bien hicisteis que comunicasteis juntamente á mi tribulación.","Y sabéis también vosotros, oh Filipenses, que al principio del evangelio, cuando partí de Macedonia, ninguna iglesia me comunicó en razón de dar y recibir, sino vosotros solos.","Porque aun á Tesalónica me enviasteis lo necesario una y dos veces.","No porque busque dádivas; mas busco fruto que abunde en vuestra cuenta.","Empero todo lo he recibido, y tengo abundancia: estoy lleno, habiendo recibido de Epafrodito lo que enviasteis, olor de suavidad, sacrificio acepto, agradable á Dios.","Mi Dios, pues, suplirá todo lo que os falta conforme á sus riquezas en gloria en Cristo Jesús.","Al Dios pues y Padre nuestro sea gloria por los siglos de los siglos. Amén.","Saludad á todos los santos en Cristo Jesús. Los hermanos que están conmigo os saludan.","Todos los santos os saludan, y mayormente los que son de casa de César.","La gracia de nuestro Señor Jesucristo sea con todos vosotros. Amén."]}}]};
 
 /* ============ Utilidades ============ */
@@ -984,6 +998,15 @@ async function loadBible(id){
       }
       motivo='el archivo está dañado';
     }
+  }
+  /* Version importada que ya no esta en IndexedDB (la borraron desde "Gestionar", o
+     se perdio la base de datos). Antes caia en la muestra de 3 libros SIN avisar y
+     parecia que la Biblia se habia vaciado. Ahora recula a la 1909 igual que cuando
+     el archivo esta danado. */
+  if(id!=='rvr1909'){
+    toast('Esa versión ya no está guardada. Vuelvo a Reina-Valera 1909.');
+    cfg.versionActual='rvr1909'; saveCfg();
+    return loadBible('rvr1909');
   }
   /* Ultimo recurso: la muestra incrustada. NO se guarda en BIBLE_CACHE para que
      un reintento posterior (cambiar de version y volver) si pueda cargar bien. */
@@ -1478,13 +1501,32 @@ function initPizarraGuest(){
 }
 
 /* ============ MODULO VERSICULOS ============ */
+/* Abreviaturas de los 66 libros. Se comparan contra norm(): SIEMPRE en minuscula
+   y sin tildes, o no coinciden nunca. parseRef() se queda con la coincidencia mas
+   larga, asi que "1 jn" gana a "jn" y "job" gana a "jo" sin ambiguedad.
+   Antes solo habia 24 libros y escribir "jer 39:18" o "ez 37:1" no reconocia nada. */
 const ALIASES={
-  "Génesis":["gen","gn"],"Éxodo":["exo","ex"],"Levítico":["lev","lv"],"Números":["num","nm"],"Deuteronomio":["deut","dt"],
-  "Salmos":["salmo","salm","sal","sl"],"Proverbios":["prov","pr","prv"],"Eclesiastés":["ecl","ec"],"Isaías":["isa","is"],
+  "Génesis":["gen","gn"],"Éxodo":["exo","ex"],"Levítico":["lev","lv"],"Números":["num","nm"],"Deuteronomio":["deut","deu","dt"],
+  "Josué":["jos","js"],"Jueces":["jue","jc"],"Rut":["rt"],
+  "1 Samuel":["1 sam","1sam","1 s","1s"],"2 Samuel":["2 sam","2sam","2 s","2s"],
+  "1 Reyes":["1 rey","1rey","1 re","1re","1 r","1r"],"2 Reyes":["2 rey","2rey","2 re","2re","2 r","2r"],
+  "1 Crónicas":["1 cro","1cro","1 cr","1cr"],"2 Crónicas":["2 cro","2cro","2 cr","2cr"],
+  "Esdras":["esd","esr"],"Nehemías":["neh","ne"],"Ester":["est"],"Job":["job","jb"],
+  "Salmos":["salmo","salm","sal","sl"],"Proverbios":["prov","pr","prv"],"Eclesiastés":["ecl","ec"],
+  "Cantares":["cantar","cant","cnt","ct"],"Isaías":["isa","is"],"Jeremías":["jer","jr"],
+  "Lamentaciones":["lam","lm"],"Ezequiel":["eze","ez"],"Daniel":["dan","dn"],
+  "Oseas":["ose","os"],"Joel":["joe","jl"],"Amós":["amo","am"],"Abdías":["abd","ab"],"Jonás":["jon","jns"],
+  "Miqueas":["miq","mi"],"Nahúm":["nah","nh"],"Habacuc":["hab"],"Sofonías":["sof","sf"],
+  "Hageo":["hag","ag"],"Zacarías":["zac","za"],"Malaquías":["mal","ml"],
   "Mateo":["mat","mt"],"Marcos":["mar","mr","mc"],"Lucas":["luc","lc","lk"],"Juan":["jn","jhn"],"Hechos":["hech","hch"],
   "Romanos":["rom","rm"],"1 Corintios":["1 cor","1co","1 co"],"2 Corintios":["2 cor","2co","2 co"],"Gálatas":["gal","gl"],
-  "Efesios":["efe","ef"],"Filipenses":["fil","flp","filip"],"Apocalipsis":["apoc","apo","ap"],"Santiago":["sant","stg"],
-  "1 Juan":["1 jn","1jn","1 juan"],"Hebreos":["heb","hb"]
+  "Efesios":["efe","ef"],"Filipenses":["fil","flp","filip"],"Colosenses":["col","cl"],
+  "1 Tesalonicenses":["1 tes","1tes","1 ts","1ts"],"2 Tesalonicenses":["2 tes","2tes","2 ts","2ts"],
+  "1 Timoteo":["1 tim","1tim","1 ti","1ti"],"2 Timoteo":["2 tim","2tim","2 ti","2ti"],
+  "Tito":["tit","tt"],"Filemón":["filem","flm"],"Hebreos":["heb","hb"],"Santiago":["sant","stg"],
+  "1 Pedro":["1 ped","1ped","1 pe","1pe","1 p"],"2 Pedro":["2 ped","2ped","2 pe","2pe","2 p"],
+  "1 Juan":["1 jn","1jn","1 juan"],"2 Juan":["2 jn","2jn","2 juan"],"3 Juan":["3 jn","3jn","3 juan"],
+  "Judas":["jud","jds"],"Apocalipsis":["apoc","apo","ap"]
 };
 let current={bookIdx:0,chapter:null,verse:1};
 let searchMode='ref';
@@ -1595,9 +1637,92 @@ async function renderVersionChips(){
   const versions=await listVersions(); const host=$('#versionChips'); let h='';
   versions.forEach(v=>{ h+='<button class="vchip'+(v.id===cfg.versionActual?' active':'')+'" data-id="'+v.id+'">'+v.abbr+'</button>'; });
   h+='<button class="vchip add" id="chipImport">+ Importar versión</button>';
+  h+='<button class="vchip manage" id="chipManage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Gestionar</button>';
   host.innerHTML=h;
-  $$('.vchip:not(.add)',host).forEach(el=>el.onclick=async()=>{ cfg.versionActual=el.dataset.id; saveCfg(); await loadBible(cfg.versionActual); renderVersionChips(); current={bookIdx:0,chapter:null,verse:1}; renderBooks(); renderChaps(); $('#versesPanel').innerHTML=''; });
+  $$('.vchip:not(.add):not(.manage)',host).forEach(el=>el.onclick=async()=>{ cfg.versionActual=el.dataset.id; saveCfg(); await loadBible(cfg.versionActual); renderVersionChips(); current={bookIdx:0,chapter:null,verse:1}; renderBooks(); renderChaps(); $('#versesPanel').innerHTML=''; });
   $('#chipImport').onclick=openImportBible;
+  $('#chipManage').onclick=openManageVersions;
+}
+
+/* ---- Gestionar versiones: renombrar y borrar --------------------------------
+   La RVR 1909 no se lista como borrable: vive en biblias/rvr1909.json, no en
+   IndexedDB, asi que idbDel no la tocaria y el boton volveria a salir solo. */
+async function openManageVersions(){
+  /* idbAll y no listVersions: hace falta el 'data' para contar los libros, y de todos
+     modos listVersions ya llama a idbAll por dentro (no se lee nada de mas). */
+  const imported=await idbAll('biblias');
+  const versions=[{id:'rvr1909',abbr:'RVR 1909',builtin:true}]
+    .concat(imported.map(b=>({id:b.id,abbr:b.abbr,libros:((b.data&&b.data.books)||[]).length})));
+  let h=modalHeader('Gestionar versiones')+'<div class="modal-b">';
+  h+='<p style="font-size:13.5px;color:var(--body);line-height:1.6;margin-bottom:6px">Cambia el nombre con el que aparece cada versión, o quita las que ya no uses.</p>';
+  versions.forEach(v=>{
+    const activa=v.id===cfg.versionActual;
+    h+='<div class="vrow"><div class="vr-meta"><div class="vr-nm">'+escapeHTML(v.abbr||'')
+      +(activa?' <span class="vr-on">En uso</span>':'')
+      +(v.builtin?' <span class="vr-lock">Incluida</span>':'')+'</div>';
+    h+='<div class="vr-sub">'+(v.builtin?'Viene con Proclama · no se puede borrar'
+      :('Importada · '+v.libros+' libro'+(v.libros===1?'':'s')))+'</div></div>';
+    h+='<div class="vr-acts">'
+      +'<button class="btn sm" data-ren="'+v.id+'"'+(v.builtin?' disabled':'')+'>Renombrar</button>'
+      +'<button class="btn sm dangerline" data-del="'+v.id+'"'+(v.builtin?' disabled':'')+'>Borrar</button>'
+      +'</div></div>';
+  });
+  h+='<div class="modal-foot"><button class="btn" data-close>Listo</button></div></div>';
+  openModal(h);
+  $$('[data-ren]').forEach(b=>{ if(!b.disabled) b.onclick=()=>openRenameVersion(b.dataset.ren); });
+  $$('[data-del]').forEach(b=>{ if(!b.disabled) b.onclick=()=>borrarVersion(b.dataset.del); });
+}
+
+/* Ventana aparte: #modal es uno solo, asi que esta reemplaza a la de gestionar y
+   al cerrar se vuelve a abrir aquella. */
+async function openRenameVersion(id){
+  const rec=await idbGet('biblias',id);
+  if(!rec){ toast('Esa versión ya no está'); return openManageVersions(); }
+  let h=modalHeader('Renombrar versión')+'<div class="modal-b">';
+  h+='<p style="font-size:13.5px;color:var(--body);line-height:1.6;margin-bottom:14px">Este nombre sale en el botón <b>y junto a la cita proyectada</b> (por ejemplo «Juan 3:16 · '+escapeHTML(rec.abbr||'')+'»).</p>';
+  h+='<div class="form-row"><label>Nombre visible</label><input class="input" id="rnInput" maxlength="40" value="'+escapeHTML(rec.abbr||'')+'"></div>';
+  h+='<div class="modal-foot"><button class="btn" id="rnCancel">Cancelar</button><button class="btn primary" id="rnSave">Guardar</button></div></div>';
+  openModal(h);
+  const inp=$('#rnInput'); inp.focus(); inp.select();
+  $('#rnCancel').onclick=openManageVersions;
+  const guardar=async()=>{
+    const nuevo=(inp.value||'').trim();
+    if(!nuevo){ toast('Escribe un nombre'); inp.focus(); return; }
+    if(nuevo===rec.abbr) return openManageVersions();
+    /* El nombre vive por duplicado: fuera lo usa la lista de versiones y dentro de
+       'data' lo lee normalizeBible para BIBLE.abbr, que es el que se proyecta. Si
+       solo se cambia el de fuera, el chip se renombra y la proyeccion no. */
+    rec.abbr=nuevo; rec.version=nuevo;
+    rec.data=Object.assign({},rec.data,{abbr:nuevo,version:nuevo});
+    await idbPut('biblias',rec);
+    BIBLE_CACHE.delete(id);
+    if(cfg.versionActual===id){ await loadBible(id); renderVerses(); }
+    await renderVersionChips();
+    toast('Ahora se llama «'+nuevo+'»');
+    openManageVersions();
+  };
+  $('#rnSave').onclick=guardar;
+  inp.onkeydown=e=>{ if(e.key==='Enter'){ e.preventDefault(); guardar(); } };
+}
+
+async function borrarVersion(id){
+  const rec=await idbGet('biblias',id);
+  const nombre=rec?(rec.abbr||'esta versión'):'esta versión';
+  /* cvConfirm y NO el confirm() del navegador: un dialogo nativo saca a la
+     proyeccion de pantalla completa (regla #1). */
+  const ok=await cvConfirm('¿Borrar la versión «'+nombre+'»? Se quita de Proclama y vuelves a la Reina-Valera 1909. El archivo .json sigue en tu carpeta, así que puedes volver a importarla.',{ok:'Borrar',cancel:'Cancelar',danger:true});
+  if(!ok) return openManageVersions();
+  await idbDel('biblias',id);
+  BIBLE_CACHE.delete(id);
+  if(cfg.versionActual===id){
+    cfg.versionActual='rvr1909'; saveCfg();
+    await loadBible('rvr1909');
+    current={bookIdx:0,chapter:null,verse:1};
+    renderBooks(); renderChaps(); $('#versesPanel').innerHTML=''; $('#versesHead').textContent='Versículos';
+  }
+  await renderVersionChips();
+  toast('Versión «'+nombre+'» borrada');
+  openManageVersions();
 }
 
 /* ============ Barra superior y controles de proyeccion ============ */
@@ -2235,23 +2360,46 @@ function openAddSermon(){
 function openImportBible(){
   let h=modalHeader('Importar versión de la Biblia')+'<div class="modal-b">';
   h+='<p style="font-size:13.5px;color:var(--body);line-height:1.6;margin-bottom:14px">Carga un archivo <b>.json</b> con otra versión que obtengas de una fuente permitida. Se acepta nuestro formato (libros con <b>name</b>, <b>t</b>, <b>chapters</b>) o un arreglo de 66 libros en orden <b>[{name, chapters}]</b>.</p>';
-  h+='<div class="form-row"><label>Nombre visible</label><input class="input" id="biAbbr" placeholder="Ej. RVR 1960"></div>';
   h+='<div class="drop" id="biDrop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 16V4M7 9l5-5 5 5M5 20h14"/></svg><div>Arrastra el .json o <b>haz clic</b></div></div>';
   h+='<div class="modal-foot"><button class="btn" data-close>Cancelar</button></div></div>';
   openModal(h);
   const drop=$('#biDrop');
+  /* Dos pasos: primero el archivo, despues el nombre. Al reves (como estaba) la
+     casilla se rellenaba a ciegas y, si se dejaba vacia, la version quedaba
+     llamandose "Versión" para siempre. */
   const handle=async file=>{
     try{
       const raw=JSON.parse(await file.text()); let books;
       if(Array.isArray(raw)) books=raw.map((b,i)=>({name:b.name||('Libro '+(i+1)),t:i<39?'AT':'NT',chapters:b.chapters}));
       else if(raw.books) books=raw.books;
       else throw new Error('formato no reconocido');
-      const abbr=($('#biAbbr').value||'Versión').trim(); const id='v'+uid();
-      await idbPut('biblias',{id,abbr,version:abbr,data:{id,version:abbr,abbr,books}});
-      cfg.versionActual=id; saveCfg(); BIBLE_CACHE.delete(id); await loadBible(id);
-      current={bookIdx:0,chapter:null,verse:1}; await renderVersionChips(); renderBooks(); renderChaps(); $('#versesPanel').innerHTML='';
-      closeModal(); toast('Versión «'+abbr+'» importada');
+      if(!books.length) throw new Error('el archivo no trae libros');
+      /* El nombre sale del propio archivo; si no trae metadatos, del nombre del fichero. */
+      const sugerido=((!Array.isArray(raw) && (raw.abbr||raw.version)) || file.name.replace(/\.json$/i,'') || 'Versión').toString().trim().slice(0,40);
+      pedirNombre(books, sugerido);
     }catch(err){ toast('No se pudo leer: '+err.message); }
+  };
+  const pedirNombre=(books, sugerido)=>{
+    let h2=modalHeader('Nombre de la versión')+'<div class="modal-b">';
+    h2+='<p style="font-size:13.5px;color:var(--body);line-height:1.6;margin-bottom:14px">Este nombre sale en el botón <b>y junto a la cita proyectada</b>. Cámbialo si prefieres otro.</p>';
+    h2+='<div class="form-row"><label>Nombre visible</label><input class="input" id="biAbbr" maxlength="40" value="'+escapeHTML(sugerido)+'"></div>';
+    h2+='<div class="modal-foot"><button class="btn" id="biBack">Atrás</button><button class="btn primary" id="biOk">Importar</button></div></div>';
+    openModal(h2);
+    const inp=$('#biAbbr'); inp.focus(); inp.select();
+    $('#biBack').onclick=openImportBible;
+    const guardar=async()=>{
+      const abbr=(inp.value||'').trim();
+      if(!abbr){ toast('Escribe un nombre'); inp.focus(); return; }
+      try{
+        const id='v'+uid();
+        await idbPut('biblias',{id,abbr,version:abbr,data:{id,version:abbr,abbr,books}});
+        cfg.versionActual=id; saveCfg(); BIBLE_CACHE.delete(id); await loadBible(id);
+        current={bookIdx:0,chapter:null,verse:1}; await renderVersionChips(); renderBooks(); renderChaps(); $('#versesPanel').innerHTML='';
+        closeModal(); toast('Versión «'+abbr+'» importada');
+      }catch(err){ toast('No se pudo guardar: '+err.message); }
+    };
+    $('#biOk').onclick=guardar;
+    inp.onkeydown=e=>{ if(e.key==='Enter'){ e.preventDefault(); guardar(); } };
   };
   drop.onclick=()=>pickFiles('application/json,.json',f=>handle(f[0]));
   drop.ondragover=e=>{e.preventDefault();drop.classList.add('over');};
