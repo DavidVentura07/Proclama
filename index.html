@@ -95,6 +95,17 @@
   .rail-item.active::after{content:"";position:absolute;left:-14px;top:50%;transform:translateY(-50%);width:4px;height:24px;border-radius:0 4px 4px 0;background:var(--gold-grad)}
   .rail-spacer{flex:1}
   .rail-ver{font-size:10px;font-weight:600;color:var(--muted);opacity:.6;padding:6px 0 2px;letter-spacing:.5px;user-select:all}
+  /* Aviso de version nueva: el caché es primero-caché, asi que tras publicar la
+     primera apertura corre TODAVIA la version anterior. Se avisa aqui, que es
+     donde ya se mira la version, y nunca con un dialogo: sacaria a la proyeccion
+     de pantalla completa. */
+  .rail-ver.nueva{opacity:1;color:var(--gold-deep);background:var(--gold-soft);border-radius:7px;
+    padding:5px 7px;margin:4px 2px 0;cursor:pointer;user-select:none;line-height:1.35;
+    animation:verPulse 2.2s ease-in-out 3}
+  .rail-ver.nueva:hover{background:#F0E2BC}
+  .rail-ver.nueva:focus-visible{outline:2px solid var(--royal);outline-offset:2px}
+  @keyframes verPulse{0%,100%{box-shadow:0 0 0 0 rgba(198,160,83,0)}50%{box-shadow:0 0 0 4px rgba(198,160,83,.35)}}
+  @media (prefers-reduced-motion:reduce){.rail-ver.nueva{animation:none}}
 
   .workspace{padding:20px 24px;overflow-y:auto;min-height:0}
   .module{display:none}.module.active{display:block}
@@ -185,6 +196,24 @@
   /* Distintivo de video sobre la miniatura */
   .tile .vbadge{position:absolute;top:7px;left:7px;display:flex;align-items:center;gap:4px;background:rgba(20,16,31,.72);color:#fff;font-size:10px;font-weight:700;letter-spacing:.5px;padding:3px 7px 3px 5px;border-radius:8px;pointer-events:none}
   .tile .vbadge svg{width:11px;height:11px}
+  /* Forma real del archivo y boton de encuadre, dentro de la ficha */
+  /* La miniatura siempre se ve en 16:9 recortada, asi que un archivo vertical no
+     se distingue de uno normal. Por eso la forma real se enseña SIEMPRE cuando
+     no es 16:9 (que es cuando importa) y solo al pasar el raton cuando si lo es. */
+  .tile .ratio{position:absolute;top:7px;right:7px;background:rgba(20,16,31,.72);color:#fff;font-size:10px;
+    font-weight:700;letter-spacing:.4px;padding:3px 7px;border-radius:8px;pointer-events:none;
+    font-variant-numeric:tabular-nums;opacity:0;transition:opacity .14s}
+  .tile:hover .ratio{opacity:1}
+  .tile .ratio.raro{opacity:1;background:var(--gold-deep)}
+  .tile .fitrow{display:flex;align-items:center;gap:6px;margin-top:8px}
+  .fitbtn{flex:1;min-width:0;height:28px;border-radius:8px;border:1px solid var(--line);background:var(--ivory-2);
+    font:600 11px/1 'Inter',sans-serif;color:var(--body);cursor:pointer;display:inline-flex;align-items:center;
+    justify-content:center;gap:5px;transition:background .14s,color .14s,border-color .14s}
+  .fitbtn svg{width:13px;height:13px;flex-shrink:0}
+  .fitbtn:hover{border-color:var(--gold);color:var(--ink)}
+  .fitbtn:focus-visible{outline:2px solid var(--royal);outline-offset:2px}
+  .fitbtn.llenar{background:var(--royal-soft);color:var(--royal-deep);border-color:#D9CCE9}
+  .tile .auto{font-size:10px;color:#2F7D5A;background:#E3F1EA;border-radius:6px;padding:2px 6px;font-weight:600;white-space:nowrap}
   .tile .thumb .vplay{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none}
   .tile .thumb .vplay svg{width:44px;height:44px;color:rgba(255,255,255,.92);filter:drop-shadow(0 2px 8px rgba(0,0,0,.5))}
   .tile .thumb{position:relative}
@@ -341,6 +370,9 @@
   .s-ov{position:absolute;inset:0;background:#0a0614}
   .s-content{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:6% 8%}
   .s-content img{max-width:100%;max-height:100%;object-fit:contain}
+  /* El encuadre se decide por archivo y llega en state.fit; 'cover' es solo el
+     valor de partida. Antes estaba fijo en 'cover' aqui, y un video vertical se
+     recortaba a una franja central perdiendo mas de la mitad de la imagen. */
   .s-vid{position:absolute;top:0;left:0;width:1920px;height:1080px;object-fit:cover;background:#000}
   .s-text{display:flex;flex-direction:column;gap:24px;max-width:100%}
   /* Botones tipo píldora con engrane */
@@ -812,6 +844,7 @@
         <div class="vid-controls" id="vidControls" style="display:none">
           <button class="vc-btn" id="vidPlayPause"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>Pausar</button>
           <button class="vc-btn" id="vidLoop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>Bucle: off</button>
+          <button class="vc-btn" id="vidFit" title="Mostrar el archivo completo o llenar la pantalla recortándolo"></button>
         </div>
       </div>
       <div class="row">
@@ -851,7 +884,7 @@
 /* Versión de la app. Se muestra al pie de la barra lateral para verificar de un
    vistazo si el navegador ya cargó el index.html actualizado tras recargar.
    Debe mantenerse igual que la constante CACHE de sw.js. */
-const APP_VERSION='v26';
+const APP_VERSION='v28';
 const SAMPLE = {"id":"rvr1909","version":"RVR 1909 (muestra)","abbr":"RVR 1909","books":[{"name":"Salmos","t":"AT","chapters":{"23":["JEHOVA es mi pastor; nada me faltará.","En lugares de delicados pastos me hará yacer: Junto á aguas de reposo me pastoreará.","Confortará mi alma; Guiárame por sendas de justicia por amor de su nombre.","Aunque ande en valle de sombra de muerte, No temeré mal alguno; porque tú estarás conmigo: Tu vara y tu cayado me infundirán aliento.","Aderezarás mesa delante de mí, en presencia de mis angustiadores: Ungiste mi cabeza con aceite: mi copa está rebosando.","Ciertamente el bien y la misericordia me seguirán todos los días de mi vida: Y en la casa de Jehová moraré por largos días."]}},{"name":"Juan","t":"NT","chapters":{"3":["Y HABIA un hombre de los Fariseos que se llamaba Nicodemo, príncipe de los Judíos.","Este vino á Jesús de noche, y díjole: Rabbí, sabemos que has venido de Dios por maestro; porque nadie puede hacer estas señales que tú haces, si no fuere Dios con él.","Respondió Jesús, y díjole: De cierto, de cierto te digo, que el que no naciere otra vez, no puede ver el reino de Dios.","Dícele Nicodemo: ¿Cómo puede el hombre nacer siendo viejo? ¿puede entrar otra vez en el vientre de su madre, y nacer?","Respondió Jesús: De cierto, de cierto te digo, que el que no naciere de agua y del Espíritu, no puede entrar en el reino de Dios.","Lo que es nacido de la carne, carne es; y lo que es nacido del Espíritu, espíritu es.","No te maravilles de que te dije: Os es necesario nacer otra vez.","El viento de donde quiere sopla, y oyes su sonido; mas ni sabes de dónde viene, ni á dónde vaya: así es todo aquel que es nacido del Espíritu.","Respondió Nicodemo, y díjole: ¿Cómo puede esto hacerse?","Respondió Jesús, y díjole: ¿Tú eres el maestro de Israel, y no sabes esto?","De cierto, de cierto te digo, que lo que sabemos hablamos, y lo que hemos visto, testificamos; y no recibís nuestro testimonio.","Si os he dicho cosas terrenas, y no creéis, ¿cómo creeréis si os dijere las celestiales?","Y nadie subió al cielo, sino el que descendió del cielo, el Hijo del hombre, que está en el cielo.","Y como Moisés levantó la serpiente en el desierto, así es necesario que el Hijo del hombre sea levantado;","Para que todo aquel que en él creyere, no se pierda, sino que tenga vida eterna.","Porque de tal manera amó Dios al mundo, que ha dado á su Hijo unigénito, para que todo aquel que en él cree, no se pierda, mas tenga vida eterna.","Porque no envió Dios á su Hijo al mundo, para que condene al mundo, mas para que el mundo sea salvo por él.","El que en él cree, no es condenado; mas el que no cree, ya es condenado, porque no creyó en el nombre del unigénito Hijo de Dios.","Y esta es la condenación: porque la luz vino al mundo, y los hombres amaron más las tinieblas que la luz; porque sus obras eran malas.","Porque todo aquel que hace lo malo, aborrece la luz y no viene á la luz, porque sus obras no sean redargüidas.","Mas el que obra verdad, viene á la luz, para que sus obras sean manifestadas que son hechas en Dios.","Pasado esto, vino Jesús con sus discípulos á la tierra de Judea; y estaba allí con ellos, y bautizaba.","Y bautizaba también Juan en Enón junto á Salim, porque había allí muchas aguas; y venían, y eran bautizados.","Porque Juan, no había sido aún puesto en la carcel.","Y hubo cuestión entre los discípulos de Juan y los Judíos acerca de la purificación.","Y vinieron á Juan, y dijéronle: Rabbí, el que estaba contigo de la otra parte del Jordán, del cual tú diste testimonio, he aquí bautiza, y todos vienen á él.","Respondió Juan, y dijo: No puede el hombre recibir algo, si no le fuere dado del cielo.","Vosotros mismos me sois testigos que dije: Yo no soy el Cristo, sino que soy enviado delante de él.","El que tiene la esposa, es el esposo; mas el amigo del esposo, que está en pie y le oye, se goza grandemente de la voz del esposo; así pues, este mi gozo es cumplido.","A él conviene crecer, mas á mí menguar.","El que de arriba viene, sobre todos es: el que es de la tierra, terreno es, y cosas terrenas habla: el que viene del cielo, sobre todos es.","Y lo que vió y oyó, esto testifica: y nadie recibe su testimonio.","El que recibe su testimonio, éste signó que Dios es verdadero.","Porque el que Dios envió, las palabras de Dios habla: porque no da Dios el Espíritu por medida.","El Padre ama al Hijo, y todas las cosas dió en su mano.","El que cree en el Hijo, tiene vida eterna; mas el que es incrédulo al Hijo, no verá la vida, sino que la ira de Dios está sobre él."]}},{"name":"Filipenses","t":"NT","chapters":{"4":["ASI que, hermanos míos amados y deseados, gozo y corona mía, estad así firmes en el Señor, amados.","A Euodias ruego, y á Syntychê exhorto, que sientan lo mismo en el Señor.","Asimismo te ruego también á ti, hermano compañero, ayuda á las que trabajaron juntamente conmigo en el evangelio, con Clemente también, y los demás mis colaboradores, cuyos nombres están en el libro de la vida.","Gozaos en el Señor siempre: otra vez digo: Que os gocéis.","Vuestra modestia sea conocida de todos los hombres. El Señor está cerca.","Por nada estéis afanosos; sino sean notorias vuestras peticiones delante de Dios en toda oración y ruego, con hacimiento de gracias.","Y la paz de Dios, que sobrepuja todo entendimiento, guardará vuestros corazones y vuestros entendimientos en Cristo Jesús.","Por lo demás, hermanos, todo lo que es verdadero, todo lo honesto, todo lo justo, todo lo puro, todo lo amable, todo lo que es de buen nombre; si hay virtud alguna, si alguna alabanza, en esto pensad.","Lo que aprendisteis y recibisteis y oísteis y visteis en mí, esto haced; y el Dios de paz será con vosotros.","Mas en gran manera me gocé en el Señor de que ya al fin ha reflorecido vuestro cuidado de mí; de lo cual aun estabais solícitos, pero os faltaba la oportunidad.","No lo digo en razón de indigencia, pues he aprendido á contentarme con lo que tengo.","Sé estar humillado, y sé tener abundancia: en todo y por todo estoy enseñado, así para hartura como para hambre, así para tener abundancia como para padecer necesidad.","Todo lo puedo en Cristo que me fortalece.","Sin embargo, bien hicisteis que comunicasteis juntamente á mi tribulación.","Y sabéis también vosotros, oh Filipenses, que al principio del evangelio, cuando partí de Macedonia, ninguna iglesia me comunicó en razón de dar y recibir, sino vosotros solos.","Porque aun á Tesalónica me enviasteis lo necesario una y dos veces.","No porque busque dádivas; mas busco fruto que abunde en vuestra cuenta.","Empero todo lo he recibido, y tengo abundancia: estoy lleno, habiendo recibido de Epafrodito lo que enviasteis, olor de suavidad, sacrificio acepto, agradable á Dios.","Mi Dios, pues, suplirá todo lo que os falta conforme á sus riquezas en gloria en Cristo Jesús.","Al Dios pues y Padre nuestro sea gloria por los siglos de los siglos. Amén.","Saludad á todos los santos en Cristo Jesús. Los hermanos que están conmigo os saludan.","Todos los santos os saludan, y mayormente los que son de casa de César.","La gracia de nuestro Señor Jesucristo sea con todos vosotros. Amén."]}}]};
 
 /* ============ Utilidades ============ */
@@ -917,6 +950,60 @@ function videoPoster(url){
     v.onerror=()=>finish(null);
     setTimeout(()=>finish(null),3000);
   });
+}
+
+/* ============ Encuadre de imágenes y videos ============
+   La pantalla es 16:9. Un archivo vertical o cuadrado solo cabe de dos maneras:
+   COMPLETO (contain: se ve todo, con franjas negras) o LLENAR (cover: llena la
+   pantalla y se recorta lo que sobra). Antes el video estaba fijo en 'cover' en
+   el CSS, asi que un video de celular perdia mas de la mitad del encuadre y no
+   habia forma de evitarlo. Ahora se guarda por archivo y se puede cambiar en
+   vivo sin reiniciar el video. */
+const FIT_SVG ='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="6" width="18" height="12" rx="1.5"/><path d="M8 6v12M16 6v12"/></svg>';
+const LLENAR_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="6" width="18" height="12" rx="1.5"/><path d="M7 10l-2 2 2 2M17 10l2 2-2 2"/></svg>';
+function fitEsCompleto(f){ return f==='contain'; }
+function fitNombre(f){ return fitEsCompleto(f)?'Completo':'Llenar'; }
+function fitIcono(f){ return fitEsCompleto(f)?FIT_SVG:LLENAR_SVG; }
+/* 16:9 con holgura: los codecs dan 1918x1080 y cosas asi. */
+function fitPorOmision(w,h){ return (w&&h&&Math.abs((w/h)-(16/9))<0.02) ? 'cover' : 'contain'; }
+function proporcionTxt(w,h){
+  if(!w||!h) return '';
+  const g=(a,b)=>b?g(b,a%b):a; const d=g(w,h);
+  const a=w/d, b=h/d;
+  return (a<=40&&b<=40) ? a+':'+b : (w/h).toFixed(2).replace(/0$/,'')+':1';
+}
+/* Mide el archivo al subirlo, para poder elegir el encuadre solo. */
+function medirMedio(file){
+  return new Promise(resolve=>{
+    const url=URL.createObjectURL(file);
+    let listo=false;
+    const fin=r=>{ if(listo)return; listo=true; try{URL.revokeObjectURL(url);}catch(e){} resolve(r||{w:0,h:0}); };
+    if(file.type.startsWith('video/')){
+      const v=document.createElement('video');
+      v.muted=true; v.preload='metadata';
+      v.onloadedmetadata=()=>fin({w:v.videoWidth||0,h:v.videoHeight||0});
+      v.onerror=()=>fin(null);
+      v.src=url;
+    } else {
+      const im=new Image();
+      im.onload=()=>fin({w:im.naturalWidth||0,h:im.naturalHeight||0});
+      im.onerror=()=>fin(null);
+      im.src=url;
+    }
+    setTimeout(()=>fin(null),4000);   // un archivo roto no debe colgar la subida
+  });
+}
+/* Cambia el encuadre de lo que ya esta pintado, SIN volver a renderizar: si se
+   re-renderiza, el video vuelve a empezar desde el principio. */
+function aplicarFit(host, fit){
+  if(!host) return;
+  const v=$('video',host);
+  if(v){ v.style.objectFit = fitEsCompleto(fit)?'contain':'cover'; return; }
+  const bg=$('.s-bg',host);
+  if(bg && bg.style.backgroundImage){
+    bg.style.backgroundSize = fitEsCompleto(fit)?'contain':'cover';
+    bg.style.backgroundColor = '#000';
+  }
 }
 /* Libera el object-URL además de sacarlo del cache (antes solo se borraba la
    entrada del Map y la memoria del blob quedaba retenida toda la sesión). */
@@ -1101,6 +1188,9 @@ async function renderStage(host, state){
     if(u){
       const v=document.createElement('video');
       v.className='s-vid'; v.src=u; v.setAttribute('playsinline',''); v.controls=false; v.loop=!!state.loop;
+      /* El encuadre viaja en el estado: un video vertical se muestra completo
+         (con franjas) en vez de recortado a una franja central. */
+      v.style.objectFit = fitEsCompleto(state.fit) ? 'contain' : 'cover';
       /* Con sonido solo en la ventana de proyección; la previa/programa del control
          van en mudo para no duplicar el audio en el equipo del operador. */
       v.muted = !(IS_PROY && state.sound!==false);
@@ -1139,6 +1229,7 @@ async function pjRender(state){
    (capa activa) sin re-renderizar, para no reiniciar la reproducción. */
 function pjVidCmd(m){
   const layer = pjActive==='A' ? $('#pjA') : $('#pjB');
+  if(m.op==='fit'){ aplicarFit(layer, m.fit); return; }   // sirve para video Y para imagen
   const v = layer && $('video',layer); if(!v) return;
   if(m.op==='pause'){ try{ v.pause(); }catch(_){} }
   else if(m.op==='play'){ v.play&&v.play().catch(()=>{}); }
@@ -1171,15 +1262,61 @@ function vidSet(op,on){
   if(v){ if(op==='pause'){ try{v.pause();}catch(_){} } else if(op==='play'){ v.play&&v.play().catch(()=>{}); } else if(op==='loop'){ v.loop=!!on; } }
   if(channel) channel.postMessage(on!=null?{type:'vid',op,on}:{type:'vid',op});
 }
+/* Cambia el encuadre de lo que está EN VIVO. Viaja por el mismo canal 'vid' para
+   no re-renderizar (si se re-renderiza, el video se reinicia), se guarda en
+   liveState para que persista si se reenvía, y se recuerda en la ficha del
+   archivo para que el domingo siguiente ya venga bien. */
+async function fitSet(fit){
+  if(!liveState) return;
+  liveState.fit=fit;
+  aplicarFit($('#programScreen'), fit);
+  aplicarFit($('#previewScreen'), fit);
+  if(channel) channel.postMessage({type:'vid',op:'fit',fit});
+  try{ localStorage.setItem('proclama.live.v1', JSON.stringify({t:Date.now(),state:liveState})); }catch(e){}
+  if(previewState && previewState.kind===liveState.kind &&
+     (previewState.imgId||previewState.videoId)===(liveState.imgId||liveState.videoId)) previewState.fit=fit;
+  await fitGuardar(liveState, fit);
+  updateVidControls();
+  if(typeof renderBanners==='function' && $('#m-banners') && $('#m-banners').classList.contains('active')) renderBanners();
+}
+/* Guarda el encuadre en el registro del archivo (solo los del módulo de
+   Imágenes y videos; fondos de versículo y predicaciones no lo usan). */
+async function fitGuardar(state, fit){
+  try{
+    const store = state.kind==='video' ? (state.videoStore||'videos')
+                : (state.imgStore==='banners' ? 'banners' : null);
+    if(!store) return;
+    const id = state.kind==='video' ? state.videoId : state.imgId;
+    const rec = await idbGet(store, id); if(!rec) return;
+    rec.fit=fit; rec.fitAuto=false;
+    await idbPut(store, rec);
+  }catch(e){}
+}
 const _svgPause='<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>';
 const _svgPlay ='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
 function setPlayPauseBtn(){ const pp=$('#vidPlayPause'); if(pp) pp.innerHTML=(vidPaused?_svgPlay+'Reanudar':_svgPause+'Pausar'); }
+/* La barra sale para los videos (pausar/bucle/encuadre) y también para las
+   imágenes del módulo (solo encuadre): una foto vertical se recorta igual que
+   un video vertical, y hay que poder corregirlo sin salir de en vivo. */
 function updateVidControls(){
-  const on = !!(liveState && liveState.kind==='video');
+  const esVideo = !!(liveState && liveState.kind==='video');
+  const esImgMod = !!(liveState && liveState.kind==='image' && liveState.imgStore==='banners');
+  const on = esVideo || esImgMod;
   const el=$('#vidControls'); if(el) el.style.display= on?'flex':'none';
+  const pp=$('#vidPlayPause'), lp=$('#vidLoop');
+  if(pp) pp.style.display = esVideo?'inline-flex':'none';
+  if(lp) lp.style.display = esVideo?'inline-flex':'none';
   if(!on) return;
-  vidPaused=false; setPlayPauseBtn();
-  const lb=$('#vidLoop'); if(lb){ lb.lastChild.textContent='Bucle: '+(liveState.loop?'on':'off'); lb.classList.toggle('on',!!liveState.loop); }
+  if(esVideo){
+    vidPaused=false; setPlayPauseBtn();
+    const lb=$('#vidLoop'); if(lb){ lb.lastChild.textContent='Bucle: '+(liveState.loop?'on':'off'); lb.classList.toggle('on',!!liveState.loop); }
+  }
+  const fb=$('#vidFit');
+  if(fb){
+    const fit = fitEsCompleto(liveState.fit) ? 'contain' : 'cover';
+    fb.innerHTML = fitIcono(fit)+'Ajuste: '+fitNombre(fit);
+    fb.classList.toggle('on', fit==='cover');
+  }
 }
 /* Restaura lo último proyectado si el control se recargó hace poco (F5 accidental).
    Solo dentro de una ventana de 6 h, para no proyectar contenido de la semana pasada. */
@@ -1203,7 +1340,14 @@ function activarPantalla(which){
   const p=cfg.pantallas[which]||{imgs:[],intervalo:300000}; const imgs=(p.imgs||[]);
   currentScreen=which; updateScreenPills();
   if(!imgs.length){ pushLiveRaw({kind:'logo'}); return; }
-  let i=0; const show=()=>pushLiveRaw({kind:'image',imgStore:'banners',imgId:imgs[i%imgs.length]});
+  /* El bucle también respeta el encuadre guardado de cada imagen: si una de las
+     de Bienvenida es vertical, se muestra completa en vez de recortada. */
+  let i=0; const show=async()=>{
+    const id=imgs[i%imgs.length];
+    let fit='cover';
+    try{ const rec=await idbGet('banners',id); if(rec&&rec.fit) fit=rec.fit; }catch(e){}
+    pushLiveRaw({kind:'image',imgStore:'banners',imgId:id,fit});
+  };
   show();
   if(imgs.length>1) loopTimer=setInterval(()=>{ i++; show(); }, Math.max(3000,p.intervalo||300000));
 }
@@ -1233,18 +1377,43 @@ let drawPen={color:'#141414',w:DRAW_SIZES[1],erase:false};   // tinta oscura par
 let drawLive=false, drawCur=null;
 
 function drawBoardColor(b){ return (b||drawModel.board)==='light' ? '#F4EFE3' : '#0B0B0D'; }
+/* Deja el contexto listo para pintar UN trazo (color, grosor y modo borrador). */
+function drawEstilo(ctx,s,H){
+  if(s.erase){ ctx.globalCompositeOperation='destination-out'; ctx.strokeStyle='#000'; ctx.fillStyle='#000'; }
+  else { ctx.globalCompositeOperation='source-over'; ctx.strokeStyle=s.color; ctx.fillStyle=s.color; }
+  ctx.lineWidth=Math.max(1,s.w*H); ctx.lineCap='round'; ctx.lineJoin='round';
+}
+/* Repintado COMPLETO: borra y vuelve a trazar todo. Cuesta caro, asi que solo se
+   usa cuando hace falta de verdad — al empezar, deshacer, limpiar, cambiar el
+   fondo, o al recibir el dibujo entero en otra ventana. NUNCA por cada punto. */
 function drawPaint(cv){
   if(!cv) return; const ctx=cv.getContext('2d'); const W=cv.width,H=cv.height;
-  ctx.clearRect(0,0,W,H); ctx.lineCap='round'; ctx.lineJoin='round';
+  ctx.clearRect(0,0,W,H);
   for(const s of drawModel.strokes){ const p=s.pts; if(!p||!p.length) continue;
-    if(s.erase){ ctx.globalCompositeOperation='destination-out'; ctx.strokeStyle='#000'; ctx.fillStyle='#000'; }
-    else { ctx.globalCompositeOperation='source-over'; ctx.strokeStyle=s.color; ctx.fillStyle=s.color; }
-    ctx.lineWidth=Math.max(1,s.w*H);
+    drawEstilo(ctx,s,H);
     if(p.length===1){ ctx.beginPath(); ctx.arc(p[0].x*W,p[0].y*H,ctx.lineWidth/2,0,7); ctx.fill(); continue; }
     ctx.beginPath(); ctx.moveTo(p[0].x*W,p[0].y*H);
     for(let k=1;k<p.length;k++) ctx.lineTo(p[k].x*W,p[k].y*H);
     ctx.stroke();
   }
+  ctx.globalCompositeOperation='source-over';
+}
+/* Pinta SOLO el tramo nuevo del trazo en curso (hallazgo B3).
+   Antes, cada punto del dedo repintaba el dibujo entero: en la tablet, dos veces
+   en la laptop y otra en la proyeccion. Con 'pointermove' disparando hasta 120
+   veces por segundo y un dibujo que va creciendo, el coste sube sin parar — de
+   ahi el lag que parecia culpa de la tablet. Pintar solo el segmento nuevo
+   cuesta lo mismo con un trazo que con mil, y se ve igual porque las uniones
+   son redondas. */
+function drawPaintLast(cv){
+  if(!cv) return;
+  const s=drawModel.strokes[drawModel.strokes.length-1];
+  if(!s || !s.pts || !s.pts.length) return;
+  const ctx=cv.getContext('2d'), W=cv.width, H=cv.height;
+  drawEstilo(ctx,s,H);
+  const p=s.pts, n=p.length;
+  if(n===1){ ctx.beginPath(); ctx.arc(p[0].x*W,p[0].y*H,ctx.lineWidth/2,0,7); ctx.fill(); }
+  else { ctx.beginPath(); ctx.moveTo(p[n-2].x*W,p[n-2].y*H); ctx.lineTo(p[n-1].x*W,p[n-1].y*H); ctx.stroke(); }
   ctx.globalCompositeOperation='source-over';
 }
 
@@ -1258,6 +1427,11 @@ function drawRenderControl(){
   const gb=$('#progDrawBoard'); if(gb) gb.style.background=bc;
   drawHideHint();
 }
+/* Lo que corre por cada punto: solo el tramo nuevo, en los dos lienzos. */
+function drawRenderControlLast(){
+  drawPaintLast($('#drawPadCv')); drawPaintLast($('#progDrawCv'));
+  drawHideHint();
+}
 function drawPadPoint(e){ const cv=$('#drawPadCv'); const r=cv.getBoundingClientRect();
   return { x:Math.min(1,Math.max(0,(e.clientX-r.left)/r.width)), y:Math.min(1,Math.max(0,(e.clientY-r.top)/r.height)) }; }
 function drawPadDown(e){ if(drawRemote) return; e.preventDefault(); const cv=$('#drawPadCv'); try{ cv.setPointerCapture(e.pointerId); }catch(_){}
@@ -1265,10 +1439,10 @@ function drawPadDown(e){ if(drawRemote) return; e.preventDefault(); const cv=$('
   drawCur={color:drawPen.color,w:drawPen.w,erase:drawPen.erase,pts:[pt]};
   drawModel.strokes.push(drawCur);
   if(drawLive) drawSend({op:'begin',s:{color:drawCur.color,w:drawCur.w,erase:drawCur.erase},pt});
-  drawRenderControl();
+  drawRenderControlLast();
 }
 function drawPadMove(e){ if(!drawCur) return; e.preventDefault(); const pt=drawPadPoint(e);
-  drawCur.pts.push(pt); if(drawLive) drawSend({op:'pt',x:pt.x,y:pt.y}); drawRenderControl(); }
+  drawCur.pts.push(pt); if(drawLive) drawSend({op:'pt',x:pt.x,y:pt.y}); drawRenderControlLast(); }
 function drawPadUp(){ if(!drawCur) return; drawCur=null; if(drawLive) drawSend({op:'end'}); }
 function drawUndo(){ drawModel.strokes.pop(); drawRenderControl(); if(drawLive) drawSend({op:'undo'}); }
 function drawClear(){ drawModel.strokes=[]; drawRenderControl(); if(drawLive) drawSend({op:'clear'}); }
@@ -1319,8 +1493,10 @@ function pjHandleDraw(m){
   switch(m.op){
     case 'show': drawModel.strokes=m.strokes||[]; drawModel.board=m.board||'light'; pjDrawRender(); pjDrawShow(true); break;
     case 'hide': pjDrawShow(false); break;
-    case 'begin': drawModel.strokes.push({color:m.s.color,w:m.s.w,erase:m.s.erase,pts:[m.pt]}); pjDrawRender(); break;
-    case 'pt': { const st=drawModel.strokes[drawModel.strokes.length-1]; if(st){ st.pts.push({x:m.x,y:m.y}); pjDrawRender(); } break; }
+    /* begin y pt pintan SOLO el tramo nuevo: son los que llegan cientos de veces
+       mientras se dibuja. El resto de operaciones sí repintan entero. */
+    case 'begin': drawModel.strokes.push({color:m.s.color,w:m.s.w,erase:m.s.erase,pts:[m.pt]}); drawPaintLast($('#pjDrawCv')); break;
+    case 'pt': { const st=drawModel.strokes[drawModel.strokes.length-1]; if(st){ st.pts.push({x:m.x,y:m.y}); drawPaintLast($('#pjDrawCv')); } break; }
     case 'end': break;
     case 'undo': drawModel.strokes.pop(); pjDrawRender(); break;
     case 'clear': drawModel.strokes=[]; pjDrawRender(); break;
@@ -1334,6 +1510,7 @@ function pjHandleDraw(m){
    una vez conectados, los trazos van P2P por la Wi-Fi. El host los mete en el
    mismo drawModel de la Fase A y (si está "en vivo") los reenvía a proyección. */
 let PEER=null, HCONN=null, PZCONN=null, drawRemote=false, pairCode=null, pzWired=false;
+let _pairIntentos=0;   // tope de reintentos al buscar un código libre
 function loadPeerJS(){ return new Promise((res,rej)=>{ if(window.Peer) return res();
   const s=document.createElement('script'); s.src='peerjs.min.js';
   s.onload=()=>{ if(!window.Peer && window.peerjs && window.peerjs.Peer) window.Peer=window.peerjs.Peer; window.Peer?res():rej(new Error('sin Peer')); };
@@ -1367,17 +1544,20 @@ async function drawPairQR(code){
 /* --- HOST (laptop): recibe trazos de la tablet --- */
 function drawApplyRemote(m){
   if(!m||!m.op) return;
+  let soloTramo=false;
   switch(m.op){
-    case 'begin': drawModel.strokes.push({color:m.s.color,w:m.s.w,erase:m.s.erase,pts:[m.pt]}); break;
-    case 'pt': { const st=drawModel.strokes[drawModel.strokes.length-1]; if(st) st.pts.push({x:m.x,y:m.y}); break; }
+    case 'begin': drawModel.strokes.push({color:m.s.color,w:m.s.w,erase:m.s.erase,pts:[m.pt]}); soloTramo=true; break;
+    case 'pt': { const st=drawModel.strokes[drawModel.strokes.length-1]; if(!st) return; st.pts.push({x:m.x,y:m.y}); soloTramo=true; break; }
     case 'end': break;
     case 'undo': drawModel.strokes.pop(); break;
     case 'clear': drawModel.strokes=[]; break;
     case 'board': drawModel.board=m.board; { const b=$('#drawBoard'); if(b) b.textContent=drawModel.board==='light'?'Fondo oscuro':'Fondo claro'; } break;
     default: return;
   }
-  drawRenderControl();
-  if(drawLive) drawSend(m);   // reenvía el mismo trazo a la ventana de proyección
+  /* Se reenvía ANTES de pintar en local: la proyección es lo que ve la
+     congregación y no tiene por qué esperar a que se pinte el monitor. */
+  if(drawLive) drawSend(m);
+  if(soloTramo) drawRenderControlLast(); else drawRenderControl();
 }
 function drawSetRemoteMonitor(on){
   drawRemote=!!on;
@@ -1392,6 +1572,7 @@ async function drawPairStart(){
   { const u=$('#drawPairUrl'); if(u) u.textContent=pairUrlBase()+'?view=pizarra'; }
   drawPairSetStatus('Cargando conexión…');
   try{ await loadPeerJS(); }catch(_){ drawPairSetStatus('No se pudo cargar la conexión (revisa el internet).'); return; }
+  _pairIntentos=0;
   drawPairReg();
 }
 function drawPairReg(){
@@ -1402,19 +1583,38 @@ function drawPairReg(){
   if(PEER){ try{ PEER.destroy(); }catch(_){} PEER=null; }
   PEER=new Peer(pairId(code));
   PEER.on('error',err=>{ const t=(err&&err.type)||'?';
-    if(t==='unavailable-id'){ drawPairReg(); }          // código ocupado: prueba otro
+    /* Codigo ocupado: se prueba otro. CON TOPE — antes se llamaba a si misma sin
+       limite, y si el servidor respondia 'ocupado' siempre (o se quedaba sin
+       codigos) la pestaña se colgaba en un bucle infinito. */
+    if(t==='unavailable-id'){
+      if(++_pairIntentos<=8) drawPairReg();
+      else drawPairSetStatus('No hay códigos libres ahora mismo. Cierra y vuelve a abrir el emparejamiento.');
+    }
     else { drawPairSetStatus('Error de conexión ('+t+').'); } });
   PEER.on('connection',conn=>{
+    /* Si ya había una tablet conectada, se cierra antes de quedarse con la nueva:
+       antes se sobrescribía HCONN y la anterior quedaba abierta mandando trazos
+       en la sombra. */
+    if(HCONN && HCONN!==conn){ try{ HCONN.close(); }catch(_){} }
     HCONN=conn;
     conn.on('open',()=>{ drawPairSetStatus('Tablet conectada ✓'); drawSetRemoteMonitor(true);
       try{ conn.send({op:'sync',board:drawModel.board,strokes:drawModel.strokes}); }catch(_){} });
     conn.on('data',m=>drawApplyRemote(m));
-    conn.on('close',()=>{ drawPairSetStatus('Tablet desconectada. Esperando…'); HCONN=null; drawSetRemoteMonitor(false); });
+    /* Solo suelta el mando si la que se va es la conexión vigente (una conexión
+       vieja al cerrarse no debe apagar el monitor de la que está en uso). */
+    conn.on('close',()=>{ if(HCONN!==conn) return;
+      drawPairSetStatus('Tablet desconectada. Esperando…'); HCONN=null; drawSetRemoteMonitor(false); });
   });
 }
 function drawPairStop(){
+  if(HCONN){ try{ HCONN.close(); }catch(_){} }
   if(PEER){ try{ PEER.destroy(); }catch(_){} PEER=null; }
-  HCONN=null; drawSetRemoteMonitor(false);
+  HCONN=null; pairCode=null; _pairIntentos=0; drawSetRemoteMonitor(false);
+  /* Se limpian también el código y el QR: si no, al volver a abrir el panel se
+     veía el código anterior, que ya no sirve para nada. */
+  { const c=$('#drawPairCode'); if(c) c.textContent='····'; }
+  { const box=$('#drawPairQrBox'); if(box) box.style.display='none'; }
+  drawPairSetStatus('');
   const panel=$('#drawPairPanel'); if(panel) panel.style.display='none';
 }
 
@@ -1424,6 +1624,8 @@ function pzStatus(t){ const s=$('#pzStatus'); if(s) s.textContent=t||''; }
 function pzSetConn(on){ const c=$('#pzConn'); if(c){ c.classList.toggle('off',!on); c.textContent= on?'● conectada':'● sin conexión'; } }
 function pzRender(){ drawPaint($('#pzCv')); const b=$('#pzBoard'); if(b) b.style.background=drawBoardColor();
   const h=$('#pzHint'); if(h) h.style.display= drawModel.strokes.length?'none':'flex'; }
+function pzRenderLast(){ drawPaintLast($('#pzCv'));
+  const h=$('#pzHint'); if(h && drawModel.strokes.length) h.style.display='none'; }
 function pzFitPad(){ const wrap=$('#pzPadWrap'), pad=$('#pzPad'); if(!wrap||!pad) return;
   const W=wrap.clientWidth-16, H=wrap.clientHeight-16; if(W<=0||H<=0) return;
   let w=W, h=w*9/16; if(h>H){ h=H; w=h*16/9; }
@@ -1432,10 +1634,18 @@ function pzPoint(e){ const cv=$('#pzCv'); const r=cv.getBoundingClientRect();
   return {x:Math.min(1,Math.max(0,(e.clientX-r.left)/r.width)), y:Math.min(1,Math.max(0,(e.clientY-r.top)/r.height))}; }
 let pzFsTried=false;
 function pzDown(e){ e.preventDefault(); const cv=$('#pzCv'); try{ cv.setPointerCapture(e.pointerId); }catch(_){}
-  if(!pzFsTried){ pzFsTried=true; if(!document.fullscreenElement){ try{ if(document.documentElement.requestFullscreen) document.documentElement.requestFullscreen(); }catch(_){} } }
+  /* requestFullscreen devuelve una promesa: si el navegador la rechaza (no lo
+     considera un gesto del usuario, o la tablet no lo permite) el try/catch no
+     la atrapa y queda un error suelto en consola. Se traga aquí. */
+  if(!pzFsTried){ pzFsTried=true; if(!document.fullscreenElement){ try{
+    const p=document.documentElement.requestFullscreen && document.documentElement.requestFullscreen();
+    if(p && p.catch) p.catch(()=>{});
+  }catch(_){} } }
   const pt=pzPoint(e); drawCur={color:drawPen.color,w:drawPen.w,erase:drawPen.erase,pts:[pt]}; drawModel.strokes.push(drawCur);
-  pzSend({op:'begin',s:{color:drawCur.color,w:drawCur.w,erase:drawCur.erase},pt}); pzRender(); }
-function pzMove(e){ if(!drawCur) return; e.preventDefault(); const pt=pzPoint(e); drawCur.pts.push(pt); pzSend({op:'pt',x:pt.x,y:pt.y}); pzRender(); }
+  pzSend({op:'begin',s:{color:drawCur.color,w:drawCur.w,erase:drawCur.erase},pt}); pzRenderLast(); }
+/* En la tablet es donde más se notaba: repintar el dibujo entero por cada punto
+   del dedo es justo lo que hacía que fuera a tirones en un aparato modesto. */
+function pzMove(e){ if(!drawCur) return; e.preventDefault(); const pt=pzPoint(e); drawCur.pts.push(pt); pzSend({op:'pt',x:pt.x,y:pt.y}); pzRenderLast(); }
 function pzUp(){ if(!drawCur) return; drawCur=null; pzSend({op:'end'}); }
 function pzShowPad(){ $('#pzConnect').style.display='none'; $('#pzPadWrap').style.display='flex'; $('#pzToolbar').style.display='flex';
   pzFitPad(); pzRender();
@@ -1867,6 +2077,7 @@ function wireControls(){
   $('#vidLoop').onclick=()=>{ if(!liveState||liveState.kind!=='video') return; liveState.loop=!liveState.loop;
     try{ localStorage.setItem('proclama.live.v1', JSON.stringify({t:Date.now(),state:liveState})); }catch(_){}
     vidSet('loop',liveState.loop); const lb=$('#vidLoop'); if(lb){ lb.lastChild.textContent='Bucle: '+(liveState.loop?'on':'off'); lb.classList.toggle('on',!!liveState.loop); } };
+  $('#vidFit').onclick=()=>{ if(!liveState) return; fitSet(fitEsCompleto(liveState.fit)?'cover':'contain'); };
   window.addEventListener('resize',fitAllControl);
   setInterval(updateProyBtn,1500);
   drawInitControl();
@@ -1918,41 +2129,107 @@ async function sanitizeBannerRefs(){
     if(dirty) saveCfg();
   }catch(e){}
 }
+/* Al subir se mide el archivo y, si NO es 16:9, entra en 'Completo' solo: es lo
+   que casi siempre se quiere con una foto o un video de celular. Queda marcado
+   con fitAuto para poder decir en la ficha que lo eligió la app. */
 async function addBanners(files){
-  for(const f of files){ if(!f.type.startsWith('image/')) continue; await idbPut('banners',{id:uid(),nombre:f.name.replace(/\.[^.]+$/,''),blob:f,fecha:Date.now(),fondoFav:false}); }
-  toast('Imágenes guardadas'); renderBanners();
+  let raros=0;
+  for(const f of files){ if(!f.type.startsWith('image/')) continue;
+    const {w,h}=await medirMedio(f);
+    const fit=fitPorOmision(w,h); if(fit==='contain') raros++;
+    await idbPut('banners',{id:uid(),nombre:f.name.replace(/\.[^.]+$/,''),blob:f,fecha:Date.now(),fondoFav:false,w,h,fit,fitAuto:true});
+  }
+  toast(raros?'Imágenes guardadas ('+raros+' no son 16:9: se mostrarán completas)':'Imágenes guardadas');
+  renderBanners();
 }
 /* Los videos se guardan en el store 'videos', que NO se incluye en el respaldo JSON. */
 async function addVideos(files){
-  let n=0;
-  for(const f of files){ if(!f.type.startsWith('video/')) continue; await idbPut('videos',{id:uid(),nombre:f.name.replace(/\.[^.]+$/,''),blob:f,fecha:Date.now()}); n++; }
-  toast(n?'Video guardado':'Formato de video no válido'); renderBanners();
+  let n=0, raros=0;
+  for(const f of files){ if(!f.type.startsWith('video/')) continue;
+    const {w,h}=await medirMedio(f);
+    const fit=fitPorOmision(w,h); if(fit==='contain') raros++;
+    await idbPut('videos',{id:uid(),nombre:f.name.replace(/\.[^.]+$/,''),blob:f,fecha:Date.now(),w,h,fit,fitAuto:true}); n++;
+  }
+  toast(!n?'Formato de video no válido':(raros?'Video guardado (no es 16:9: se mostrará completo)':'Video guardado'));
+  renderBanners();
 }
 async function renderBanners(){
   const host=$('#bannerGrid');
   const imgs=await idbAll('banners'); const vids=await idbAll('videos');
   if(!imgs.length && !vids.length){ host.innerHTML=emptyState('banners'); return; }
+  /* Los archivos subidos antes de la v27 no traen medidas. Se miden una sola vez
+     al abrir el módulo y se guardan, para que también elijan encuadre solos. */
+  await Promise.all(imgs.concat(vids).map(async rec=>{
+    if(rec.fit) return;
+    const store = rec.blob && rec.blob.type && rec.blob.type.startsWith('video/') ? 'videos' : 'banners';
+    try{
+      const {w,h}=await medirMedio(rec.blob);
+      rec.w=w; rec.h=h; rec.fit=fitPorOmision(w,h); rec.fitAuto=true;
+      await idbPut(store,rec);
+    }catch(e){ rec.fit='cover'; }
+  }));
   imgs.sort((a,b)=>b.fecha-a.fecha); vids.sort((a,b)=>b.fecha-a.fecha);
   /* Mezcla imágenes y videos por fecha (más recientes primero). */
   const items=imgs.map(b=>Object.assign({_kind:'img'},b)).concat(vids.map(v=>Object.assign({_kind:'vid'},v))).sort((a,b)=>b.fecha-a.fecha);
   const playSvg='<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="11" fill="rgba(20,16,31,.55)"/><path d="M10 8.5v7l6-3.5z" fill="#fff"/></svg>';
+  /* Etiqueta con la forma real del archivo (la miniatura siempre se ve en 16:9
+     recortada, así que si no se dice, un video vertical no se distingue). */
+  const etqForma=it=>{
+    if(!it.w||!it.h) return '';
+    const raro = fitPorOmision(it.w,it.h)==='contain';   // no es 16:9: se enseña siempre
+    return '<div class="ratio'+(raro?' raro':'')+'" title="'+it.w+' × '+it.h+'">'+proporcionTxt(it.w,it.h)+'</div>';
+  };
+  const filaFit=it=>{
+    const store = it._kind==='vid' ? 'videos' : 'banners';
+    const fit = fitEsCompleto(it.fit) ? 'contain' : 'cover';
+    return '<div class="fitrow"><button class="fitbtn'+(fit==='cover'?' llenar':'')+'" data-fit="'+it.id+'" data-store="'+store+'"'
+      +' title="Cambia entre mostrarlo completo (con franjas) y llenar la pantalla recortándolo">'
+      + fitIcono(fit)+fitNombre(fit)+'</button>'
+      + ((it.fitAuto && fit==='contain') ? '<span class="auto" title="Lo eligió Proclama al medir el archivo">auto</span>' : '')
+      + '</div>';
+  };
   let h='<div class="tiles">';
   items.forEach(it=>{
     if(it._kind==='vid'){
       h+='<div class="tile"><button class="thumb" data-vid="'+it.id+'"><span class="vplay">'+playSvg+'</span></button>'
         +'<div class="vbadge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m10 8 6 4-6 4z"/><rect x="3" y="5" width="18" height="14" rx="2"/></svg>VIDEO</div>'
+        +etqForma(it)
         +'<div class="acts"><button class="iconbtn danger" data-delvid="'+it.id+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>'
-        +'<div class="meta"><div class="t">'+escapeHTML(it.nombre)+'</div><div class="s">'+fmtDate(it.fecha)+' · video</div></div></div>';
+        +'<div class="meta"><div class="t">'+escapeHTML(it.nombre)+'</div><div class="s">'+fmtDate(it.fecha)+' · video</div>'+filaFit(it)+'</div></div>';
     } else {
       h+='<div class="tile"><button class="thumb" data-id="'+it.id+'"></button>'
         +'<button class="fav'+(it.fondoFav?' on':'')+'" data-fav="'+it.id+'" title="Favorito como fondo de versículo"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l2.5 6.3L21 10l-4.8 4.2L17.5 21 12 17.5 6.5 21l1.3-6.8L3 10l6.5-.7z"/></svg></button>'
+        +etqForma(it)
         +'<div class="acts"><button class="iconbtn danger" data-del="'+it.id+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>'
-        +'<div class="meta"><div class="t">'+escapeHTML(it.nombre)+'</div><div class="s">'+fmtDate(it.fecha)+(it.fondoFav?' · fondo':'')+'</div></div></div>';
+        +'<div class="meta"><div class="t">'+escapeHTML(it.nombre)+'</div><div class="s">'+fmtDate(it.fecha)+(it.fondoFav?' · fondo':'')+'</div>'+filaFit(it)+'</div></div>';
     }
   });
   h+='</div>'; host.innerHTML=h;
-  for(const b of imgs){ const u=await blobURL('banners',b.id); const th=$('.thumb[data-id="'+b.id+'"]',host); if(u&&th) th.style.backgroundImage='url('+u+')'; if(th) th.onclick=()=>setPreview({kind:'image',imgStore:'banners',imgId:b.id}); }
-  for(const v of vids){ const th=$('.thumb[data-vid="'+v.id+'"]',host); if(!th) continue; th.onclick=()=>setPreview({kind:'video',videoStore:'videos',videoId:v.id,sound:true,loop:false}); const u=await blobURL('videos',v.id); if(u){ const poster=await videoPoster(u); if(poster) th.style.backgroundImage='url('+poster+')'; } }
+  for(const b of imgs){ const u=await blobURL('banners',b.id); const th=$('.thumb[data-id="'+b.id+'"]',host); if(u&&th) th.style.backgroundImage='url('+u+')'; if(th) th.onclick=()=>setPreview({kind:'image',imgStore:'banners',imgId:b.id,fit:b.fit||'cover'}); }
+  /* Las miniaturas de video se sacaban UNA POR UNA, con 3 s de tope cada una:
+     con seis videos el módulo tardaba hasta 18 s en pintarse. Ahora van a la vez. */
+  await Promise.all(vids.map(async v=>{
+    const th=$('.thumb[data-vid="'+v.id+'"]',host); if(!th) return;
+    th.onclick=()=>setPreview({kind:'video',videoStore:'videos',videoId:v.id,sound:true,loop:false,fit:v.fit||'cover'});
+    const u=await blobURL('videos',v.id); if(!u) return;
+    const poster=await videoPoster(u); if(poster) th.style.backgroundImage='url('+poster+')';
+  }));
+  /* Botón de encuadre de cada ficha: se recuerda con el archivo, así que el
+     domingo ya está listo sin tocar nada. Si es lo que está en vivo, el cambio
+     se aplica también a la proyección, sin reiniciar el video. */
+  $$('[data-fit]',host).forEach(x=>x.onclick=async()=>{
+    const store=x.dataset.store, id=x.dataset.fit;
+    const rec=await idbGet(store,id); if(!rec) return;
+    rec.fit = fitEsCompleto(rec.fit) ? 'cover' : 'contain';
+    rec.fitAuto=false;
+    await idbPut(store,rec);
+    const enVivo = liveState && ((liveState.imgId||liveState.videoId)===id);
+    if(enVivo){ liveState.fit=rec.fit; aplicarFit($('#programScreen'),rec.fit);
+      if(channel) channel.postMessage({type:'vid',op:'fit',fit:rec.fit}); updateVidControls(); }
+    if(previewState && (previewState.imgId||previewState.videoId)===id){
+      previewState.fit=rec.fit; aplicarFit($('#previewScreen'),rec.fit); }
+    renderBanners();
+  });
   $$('[data-fav]',host).forEach(x=>x.onclick=async()=>{ const rec=await idbGet('banners',x.dataset.fav); rec.fondoFav=!rec.fondoFav; await idbPut('banners',rec); renderBanners(); });
   $$('[data-del]',host).forEach(x=>x.onclick=async()=>{ const id=x.dataset.del; await idbDel('banners',id); dropURL('banners',id); _bgImgCache.delete('banners:'+id); await sanitizeBannerRefs(); renderBanners(); });
   $$('[data-delvid]',host).forEach(x=>x.onclick=async()=>{ const id=x.dataset.delvid; if(!await cvConfirm('¿Eliminar este video?',{ok:'Eliminar'})) return; await idbDel('videos',id); dropURL('videos',id); renderBanners(); });
@@ -2522,12 +2799,53 @@ function initProyeccion(){
   window.addEventListener('pagehide',()=>{ try{ localStorage.removeItem(PROY_KEY); }catch(_){} });
   pjRender({kind:'logo'});
 }
+/* ====== Aviso de version nueva (hallazgo A7) ======
+   El service worker sirve primero del cache, asi que despues de publicar la
+   PRIMERA apertura corre todavia la version anterior y hay que recargar otra
+   vez. Antes eso solo se descubria mirando el numero al pie de la barra. Ahora
+   ese mismo numero se convierte en un aviso pulsable.
+   Nada de confirm() nativo ni de recargar solo: la ventana de proyeccion esta
+   en pantalla completa y mandar el foco a un dialogo del navegador la saca
+   (ver regla #1). Se usa cvConfirm, que es el dialogo propio de la app. */
+let _versionNuevaAvisada=false;
+function marcarVersionNueva(){
+  if(_versionNuevaAvisada) return; _versionNuevaAvisada=true;
+  const rv=$('#railVer'); if(!rv) return;
+  rv.classList.add('nueva');
+  rv.setAttribute('role','button');
+  rv.setAttribute('tabindex','0');
+  rv.title='Hay una versión nueva de Proclama. Pulsa para recargar.';
+  rv.innerHTML=APP_VERSION+'<br>versión nueva ↻';
+  const recargar=async()=>{
+    const ok=await cvConfirm('Hay una versión nueva de Proclama. ¿Recargar ahora? La ventana de proyección no se cierra y sigue mostrando lo mismo.',{ok:'Recargar',danger:false});
+    if(ok) location.reload();
+  };
+  rv.onclick=recargar;
+  rv.onkeydown=e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); recargar(); } };
+  toast('Hay una versión nueva de Proclama. Recarga cuando puedas (abajo a la izquierda).');
+}
+
 async function init(){
   /* El service worker se registra SIEMPRE, antes de repartir por vista: la tablet
      entra por ?view=pizarra y antes salia por el return de abajo sin cachear nada,
      asi que dependia del internet en cada culto. Sin await, para no retrasar nada. */
   if('serviceWorker' in navigator){ try{
-    navigator.serviceWorker.register('sw.js').catch(()=>{});
+    navigator.serviceWorker.register('sw.js').then(reg=>{
+      if(!reg || IS_PROY || IS_PZ) return;      // el aviso solo en el control
+      /* Si ya hay uno esperando al abrir, es que se publicó entre sesiones. */
+      if(reg.waiting && navigator.serviceWorker.controller) marcarVersionNueva();
+      reg.addEventListener('updatefound', ()=>{
+        const nuevo = reg.installing; if(!nuevo) return;
+        nuevo.addEventListener('statechange', ()=>{
+          /* 'installed' + ya había un controlador = versión nueva lista.
+             Sin controlador es la primera instalación: no se avisa. */
+          if(nuevo.state==='installed' && navigator.serviceWorker.controller) marcarVersionNueva();
+        });
+      });
+      /* sw.js hace skipWaiting(), así que a veces el relevo llega por aquí. */
+      const habiaControl = !!navigator.serviceWorker.controller;
+      navigator.serviceWorker.addEventListener('controllerchange', ()=>{ if(habiaControl) marcarVersionNueva(); });
+    }).catch(()=>{});
     /* El SW ya no se cae entero si falla un archivo (ver sw.js): avisa cuales
        faltaron para no descubrirlo el domingo sin internet. */
     navigator.serviceWorker.addEventListener('message', ev=>{
